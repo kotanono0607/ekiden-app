@@ -55,7 +55,7 @@
             <tbody id="playerTableBody">
                 {% for player in players %}
                 <tr class="player-item" data-name="{{ player.name }}" data-group="{{ player.group }}">
-                    <td class="text-muted">{{ player.id }}</td>
+                    <td class="text-muted">{{ player.registration_number }}</td>
                     <td>
                         <a href="/player/{{ player.id }}" class="text-decoration-none fw-bold">
                             {{ player.name }}

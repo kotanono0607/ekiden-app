@@ -34,8 +34,9 @@ def clear_cache():
 # スプレッドシートの実際のカラム名をアプリの内部名にマッピング
 
 COLUMN_MAPPING = {
-    'registration_number': 'id',
     'affiliation': 'group',
+    'category': 'grade',
+    'comment': 'message',
 }
 
 def normalize_player(player):
@@ -81,8 +82,8 @@ def get_all_players():
     records = worksheet.get_all_records()
     # カラム名を正規化
     records = normalize_players(records)
-    # activeがTRUEの選手のみフィルタ
-    result = [p for p in records if str(p.get('active', 'TRUE')).upper() == 'TRUE']
+    # is_deletedがTRUEでない選手のみフィルタ
+    result = [p for p in records if str(p.get('is_deleted', '')).upper() != 'TRUE']
     _set_cache('all_players', result)
     return result
 
