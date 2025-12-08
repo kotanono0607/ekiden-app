@@ -44,6 +44,17 @@ RECORD_COLUMN_MAPPING = {
     'race_name': 'race_name',
 }
 
+# スプレッドシートの期待するヘッダー（重複対策）
+PLAYER_EXPECTED_HEADERS = [
+    'id', 'registration_number', 'name', 'affiliation', 'category',
+    'target_1500m', 'target_3000m', 'target_5000m', 'target_10000m',
+    'target_half', 'target_full', 'comment', 'is_deleted', 'created_at', 'updated_at'
+]
+
+RECORD_EXPECTED_HEADERS = [
+    'record_id', 'player_id', 'race_name', 'date', 'section', 'time', 'memo', 'created_at', 'updated_at'
+]
+
 def normalize_player(player):
     """スプレッドシートのカラム名をアプリ内部の名前に変換"""
     normalized = {}
@@ -95,7 +106,7 @@ def get_all_players():
     except gspread.exceptions.WorksheetNotFound:
         return []
 
-    records = worksheet.get_all_records()
+    records = worksheet.get_all_records(expected_headers=PLAYER_EXPECTED_HEADERS)
     # カラム名を正規化
     records = normalize_players(records)
     # is_deletedがTRUEでない選手のみフィルタ
@@ -114,7 +125,7 @@ def get_all_players_including_inactive():
         worksheet = sh.worksheet('Players')
     except gspread.exceptions.WorksheetNotFound:
         return []
-    records = worksheet.get_all_records()
+    records = worksheet.get_all_records(expected_headers=PLAYER_EXPECTED_HEADERS)
     # カラム名を正規化
     result = normalize_players(records)
     _set_cache('all_players_inactive', result)
@@ -128,7 +139,7 @@ def get_player_by_id(player_id):
     except gspread.exceptions.WorksheetNotFound:
         return None
 
-    records = worksheet.get_all_records()
+    records = worksheet.get_all_records(expected_headers=PLAYER_EXPECTED_HEADERS)
     # カラム名を正規化
     records = normalize_players(records)
     for player in records:
@@ -215,7 +226,7 @@ def get_all_records():
     except gspread.exceptions.WorksheetNotFound:
         return []
 
-    records = worksheet.get_all_records()
+    records = worksheet.get_all_records(expected_headers=RECORD_EXPECTED_HEADERS)
     # カラム名を正規化
     records = normalize_records(records)
     # 行番号を追加（編集・削除用）
