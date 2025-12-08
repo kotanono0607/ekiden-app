@@ -2,9 +2,33 @@ import gspread
 import google.auth
 import json
 from datetime import datetime
+import time
 
 # スプレッドシートID
 SPREADSHEET_ID = '1emj5sW_saJpydDTva7mH5pi00YA2QIloCi_rKx_cbdU'
+
+# ============ キャッシュ機能 ============
+# APIレート制限対策（60リクエスト/分）
+
+_cache = {}
+CACHE_TTL = 30  # キャッシュ有効期間（秒）
+
+def _get_cache(key):
+    """キャッシュからデータを取得"""
+    if key in _cache:
+        data, timestamp = _cache[key]
+        if time.time() - timestamp < CACHE_TTL:
+            return data
+    return None
+
+def _set_cache(key, data):
+    """キャッシュにデータを保存"""
+    _cache[key] = (data, time.time())
+
+def clear_cache():
+    """キャッシュをクリア"""
+    global _cache
+    _cache = {}
 
 def get_client():
     """Google Sheets クライアントを取得"""
@@ -22,7 +46,11 @@ def get_spreadsheet():
 # 拡張カラム: id, name, group, best_5000m, target_time, active, grade, school, height, weight, message, photo_url
 
 def get_all_players():
-    """全選手を取得"""
+    """全選手を取得（キャッシュ付き）"""
+    cached = _get_cache('all_players')
+    if cached is not None:
+        return cached
+
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('Players')
@@ -31,16 +59,24 @@ def get_all_players():
 
     records = worksheet.get_all_records()
     # activeがTRUEの選手のみフィルタ
-    return [p for p in records if str(p.get('active', 'TRUE')).upper() == 'TRUE']
+    result = [p for p in records if str(p.get('active', 'TRUE')).upper() == 'TRUE']
+    _set_cache('all_players', result)
+    return result
 
 def get_all_players_including_inactive():
-    """引退選手も含む全選手を取得"""
+    """引退選手も含む全選手を取得（キャッシュ付き）"""
+    cached = _get_cache('all_players_inactive')
+    if cached is not None:
+        return cached
+
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('Players')
     except gspread.exceptions.WorksheetNotFound:
         return []
-    return worksheet.get_all_records()
+    result = worksheet.get_all_records()
+    _set_cache('all_players_inactive', result)
+    return result
 
 def get_player_by_id(player_id):
     """IDで選手を取得"""
@@ -77,6 +113,7 @@ def add_player(name, group, best_5000m='', target_time='', grade='', school='', 
     new_id = len(all_values)
 
     worksheet.append_row([new_id, name, group, best_5000m, target_time, 'TRUE', grade, school, height, weight, message, photo_url])
+    clear_cache()  # キャッシュクリア
     return new_id
 
 def update_player(player_id, name, group, best_5000m='', target_time='', active='TRUE', grade='', school='', height='', weight='', message='', photo_url=''):
@@ -96,6 +133,7 @@ def update_player(player_id, name, group, best_5000m='', target_time='', active=
             # 行を更新
             row_num = i + 1
             worksheet.update(f'A{row_num}:L{row_num}', [[player_id, name, group, best_5000m, target_time, active, grade, school, height, weight, message, photo_url]])
+            clear_cache()  # キャッシュクリア
             return True
     return False
 
@@ -122,7 +160,11 @@ def delete_player(player_id):
 # ============ Records (記録データ) ============
 
 def get_all_records():
-    """全記録を取得"""
+    """全記録を取得（キャッシュ付き）"""
+    cached = _get_cache('all_records')
+    if cached is not None:
+        return cached
+
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('Records')
@@ -133,6 +175,7 @@ def get_all_records():
     # 行番号を追加（編集・削除用）
     for i, record in enumerate(records):
         record['row_index'] = i + 2  # ヘッダー行 + 0-indexed
+    _set_cache('all_records', records)
     return records
 
 def get_records_by_player(player_id):
@@ -156,6 +199,7 @@ def add_record(player_id, event, time, memo='', date=None):
         date = date.replace('-', '/')
 
     worksheet.append_row([date, player_id, event, time, memo])
+    clear_cache()  # キャッシュクリア
 
 def update_record(row_index, date, player_id, event, time, memo=''):
     """記録を更新"""
@@ -167,6 +211,7 @@ def update_record(row_index, date, player_id, event, time, memo=''):
 
     date = date.replace('-', '/')
     worksheet.update(f'A{row_index}:E{row_index}', [[date, player_id, event, time, memo]])
+    clear_cache()  # キャッシュクリア
     return True
 
 def delete_record(row_index):
@@ -178,6 +223,7 @@ def delete_record(row_index):
         return False
 
     worksheet.delete_rows(row_index)
+    clear_cache()  # キャッシュクリア
     return True
 
 def get_record_by_row(row_index):
