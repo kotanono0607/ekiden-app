@@ -12,7 +12,7 @@ def index():
         credentials, project = google.auth.default(scopes=['https://www.googleapis.com/auth/spreadsheets'])
         gc = gspread.authorize(credentials)
 
-        # 2. あなたのスプレッドシートを開く (ID設定済み)
+        # 2. あなたのスプレッドシートを開く
         SPREADSHEET_ID = '1emj5sW_saJpydDTva7mH5pi00YA2QIloCi_rKx_cbdU'
         sh = gc.open_by_key(SPREADSHEET_ID)
         
