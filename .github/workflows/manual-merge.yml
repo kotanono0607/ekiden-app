@@ -1,12 +1,10 @@
-name: Manual Merge to Main
+name: Auto Merge Claude Branch
 
 on:
-  workflow_dispatch:
-    inputs:
-      source_branch:
-        description: 'マージ元のブランチ名（例: develop, feature/xxx）'
-        required: true
-        default: 'develop'
+  # 'claude/' で始まるブランチにプッシュされたら自動実行
+  push:
+    branches:
+      - 'claude/**'
 
 jobs:
   merge-to-main:
@@ -25,14 +23,20 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Merge Branch
+      - name: Merge to Main
         run: |
-          # ターゲットのmainブランチに切り替え
-          git checkout main
+          # 更新されたブランチ名を取得
+          CURRENT_BRANCH=${{ github.ref_name }}
           
-          # マージを実行
-          echo "Merging ${{ inputs.source_branch }} into main..."
-          git merge origin/${{ inputs.source_branch }} --allow-unrelated-histories
+          echo "Target branch: $CURRENT_BRANCH"
+          
+          # mainに切り替え
+          git checkout main
+          git pull origin main
+          
+          # マージ実行
+          echo "Merging $CURRENT_BRANCH into main..."
+          git merge origin/$CURRENT_BRANCH --allow-unrelated-histories
           
           # 結果をプッシュ
           git push origin main
