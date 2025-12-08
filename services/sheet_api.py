@@ -30,6 +30,27 @@ def clear_cache():
     global _cache
     _cache = {}
 
+# ============ カラム名の正規化 ============
+# スプレッドシートの実際のカラム名をアプリの内部名にマッピング
+
+COLUMN_MAPPING = {
+    'registration_number': 'id',
+    'affiliation': 'group',
+}
+
+def normalize_player(player):
+    """スプレッドシートのカラム名をアプリ内部の名前に変換"""
+    normalized = {}
+    for key, value in player.items():
+        # マッピングがあれば変換、なければそのまま
+        new_key = COLUMN_MAPPING.get(key, key)
+        normalized[new_key] = value
+    return normalized
+
+def normalize_players(players):
+    """選手リストを正規化"""
+    return [normalize_player(p) for p in players]
+
 def get_client():
     """Google Sheets クライアントを取得"""
     credentials, project = google.auth.default(
@@ -58,6 +79,8 @@ def get_all_players():
         return []
 
     records = worksheet.get_all_records()
+    # カラム名を正規化
+    records = normalize_players(records)
     # activeがTRUEの選手のみフィルタ
     result = [p for p in records if str(p.get('active', 'TRUE')).upper() == 'TRUE']
     _set_cache('all_players', result)
@@ -74,7 +97,9 @@ def get_all_players_including_inactive():
         worksheet = sh.worksheet('Players')
     except gspread.exceptions.WorksheetNotFound:
         return []
-    result = worksheet.get_all_records()
+    records = worksheet.get_all_records()
+    # カラム名を正規化
+    result = normalize_players(records)
     _set_cache('all_players_inactive', result)
     return result
 
@@ -87,6 +112,8 @@ def get_player_by_id(player_id):
         return None
 
     records = worksheet.get_all_records()
+    # カラム名を正規化
+    records = normalize_players(records)
     for player in records:
         if str(player.get('id')) == str(player_id):
             return player
