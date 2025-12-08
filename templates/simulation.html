@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}シミュレーション - 駅伝アプリ{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-slot {
+        min-height: 80px;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+    .section-slot.drag-over {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    .section-slot .player-badge {
+        cursor: grab;
+    }
+    .player-badge {
+        padding: 10px 15px;
+        background-color: #0d6efd;
+        color: white;
+        border-radius: 20px;
+        cursor: grab;
+        user-select: none;
+    }
+    .player-badge:active {
+        cursor: grabbing;
+    }
+    .player-pool .player-badge {
+        margin: 5px;
+        display: inline-block;
+    }
+    .section-label {
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-diagram-3 text-primary"></i> 区間シミュレーション</h2>
+    <button class="btn btn-success" onclick="saveSimulation()">
+        <i class="bi bi-save"></i> 保存
+    </button>
+</div>
+
+<div class="row">
+    <!-- 区間配置エリア -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-signpost-2"></i> 区間オーダー</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">シミュレーション名</label>
+                    <input type="text" class="form-control" id="simTitle" placeholder="例: 県大会想定オーダー">
+                </div>
+                <hr>
+                <div class="row g-3" id="sectionArea">
+                    {% for i in range(1, 8) %}
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="section-label text-primary me-2">{{ i }}区</span>
+                            <small class="text-muted">
+                                {% if i == 1 %}(スタート)
+                                {% elif i == 7 %}(アンカー)
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="section-slot" data-section="{{ i }}"
+                             ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                            <span class="text-muted">選手をドラッグ</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 選手プール -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-people"></i> 選手一覧</h5>
+            </div>
+            <div class="card-body player-pool" id="playerPool">
+                {% for player in players %}
+                <span class="player-badge" draggable="true"
+                      data-player-id="{{ player.id }}"
+                      data-player-name="{{ player.name }}"
+                      ondragstart="drag(event)">
+                    {{ player.name }}
+                    {% if player.best_5000m %}
+                    <small>({{ player.best_5000m }})</small>
+                    {% endif %}
+                </span>
+                {% endfor %}
+                {% if not players %}
+                <div class="alert alert-info mb-0">
+                    選手が登録されていません
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 保存済みシミュレーション -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-folder"></i> 保存済み</h5>
+            </div>
+            <div class="card-body">
+                {% if simulations %}
+                <div class="list-group list-group-flush">
+                    {% for sim in simulations %}
+                    <a href="#" class="list-group-item list-group-item-action"
+                       onclick="loadSimulation('{{ sim.title }}', {{ sim.order_data|tojson }})">
+                        <strong>{{ sim.title }}</strong>
+                        <br><small class="text-muted">{{ sim.created_at }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">保存済みのシミュレーションはありません</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let draggedElement = null;
+
+function drag(e) {
+    draggedElement = e.target;
+    e.dataTransfer.setData('text/plain', e.target.dataset.playerName);
+    e.target.style.opacity = '0.5';
+}
+
+function allowDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function drop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+
+    const slot = e.currentTarget;
+    const playerName = e.dataTransfer.getData('text/plain');
+    const playerId = draggedElement.dataset.playerId;
+
+    // 既存の選手をプールに戻す
+    const existingBadge = slot.querySelector('.player-badge');
+    if (existingBadge) {
+        document.getElementById('playerPool').appendChild(existingBadge);
+    }
+
+    // 新しい選手を配置
+    slot.innerHTML = '';
+    const badge = draggedElement.cloneNode(true);
+    badge.style.opacity = '1';
+    badge.ondragstart = drag;
+    slot.appendChild(badge);
+
+    // 元の選手をプールから削除
+    if (draggedElement.parentElement.id === 'playerPool') {
+        draggedElement.remove();
+    }
+
+    draggedElement.style.opacity = '1';
+    draggedElement = null;
+}
+
+function saveSimulation() {
+    const title = document.getElementById('simTitle').value;
+    if (!title) {
+        alert('シミュレーション名を入力してください');
+        return;
+    }
+
+    const orderData = {};
+    document.querySelectorAll('.section-slot').forEach(slot => {
+        const section = slot.dataset.section;
+        const badge = slot.querySelector('.player-badge');
+        if (badge) {
+            orderData[section + '区'] = badge.dataset.playerName;
+        }
+    });
+
+    fetch('/simulation/save', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({title: title, order_data: orderData})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('保存しました');
+            location.reload();
+        } else {
+            alert('保存に失敗しました');
+        }
+    });
+}
+
+function loadSimulation(title, orderData) {
+    document.getElementById('simTitle').value = title;
+
+    // 全スロットをリセット
+    document.querySelectorAll('.section-slot').forEach(slot => {
+        const badge = slot.querySelector('.player-badge');
+        if (badge) {
+            document.getElementById('playerPool').appendChild(badge);
+        }
+        slot.innerHTML = '<span class="text-muted">選手をドラッグ</span>';
+    });
+
+    // オーダーを復元
+    for (const [section, playerName] of Object.entries(orderData)) {
+        const sectionNum = section.replace('区', '');
+        const slot = document.querySelector(`.section-slot[data-section="${sectionNum}"]`);
+        const badge = document.querySelector(`#playerPool .player-badge[data-player-name="${playerName}"]`);
+
+        if (slot && badge) {
+            slot.innerHTML = '';
+            slot.appendChild(badge);
+        }
+    }
+}
+</script>
+{% endblock %}

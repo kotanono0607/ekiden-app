@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}選手追加 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
+        <li class="breadcrumb-item active">選手追加</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person-plus text-primary"></i> 選手追加</h5>
+            </div>
+            <div class="card-body">
+                <form action="/player/add" method="POST">
+                    <!-- 氏名 -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">氏名 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required
+                               placeholder="例: 山田 太郎">
+                    </div>
+
+                    <!-- 所属 -->
+                    <div class="mb-3">
+                        <label for="group" class="form-label">所属 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="group" name="group" required>
+                            <option value="">所属を選択してください</option>
+                            <option value="Aチーム">Aチーム</option>
+                            <option value="Bチーム">Bチーム</option>
+                            <option value="中学生">中学生</option>
+                            <option value="マネージャー">マネージャー</option>
+                        </select>
+                    </div>
+
+                    <!-- 5000m自己ベスト -->
+                    <div class="mb-3">
+                        <label for="best_5000m" class="form-label">5000m自己ベスト</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="best_5000m" name="best_5000m"
+                                   placeholder="例: 15:30" pattern="[0-9]{1,2}:[0-9]{2}">
+                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                        </div>
+                        <div class="form-text">MM:SS 形式で入力（任意）</div>
+                    </div>
+
+                    <!-- 目標タイム -->
+                    <div class="mb-4">
+                        <label for="target_time" class="form-label">目標タイム</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="target_time" name="target_time"
+                                   placeholder="例: 14:50" pattern="[0-9]{1,2}:[0-9]{2}">
+                            <span class="input-group-text"><i class="bi bi-bullseye"></i></span>
+                        </div>
+                        <div class="form-text">今シーズンの目標（任意）</div>
+                    </div>
+
+                    <!-- 送信ボタン -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> 登録する
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> 戻る
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

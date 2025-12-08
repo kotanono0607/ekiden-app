@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player.name }} - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
+        <li class="breadcrumb-item active">{{ player.name }}</li>
+    </ol>
+</nav>
+
+<!-- 選手プロフィール -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="section-icon bg-primary text-white me-3" style="width:60px;height:60px;font-size:1.5rem;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">{{ player.name }}</h2>
+                        <span class="badge bg-secondary">{{ player.group }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="/record/add?player_id={{ player.id }}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> 記録を追加
+                </a>
+            </div>
+        </div>
+        <hr>
+        <div class="row text-center">
+            <div class="col-6 col-md-3">
+                <small class="text-muted d-block">5000m自己ベスト</small>
+                <h4 class="text-primary mb-0">{{ player.best_5000m or '-' }}</h4>
+            </div>
+            <div class="col-6 col-md-3">
+                <small class="text-muted d-block">目標タイム</small>
+                <h4 class="text-success mb-0">{{ player.target_time or '-' }}</h4>
+            </div>
+            <div class="col-6 col-md-3 mt-3 mt-md-0">
+                <small class="text-muted d-block">登録記録数</small>
+                <h4 class="text-info mb-0">{{ records|length }}</h4>
+            </div>
+            <div class="col-6 col-md-3 mt-3 mt-md-0">
+                <small class="text-muted d-block">ステータス</small>
+                <h4 class="mb-0">
+                    {% if player.active == 'TRUE' or player.active == True %}
+                    <span class="badge bg-success">現役</span>
+                    {% else %}
+                    <span class="badge bg-secondary">引退</span>
+                    {% endif %}
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 記録グラフ -->
+{% if records %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-graph-up text-primary"></i> 記録推移グラフ</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="recordChart" height="100"></canvas>
+    </div>
+</div>
+{% endif %}
+
+<!-- 記録一覧 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-list-ul text-primary"></i> 記録一覧</h5>
+    </div>
+    <div class="card-body">
+        {% if records %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>日付</th>
+                        <th>種目</th>
+                        <th>タイム</th>
+                        <th>メモ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td><span class="badge bg-primary">{{ record.event }}</span></td>
+                        <td><strong>{{ record.time }}</strong></td>
+                        <td><small class="text-muted">{{ record.memo or '-' }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle"></i> まだ記録が登録されていません。
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if records %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const records = {{ records_json|safe }};
+
+// タイム文字列を秒に変換
+function timeToSeconds(timeStr) {
+    const parts = timeStr.split(':');
+    if (parts.length === 2) {
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    } else if (parts.length === 3) {
+        return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    }
+    return 0;
+}
+
+// 秒をタイム文字列に変換
+function secondsToTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// グラフ用データ準備
+const labels = records.map(r => r.date);
+const data = records.map(r => timeToSeconds(r.time));
+
+const ctx = document.getElementById('recordChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'タイム',
+            data: data,
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                reverse: true,
+                ticks: {
+                    callback: function(value) {
+                        return secondsToTime(value);
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return secondsToTime(context.raw);
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}
