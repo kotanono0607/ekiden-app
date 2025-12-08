@@ -33,24 +33,40 @@ def clear_cache():
 # ============ カラム名の正規化 ============
 # スプレッドシートの実際のカラム名をアプリの内部名にマッピング
 
-COLUMN_MAPPING = {
+PLAYER_COLUMN_MAPPING = {
     'affiliation': 'group',
     'category': 'grade',
     'comment': 'message',
+}
+
+RECORD_COLUMN_MAPPING = {
+    'section': 'event',
+    'race_name': 'race_name',
 }
 
 def normalize_player(player):
     """スプレッドシートのカラム名をアプリ内部の名前に変換"""
     normalized = {}
     for key, value in player.items():
-        # マッピングがあれば変換、なければそのまま
-        new_key = COLUMN_MAPPING.get(key, key)
+        new_key = PLAYER_COLUMN_MAPPING.get(key, key)
         normalized[new_key] = value
     return normalized
 
 def normalize_players(players):
     """選手リストを正規化"""
     return [normalize_player(p) for p in players]
+
+def normalize_record(record):
+    """記録のカラム名をアプリ内部の名前に変換"""
+    normalized = {}
+    for key, value in record.items():
+        new_key = RECORD_COLUMN_MAPPING.get(key, key)
+        normalized[new_key] = value
+    return normalized
+
+def normalize_records(records):
+    """記録リストを正規化"""
+    return [normalize_record(r) for r in records]
 
 def get_client():
     """Google Sheets クライアントを取得"""
@@ -200,6 +216,8 @@ def get_all_records():
         return []
 
     records = worksheet.get_all_records()
+    # カラム名を正規化
+    records = normalize_records(records)
     # 行番号を追加（編集・削除用）
     for i, record in enumerate(records):
         record['row_index'] = i + 2  # ヘッダー行 + 0-indexed
@@ -211,14 +229,14 @@ def get_records_by_player(player_id):
     records = get_all_records()
     return [r for r in records if str(r.get('player_id')) == str(player_id)]
 
-def add_record(player_id, event, time, memo='', date=None):
+def add_record(player_id, event, time, memo='', date=None, race_name=''):
     """記録を追加"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('Records')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='Records', rows=1000, cols=5)
-        worksheet.append_row(['date', 'player_id', 'event', 'time', 'memo'])
+        worksheet = sh.add_worksheet(title='Records', rows=1000, cols=9)
+        worksheet.append_row(['record_id', 'player_id', 'race_name', 'date', 'section', 'time', 'memo', 'created_at', 'updated_at'])
 
     if date is None:
         date = datetime.now().strftime('%Y/%m/%d')
@@ -226,10 +244,16 @@ def add_record(player_id, event, time, memo='', date=None):
         # YYYY-MM-DD形式をYYYY/MM/DDに変換
         date = date.replace('-', '/')
 
-    worksheet.append_row([date, player_id, event, time, memo])
+    # 新しいrecord_idを生成
+    all_values = worksheet.get_all_values()
+    new_record_id = len(all_values)
+
+    now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+    # カラム順: record_id, player_id, race_name, date, section, time, memo, created_at, updated_at
+    worksheet.append_row([new_record_id, player_id, race_name, date, event, time, memo, now, now])
     clear_cache()  # キャッシュクリア
 
-def update_record(row_index, date, player_id, event, time, memo=''):
+def update_record(row_index, date, player_id, event, time, memo='', race_name=''):
     """記録を更新"""
     sh = get_spreadsheet()
     try:
@@ -237,8 +261,15 @@ def update_record(row_index, date, player_id, event, time, memo=''):
     except gspread.exceptions.WorksheetNotFound:
         return False
 
+    # 既存の行データを取得（record_idとcreated_atを保持するため）
+    existing_row = worksheet.row_values(row_index)
+    record_id = existing_row[0] if len(existing_row) > 0 else ''
+    created_at = existing_row[7] if len(existing_row) > 7 else ''
+
     date = date.replace('-', '/')
-    worksheet.update(f'A{row_index}:E{row_index}', [[date, player_id, event, time, memo]])
+    now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+    # カラム順: record_id, player_id, race_name, date, section, time, memo, created_at, updated_at
+    worksheet.update(f'A{row_index}:I{row_index}', [[record_id, player_id, race_name, date, event, time, memo, created_at, now]])
     clear_cache()  # キャッシュクリア
     return True
 
@@ -263,13 +294,16 @@ def get_record_by_row(row_index):
         return None
 
     row = worksheet.row_values(row_index)
-    if len(row) >= 4:
+    # カラム順: record_id, player_id, race_name, date, section, time, memo, created_at, updated_at
+    if len(row) >= 6:
         return {
-            'date': row[0],
+            'record_id': row[0],
             'player_id': row[1],
-            'event': row[2],
-            'time': row[3],
-            'memo': row[4] if len(row) > 4 else '',
+            'race_name': row[2],
+            'date': row[3],
+            'event': row[4],  # section → event
+            'time': row[5],
+            'memo': row[6] if len(row) > 6 else '',
             'row_index': row_index
         }
     return None
