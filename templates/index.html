@@ -6,149 +6,83 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-people-fill text-primary"></i> 選手名簿</h2>
     <div class="d-flex gap-2">
-        <a href="/export/players" class="btn btn-outline-success">
+        <a href="/export/players" class="btn btn-outline-success btn-sm">
             <i class="bi bi-download"></i> CSV
         </a>
-        <a href="/player/add" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> 選手追加
+        <a href="/player/add" class="btn btn-primary btn-sm">
+            <i class="bi bi-person-plus"></i> 追加
         </a>
     </div>
 </div>
 
-<!-- 検索・絞り込み -->
+<!-- 検索 -->
 <div class="card mb-4">
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-4">
-                <div class="input-group">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" class="form-control" id="searchInput" placeholder="選手名で検索...">
                 </div>
             </div>
-            <div class="col-md-3">
-                <select class="form-select" id="groupFilter">
+            <div class="col-md-4">
+                <select class="form-select form-select-sm" id="groupFilter">
                     <option value="">すべてのグループ</option>
                     {% for group in groups %}
                     <option value="{{ group }}">{{ group }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
-                <select class="form-select" id="sortSelect" onchange="changeSort(this.value)">
-                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>名前順</option>
-                    <option value="group" {% if sort_by == 'group' %}selected{% endif %}>所属順</option>
-                    <option value="best_5000m" {% if sort_by == 'best_5000m' %}selected{% endif %}>5000m PB順</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <div class="btn-group w-100" role="group">
-                    <a href="?view=card&sort={{ sort_by }}" class="btn btn-outline-secondary {% if view_mode == 'card' %}active{% endif %}">
-                        <i class="bi bi-grid-3x3-gap"></i>
-                    </a>
-                    <a href="?view=table&sort={{ sort_by }}" class="btn btn-outline-secondary {% if view_mode == 'table' %}active{% endif %}">
-                        <i class="bi bi-list-ul"></i>
-                    </a>
-                </div>
+            <div class="col-md-2 text-end">
+                <small class="text-muted">{{ players|length }}名</small>
             </div>
         </div>
     </div>
 </div>
 
-{% if view_mode == 'table' %}
-<!-- テーブル表示 -->
+<!-- 選手一覧テーブル -->
 <div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>氏名</th>
-                        <th>所属</th>
-                        <th>学年</th>
-                        <th>5000m PB</th>
-                        <th>目標</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="playerTableBody">
-                    {% for player in players %}
-                    <tr class="player-item" data-name="{{ player.name }}" data-group="{{ player.group }}">
-                        <td>
-                            <a href="/player/{{ player.id }}" class="text-decoration-none fw-bold">
-                                {{ player.name }}
-                            </a>
-                        </td>
-                        <td><span class="badge bg-secondary">{{ player.group }}</span></td>
-                        <td>{{ player.grade or '-' }}</td>
-                        <td class="font-monospace text-primary fw-bold">{{ player.best_5000m or '-' }}</td>
-                        <td class="font-monospace text-success">{{ player.target_time or '-' }}</td>
-                        <td>
-                            <a href="/player/{{ player.id }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">No.</th>
+                    <th>氏名</th>
+                    <th>所属</th>
+                    <th style="width: 60px;"></th>
+                </tr>
+            </thead>
+            <tbody id="playerTableBody">
+                {% for player in players %}
+                <tr class="player-item" data-name="{{ player.name }}" data-group="{{ player.group }}">
+                    <td class="text-muted">{{ player.id }}</td>
+                    <td>
+                        <a href="/player/{{ player.id }}" class="text-decoration-none fw-bold">
+                            {{ player.name }}
+                        </a>
+                    </td>
+                    <td><span class="badge bg-secondary">{{ player.group }}</span></td>
+                    <td>
+                        <a href="/player/{{ player.id }}" class="btn btn-sm btn-outline-primary py-0">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        <i class="bi bi-info-circle"></i> 選手が登録されていません
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
-{% else %}
-<!-- カード表示 -->
-<div class="row" id="playerList">
-    {% if players %}
-        {% for player in players %}
-        <div class="col-md-6 col-lg-4 mb-4 player-item" data-name="{{ player.name }}" data-group="{{ player.group }}">
-            <div class="card player-card h-100" onclick="location.href='/player/{{ player.id }}'">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        {% if player.photo_url %}
-                        <img src="{{ player.photo_url }}" alt="{{ player.name }}" class="rounded-circle me-3"
-                             style="width: 50px; height: 50px; object-fit: cover;">
-                        {% else %}
-                        <div class="section-icon bg-primary text-white me-3">
-                            <i class="bi bi-person"></i>
-                        </div>
-                        {% endif %}
-                        <div>
-                            <h5 class="card-title mb-0">{{ player.name }}</h5>
-                            <small class="text-muted">{{ player.group }}{% if player.grade %} / {{ player.grade }}{% endif %}</small>
-                        </div>
-                    </div>
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <small class="text-muted d-block">5000m PB</small>
-                            <strong class="text-primary">{{ player.best_5000m or '-' }}</strong>
-                        </div>
-                        <div class="col-6">
-                            <small class="text-muted d-block">目標タイム</small>
-                            <strong class="text-success">{{ player.target_time or '-' }}</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer bg-transparent">
-                    <small class="text-muted">
-                        <i class="bi bi-arrow-right-circle"></i> 詳細を見る
-                    </small>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> 選手が登録されていません。「選手追加」ボタンから登録してください。
-            </div>
-        </div>
-    {% endif %}
-</div>
-{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// 検索機能
 document.getElementById('searchInput').addEventListener('input', filterPlayers);
 document.getElementById('groupFilter').addEventListener('change', filterPlayers);
 
@@ -162,15 +96,8 @@ function filterPlayers() {
         const group = item.dataset.group;
         const matchName = name.includes(searchText);
         const matchGroup = !groupFilter || group === groupFilter;
-
         item.style.display = (matchName && matchGroup) ? '' : 'none';
     });
-}
-
-function changeSort(value) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('sort', value);
-    window.location.href = url.toString();
 }
 </script>
 {% endblock %}
