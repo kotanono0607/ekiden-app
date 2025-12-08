@@ -1,0 +1,706 @@
+<!-- 駅伝選手プロフィール画面 - モダンデザイン Ver.1 -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選手プロフィール - 駒澤大学陸上競技部</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+            background-color: #F5F7FA;
+            color: #2D3748;
+            line-height: 1.6;
+        }
+
+        /* ヘッダー */
+        .header {
+            background: #FFFFFF;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-back {
+            color: #3B82F6;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-back:hover {
+            color: #2563EB;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2D3748;
+        }
+
+        .header-year {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        /* メインコンテンツ */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 24px;
+        }
+
+        /* カード共通スタイル */
+        .card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 24px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #718096;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 左カラム */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* プロフィールカード */
+        .profile-card {
+            padding: 28px;
+        }
+
+        .profile-header {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .profile-photo {
+            width: 140px;
+            height: 180px;
+            background: linear-gradient(135deg, #E2E8F0 0%, #CBD5E1 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94A3B8;
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+
+        .profile-main {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 4px;
+        }
+
+        .profile-name-en {
+            font-size: 13px;
+            color: #A0AEC0;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .profile-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .tag {
+            padding: 6px 14px;
+            background: #EDF2F7;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #4A5568;
+            font-weight: 500;
+        }
+
+        .tag.captain {
+            background: #3B82F6;
+            color: #FFFFFF;
+        }
+
+        .profile-divider {
+            height: 1px;
+            background: #E2E8F0;
+            margin: 20px 0;
+        }
+
+        .profile-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: #A0AEC0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: #2D3748;
+            font-weight: 500;
+        }
+
+        .info-value.highlight {
+            color: #3B82F6;
+        }
+
+        /* 出身情報 */
+        .origin-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #718096;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .origin-arrow {
+            color: #CBD5E1;
+        }
+
+        /* 身体情報カード内 */
+        .physical-stats {
+            display: flex;
+            gap: 12px;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: #F8FAFC;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #A0AEC0;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2D3748;
+        }
+
+        .stat-unit {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 400;
+        }
+
+        /* 意気込みカード */
+        .message-card .message-text {
+            font-size: 15px;
+            color: #4A5568;
+            line-height: 1.8;
+            padding: 16px;
+            background: #F8FAFC;
+            border-radius: 8px;
+            border-left: 3px solid #3B82F6;
+        }
+
+        /* 右カラム */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 記録テーブル */
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .records-table thead {
+            background: #F8FAFC;
+        }
+
+        .records-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .records-table td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .records-table tbody tr {
+            transition: background 0.15s;
+        }
+
+        .records-table tbody tr:hover {
+            background: #F8FAFC;
+        }
+
+        .records-table tbody tr.award {
+            border-left: 3px solid #F59E0B;
+            background: #FFFBEB;
+        }
+
+        .records-table tbody tr.award:hover {
+            background: #FEF3C7;
+        }
+
+        .year-cell {
+            font-weight: 600;
+            color: #2D3748;
+        }
+
+        .race-name {
+            font-weight: 500;
+        }
+
+        .section-cell {
+            color: #3B82F6;
+            font-weight: 600;
+        }
+
+        .time-cell {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-weight: 600;
+        }
+
+        .rank-cell {
+            text-align: center;
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .rank-1 {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white;
+        }
+
+        .rank-2 {
+            background: linear-gradient(135deg, #94A3B8, #64748B);
+            color: white;
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #D97706, #B45309);
+            color: white;
+        }
+
+        .rank-other {
+            background: #E2E8F0;
+            color: #64748B;
+        }
+
+        .award-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: #F59E0B;
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .more-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            color: #3B82F6;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin-top: 16px;
+        }
+
+        .more-button:hover {
+            background: #EDF2F7;
+            border-color: #CBD5E1;
+        }
+
+        /* 自己ベストカード */
+        .personal-bests {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .pb-item {
+            background: #F8FAFC;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .pb-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .pb-event {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .pb-time {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2D3748;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .pb-date {
+            font-size: 11px;
+            color: #A0AEC0;
+            margin-top: 6px;
+        }
+
+        /* 通算成績カード */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stats-item {
+            text-align: center;
+            padding: 20px;
+            background: #F8FAFC;
+            border-radius: 10px;
+        }
+
+        .stats-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #3B82F6;
+        }
+
+        .stats-number .unit {
+            font-size: 16px;
+            color: #718096;
+            font-weight: 400;
+        }
+
+        .stats-label {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 380px 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .profile-tags {
+                justify-content: center;
+            }
+
+            .personal-bests {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header {
+                padding: 12px 16px;
+            }
+
+            .main-container {
+                padding: 16px;
+            }
+
+            .personal-bests {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .records-table {
+                font-size: 13px;
+            }
+
+            .records-table th,
+            .records-table td {
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <a href="#" class="header-back">← 戻る</a>
+        <div class="header-title">駒澤大学 陸上競技部</div>
+        <div class="header-year">2024-2025</div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="main-container">
+        <!-- 左カラム：プロフィール -->
+        <div class="left-column">
+            <!-- プロフィールカード -->
+            <div class="card profile-card">
+                <div class="profile-header">
+                    <div class="profile-photo">👤</div>
+                    <div class="profile-main">
+                        <div class="profile-name">山田 太郎</div>
+                        <div class="profile-name-en">YAMADA Taro</div>
+                        <div class="profile-tags">
+                            <span class="tag">#4</span>
+                            <span class="tag captain">主将</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-divider"></div>
+
+                <div class="profile-info-grid">
+                    <div class="info-item">
+                        <span class="info-label">学年</span>
+                        <span class="info-value">4年</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">学部</span>
+                        <span class="info-value">経済学部</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <span class="info-label">出身</span>
+                        <span class="info-value">東京都 ← 國學院久我山高校</span>
+                    </div>
+                </div>
+
+                <div class="profile-divider"></div>
+
+                <div class="physical-stats">
+                    <div class="stat-box">
+                        <div class="stat-label">身長</div>
+                        <div class="stat-value">172<span class="stat-unit">cm</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">体重</div>
+                        <div class="stat-value">56<span class="stat-unit">kg</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">血液型</div>
+                        <div class="stat-value">A<span class="stat-unit">型</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 意気込みカード -->
+            <div class="card message-card">
+                <div class="card-title">💬 意気込み</div>
+                <div class="message-text">
+                    「4年間の集大成として、チームのために全力で走り抜きます。応援してくださる全ての方々への感謝を胸に、最高の走りを見せたいです。」
+                </div>
+            </div>
+        </div>
+
+        <!-- 右カラム：記録 -->
+        <div class="right-column">
+            <!-- 記録一覧カード -->
+            <div class="card">
+                <div class="card-title">📊 駅伝成績</div>
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>年度</th>
+                            <th>大会</th>
+                            <th>区間</th>
+                            <th>記録</th>
+                            <th>順位</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="award">
+                            <td class="year-cell">2024</td>
+                            <td class="race-name">箱根駅伝<span class="award-badge">🏆 区間賞</span></td>
+                            <td class="section-cell">5区</td>
+                            <td class="time-cell">1:09:32</td>
+                            <td class="rank-cell"><span class="rank-badge rank-1">1</span></td>
+                        </tr>
+                        <tr>
+                            <td class="year-cell">2024</td>
+                            <td class="race-name">全日本大学駅伝</td>
+                            <td class="section-cell">7区</td>
+                            <td class="time-cell">52:48</td>
+                            <td class="rank-cell"><span class="rank-badge rank-2">2</span></td>
+                        </tr>
+                        <tr>
+                            <td class="year-cell">2024</td>
+                            <td class="race-name">出雲駅伝</td>
+                            <td class="section-cell">3区</td>
+                            <td class="time-cell">24:15</td>
+                            <td class="rank-cell"><span class="rank-badge rank-3">3</span></td>
+                        </tr>
+                        <tr class="award">
+                            <td class="year-cell">2023</td>
+                            <td class="race-name">箱根駅伝<span class="award-badge">🏆 区間賞</span></td>
+                            <td class="section-cell">5区</td>
+                            <td class="time-cell">1:10:01</td>
+                            <td class="rank-cell"><span class="rank-badge rank-1">1</span></td>
+                        </tr>
+                        <tr>
+                            <td class="year-cell">2023</td>
+                            <td class="race-name">全日本大学駅伝</td>
+                            <td class="section-cell">4区</td>
+                            <td class="time-cell">40:23</td>
+                            <td class="rank-cell"><span class="rank-badge rank-other">4</span></td>
+                        </tr>
+                        <tr>
+                            <td class="year-cell">2023</td>
+                            <td class="race-name">出雲駅伝</td>
+                            <td class="section-cell">3区</td>
+                            <td class="time-cell">24:32</td>
+                            <td class="rank-cell"><span class="rank-badge rank-2">2</span></td>
+                        </tr>
+                        <tr>
+                            <td class="year-cell">2022</td>
+                            <td class="race-name">箱根駅伝</td>
+                            <td class="section-cell">6区</td>
+                            <td class="time-cell">58:45</td>
+                            <td class="rank-cell"><span class="rank-badge rank-other">5</span></td>
+                        </tr>
+                        <tr>
+                            <td class="year-cell">2022</td>
+                            <td class="race-name">全日本大学駅伝</td>
+                            <td class="section-cell">2区</td>
+                            <td class="time-cell">31:56</td>
+                            <td class="rank-cell"><span class="rank-badge rank-3">3</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="more-button">もっと見る ↓</button>
+            </div>
+
+            <!-- 自己ベストカード -->
+            <div class="card">
+                <div class="card-title">🏃 自己ベスト</div>
+                <div class="personal-bests">
+                    <div class="pb-item">
+                        <div class="pb-event">5000m</div>
+                        <div class="pb-time">13:45.23</div>
+                        <div class="pb-date">2024.05.12</div>
+                    </div>
+                    <div class="pb-item">
+                        <div class="pb-event">10000m</div>
+                        <div class="pb-time">28:12.56</div>
+                        <div class="pb-date">2024.04.06</div>
+                    </div>
+                    <div class="pb-item">
+                        <div class="pb-event">ハーフマラソン</div>
+                        <div class="pb-time">1:02:34</div>
+                        <div class="pb-date">2024.02.18</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 通算成績カード -->
+            <div class="card">
+                <div class="card-title">📈 通算成績</div>
+                <div class="stats-grid">
+                    <div class="stats-item">
+                        <div class="stats-number">8<span class="unit">回</span></div>
+                        <div class="stats-label">駅伝出場</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-number">2<span class="unit">回</span></div>
+                        <div class="stats-label">区間賞獲得</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-number">2.5<span class="unit">位</span></div>
+                        <div class="stats-label">平均区間順位</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
