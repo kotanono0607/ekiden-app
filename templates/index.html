@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}選手一覧 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people-fill text-primary"></i> 選手名簿</h2>
+    <a href="/player/add" class="btn btn-primary">
+        <i class="bi bi-person-plus"></i> 選手追加
+    </a>
+</div>
+
+<!-- 検索・絞り込み -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="選手名で検索...">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select class="form-select" id="groupFilter">
+                    <option value="">すべてのグループ</option>
+                    {% for group in groups %}
+                    <option value="{{ group }}">{{ group }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 選手一覧 -->
+<div class="row" id="playerList">
+    {% if players %}
+        {% for player in players %}
+        <div class="col-md-6 col-lg-4 mb-4 player-item" data-name="{{ player.name }}" data-group="{{ player.group }}">
+            <div class="card player-card h-100" onclick="location.href='/player/{{ player.id }}'">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="section-icon bg-primary text-white me-3">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ player.name }}</h5>
+                            <small class="text-muted">{{ player.group }}</small>
+                        </div>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <small class="text-muted d-block">5000m自己ベスト</small>
+                            <strong class="text-primary">{{ player.best_5000m or '-' }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">目標タイム</small>
+                            <strong class="text-success">{{ player.target_time or '-' }}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        <i class="bi bi-arrow-right-circle"></i> 詳細を見る
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> 選手が登録されていません。「選手追加」ボタンから登録してください。
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 検索機能
+document.getElementById('searchInput').addEventListener('input', filterPlayers);
+document.getElementById('groupFilter').addEventListener('change', filterPlayers);
+
+function filterPlayers() {
+    const searchText = document.getElementById('searchInput').value.toLowerCase();
+    const groupFilter = document.getElementById('groupFilter').value;
+    const items = document.querySelectorAll('.player-item');
+
+    items.forEach(item => {
+        const name = item.dataset.name.toLowerCase();
+        const group = item.dataset.group;
+        const matchName = name.includes(searchText);
+        const matchGroup = !groupFilter || group === groupFilter;
+
+        item.style.display = (matchName && matchGroup) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}記録登録 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
+        <li class="breadcrumb-item active">記録登録</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-stopwatch text-primary"></i> 記録登録</h5>
+            </div>
+            <div class="card-body">
+                <form action="/record/add" method="POST">
+                    <!-- 選手選択 -->
+                    <div class="mb-3">
+                        <label for="player_id" class="form-label">選手 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="player_id" name="player_id" required>
+                            <option value="">選手を選択してください</option>
+                            {% for player in players %}
+                            <option value="{{ player.id }}" {% if selected_player_id == player.id|string %}selected{% endif %}>
+                                {{ player.name }} ({{ player.group }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- 種目 -->
+                    <div class="mb-3">
+                        <label for="event" class="form-label">種目 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="event" name="event" required>
+                            <option value="">種目を選択してください</option>
+                            <optgroup label="トラック">
+                                <option value="1500m">1500m</option>
+                                <option value="3000m">3000m</option>
+                                <option value="5000m">5000m</option>
+                                <option value="10000m">10000m</option>
+                            </optgroup>
+                            <optgroup label="駅伝区間">
+                                <option value="1区">1区</option>
+                                <option value="2区">2区</option>
+                                <option value="3区">3区</option>
+                                <option value="4区">4区</option>
+                                <option value="5区">5区</option>
+                                <option value="6区">6区</option>
+                                <option value="7区">7区</option>
+                            </optgroup>
+                            <optgroup label="その他">
+                                <option value="練習">練習</option>
+                                <option value="タイムトライアル">タイムトライアル</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- タイム -->
+                    <div class="mb-3">
+                        <label for="time" class="form-label">タイム <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="time" name="time"
+                                   placeholder="例: 15:30 または 1:02:30" required
+                                   pattern="[0-9]{1,2}:[0-9]{2}(:[0-9]{2})?">
+                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                        </div>
+                        <div class="form-text">MM:SS または HH:MM:SS 形式で入力</div>
+                    </div>
+
+                    <!-- メモ -->
+                    <div class="mb-4">
+                        <label for="memo" class="form-label">メモ</label>
+                        <textarea class="form-control" id="memo" name="memo" rows="3"
+                                  placeholder="天候、コンディション、コースなど"></textarea>
+                    </div>
+
+                    <!-- 送信ボタン -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> 登録する
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> 戻る
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
