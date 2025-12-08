@@ -1,0 +1,38 @@
+name: Manual Merge to Main
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'マージ元のブランチ名（例: develop, feature/xxx）'
+        required: true
+        default: 'develop'
+
+jobs:
+  merge-to-main:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge Branch
+        run: |
+          # ターゲットのmainブランチに切り替え
+          git checkout main
+          
+          # マージを実行
+          echo "Merging ${{ inputs.source_branch }} into main..."
+          git merge origin/${{ inputs.source_branch }} --allow-unrelated-histories
+          
+          # 結果をプッシュ
+          git push origin main
