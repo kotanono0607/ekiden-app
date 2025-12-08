@@ -1,0 +1,42 @@
+name: Auto Merge Claude Branch
+
+on:
+  # 'claude/' で始まるブランチにプッシュされたら自動実行
+  push:
+    branches:
+      - 'claude/**'
+
+jobs:
+  merge-to-main:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge to Main
+        run: |
+          # 更新されたブランチ名を取得
+          CURRENT_BRANCH=${{ github.ref_name }}
+          
+          echo "Target branch: $CURRENT_BRANCH"
+          
+          # mainに切り替え
+          git checkout main
+          git pull origin main
+          
+          # マージ実行
+          echo "Merging $CURRENT_BRANCH into main..."
+          git merge origin/$CURRENT_BRANCH --allow-unrelated-histories
+          
+          # 結果をプッシュ
+          git push origin main
