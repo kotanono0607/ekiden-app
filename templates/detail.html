@@ -8,14 +8,12 @@
         background-color: #F5F7FA;
     }
 
-    /* メインコンテンツ */
     .profile-container {
         display: grid;
         grid-template-columns: 420px 1fr;
         gap: 24px;
     }
 
-    /* カード共通スタイル */
     .profile-card {
         background: #FFFFFF;
         border-radius: 12px;
@@ -33,14 +31,12 @@
         gap: 8px;
     }
 
-    /* 左カラム */
     .left-column {
         display: flex;
         flex-direction: column;
         gap: 20px;
     }
 
-    /* プロフィールヘッダー */
     .profile-header {
         display: flex;
         gap: 24px;
@@ -58,6 +54,13 @@
         color: #94A3B8;
         font-size: 48px;
         flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .profile-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .profile-main {
@@ -87,15 +90,8 @@
         font-weight: 500;
     }
 
-    .tag.active {
-        background: #48BB78;
-        color: #FFFFFF;
-    }
-
-    .tag.inactive {
-        background: #A0AEC0;
-        color: #FFFFFF;
-    }
+    .tag.active { background: #48BB78; color: #FFFFFF; }
+    .tag.inactive { background: #A0AEC0; color: #FFFFFF; }
 
     .profile-divider {
         height: 1px;
@@ -115,9 +111,7 @@
         gap: 4px;
     }
 
-    .info-item.full-width {
-        grid-column: 1 / -1;
-    }
+    .info-item.full-width { grid-column: 1 / -1; }
 
     .info-label {
         font-size: 11px;
@@ -132,11 +126,8 @@
         font-weight: 500;
     }
 
-    .info-value.highlight {
-        color: #3B82F6;
-    }
+    .info-value.highlight { color: #3B82F6; }
 
-    /* 自己ベスト・目標カード */
     .stats-boxes {
         display: flex;
         gap: 12px;
@@ -163,30 +154,21 @@
         font-family: 'SF Mono', 'Consolas', monospace;
     }
 
-    .stat-value.primary {
-        color: #3B82F6;
-    }
+    .stat-value.primary { color: #3B82F6; }
+    .stat-value.success { color: #48BB78; }
 
-    .stat-value.success {
-        color: #48BB78;
-    }
-
-    /* 右カラム */
     .right-column {
         display: flex;
         flex-direction: column;
         gap: 20px;
     }
 
-    /* 記録テーブル */
     .records-table {
         width: 100%;
         border-collapse: collapse;
     }
 
-    .records-table thead {
-        background: #F8FAFC;
-    }
+    .records-table thead { background: #F8FAFC; }
 
     .records-table th {
         padding: 12px 16px;
@@ -205,18 +187,10 @@
         border-bottom: 1px solid #E2E8F0;
     }
 
-    .records-table tbody tr {
-        transition: background 0.15s;
-    }
+    .records-table tbody tr { transition: background 0.15s; }
+    .records-table tbody tr:hover { background: #F8FAFC; }
 
-    .records-table tbody tr:hover {
-        background: #F8FAFC;
-    }
-
-    .date-cell {
-        font-weight: 500;
-        color: #2D3748;
-    }
+    .date-cell { font-weight: 500; color: #2D3748; }
 
     .event-badge {
         display: inline-block;
@@ -234,12 +208,8 @@
         color: #2D3748;
     }
 
-    .memo-cell {
-        color: #718096;
-        font-size: 13px;
-    }
+    .memo-cell { color: #718096; font-size: 13px; }
 
-    /* 通算成績 */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -271,7 +241,6 @@
         margin-top: 4px;
     }
 
-    /* アクションボタン */
     .action-buttons {
         display: flex;
         gap: 12px;
@@ -289,59 +258,49 @@
         transition: all 0.15s;
     }
 
-    .action-btn.primary {
-        background: #3B82F6;
-        color: white;
+    .action-btn.primary { background: #3B82F6; color: white; }
+    .action-btn.primary:hover { background: #2563EB; }
+    .action-btn.secondary { background: #F8FAFC; color: #4A5568; border: 1px solid #E2E8F0; }
+    .action-btn.secondary:hover { background: #EDF2F7; }
+
+    .pb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
     }
 
-    .action-btn.primary:hover {
-        background: #2563EB;
-    }
-
-    .action-btn.secondary {
+    .pb-item {
         background: #F8FAFC;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+    }
+
+    .pb-event { font-size: 12px; color: #718096; margin-bottom: 4px; }
+    .pb-time { font-size: 16px; font-weight: 700; color: #3B82F6; font-family: monospace; }
+    .pb-date { font-size: 10px; color: #A0AEC0; margin-top: 4px; }
+
+    .message-text {
+        font-size: 15px;
         color: #4A5568;
-        border: 1px solid #E2E8F0;
+        line-height: 1.8;
+        padding: 16px;
+        background: #F8FAFC;
+        border-radius: 8px;
+        border-left: 3px solid #3B82F6;
     }
 
-    .action-btn.secondary:hover {
-        background: #EDF2F7;
-    }
-
-    /* レスポンシブ */
     @media (max-width: 1024px) {
-        .profile-container {
-            grid-template-columns: 1fr;
-        }
-
-        .profile-header {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .profile-tags {
-            justify-content: center;
-        }
+        .profile-container { grid-template-columns: 1fr; }
+        .profile-header { flex-direction: column; align-items: center; text-align: center; }
+        .profile-tags { justify-content: center; }
     }
 
     @media (max-width: 640px) {
-        .stats-boxes {
-            flex-direction: column;
-        }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .records-table {
-            font-size: 13px;
-        }
-
-        .records-table th,
-        .records-table td {
-            padding: 10px 12px;
-        }
+        .stats-boxes { flex-direction: column; }
+        .stats-grid { grid-template-columns: 1fr; }
+        .records-table { font-size: 13px; }
+        .records-table th, .records-table td { padding: 10px 12px; }
     }
 </style>
 {% endblock %}
@@ -357,16 +316,20 @@
 <div class="profile-container">
     <!-- 左カラム：プロフィール -->
     <div class="left-column">
-        <!-- プロフィールカード -->
         <div class="profile-card">
             <div class="profile-header">
                 <div class="profile-photo">
+                    {% if player.photo_url %}
+                    <img src="{{ player.photo_url }}" alt="{{ player.name }}">
+                    {% else %}
                     <i class="bi bi-person-fill"></i>
+                    {% endif %}
                 </div>
                 <div class="profile-main">
                     <div class="profile-name">{{ player.name }}</div>
                     <div class="profile-tags">
                         <span class="tag">{{ player.group }}</span>
+                        {% if player.grade %}<span class="tag">{{ player.grade }}</span>{% endif %}
                         {% if player.active == 'TRUE' or player.active == True %}
                         <span class="tag active">現役</span>
                         {% else %}
@@ -384,17 +347,32 @@
                     <span class="info-value">{{ player.group }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">登録記録数</span>
-                    <span class="info-value highlight">{{ records|length }} 件</span>
+                    <span class="info-label">学年</span>
+                    <span class="info-value">{{ player.grade or '-' }}</span>
                 </div>
+                {% if player.school %}
+                <div class="info-item full-width">
+                    <span class="info-label">出身校</span>
+                    <span class="info-value">{{ player.school }}</span>
+                </div>
+                {% endif %}
+                {% if player.height or player.weight %}
+                <div class="info-item">
+                    <span class="info-label">身長</span>
+                    <span class="info-value">{{ player.height }}{% if player.height %}cm{% else %}-{% endif %}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">体重</span>
+                    <span class="info-value">{{ player.weight }}{% if player.weight %}kg{% else %}-{% endif %}</span>
+                </div>
+                {% endif %}
             </div>
 
             <div class="profile-divider"></div>
 
-            <!-- 自己ベスト・目標 -->
             <div class="stats-boxes">
                 <div class="stat-box">
-                    <div class="stat-label">5000m自己ベスト</div>
+                    <div class="stat-label">5000m PB</div>
                     <div class="stat-value primary">{{ player.best_5000m or '-' }}</div>
                 </div>
                 <div class="stat-box">
@@ -403,33 +381,52 @@
                 </div>
             </div>
 
-            <!-- アクションボタン -->
             <div class="action-buttons">
                 <a href="/record/add?player_id={{ player.id }}" class="action-btn primary">
-                    <i class="bi bi-plus-circle"></i> 記録を追加
+                    <i class="bi bi-plus-circle"></i> 記録追加
                 </a>
-                <a href="/" class="action-btn secondary">
-                    <i class="bi bi-arrow-left"></i> 戻る
+                <a href="/player/{{ player.id }}/edit" class="action-btn secondary">
+                    <i class="bi bi-pencil"></i> 編集
                 </a>
             </div>
         </div>
+
+        <!-- 意気込み -->
+        {% if player.message %}
+        <div class="profile-card">
+            <div class="card-title"><i class="bi bi-chat-quote text-primary"></i> 意気込み</div>
+            <div class="message-text">{{ player.message }}</div>
+        </div>
+        {% endif %}
+
+        <!-- 種目別自己ベスト -->
+        {% if personal_bests %}
+        <div class="profile-card">
+            <div class="card-title"><i class="bi bi-trophy text-primary"></i> 種目別自己ベスト</div>
+            <div class="pb-grid">
+                {% for event, pb in personal_bests.items() %}
+                <div class="pb-item">
+                    <div class="pb-event">{{ event }}</div>
+                    <div class="pb-time">{{ pb.time }}</div>
+                    <div class="pb-date">{{ pb.date }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- 右カラム：記録 -->
     <div class="right-column">
-        <!-- 通算成績カード -->
         <div class="profile-card">
-            <div class="card-title">
-                <i class="bi bi-bar-chart-fill text-primary"></i> 通算成績
-            </div>
+            <div class="card-title"><i class="bi bi-bar-chart-fill text-primary"></i> 通算成績</div>
             <div class="stats-grid">
                 <div class="stats-item">
                     <div class="stats-number">{{ records|length }}<span class="unit">件</span></div>
                     <div class="stats-label-bottom">登録記録</div>
                 </div>
                 <div class="stats-item">
-                    {% set events = records|map(attribute='event')|unique|list %}
-                    <div class="stats-number">{{ events|length }}<span class="unit">種目</span></div>
+                    <div class="stats-number">{{ personal_bests|length }}<span class="unit">種目</span></div>
                     <div class="stats-label-bottom">出場種目数</div>
                 </div>
                 <div class="stats-item">
@@ -439,20 +436,19 @@
             </div>
         </div>
 
-        <!-- 記録グラフ -->
         {% if records %}
         <div class="profile-card">
-            <div class="card-title">
-                <i class="bi bi-graph-up text-primary"></i> 記録推移グラフ
-            </div>
+            <div class="card-title"><i class="bi bi-graph-up text-primary"></i> 記録推移グラフ</div>
             <canvas id="recordChart" height="100"></canvas>
         </div>
         {% endif %}
 
-        <!-- 記録一覧カード -->
         <div class="profile-card">
-            <div class="card-title">
-                <i class="bi bi-list-ul text-primary"></i> 記録一覧
+            <div class="card-title d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-list-ul text-primary"></i> 記録一覧</span>
+                <a href="/export/records" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-download"></i> CSV
+                </a>
             </div>
             {% if records %}
             <table class="records-table">
@@ -462,6 +458,7 @@
                         <th>種目</th>
                         <th>タイム</th>
                         <th>メモ</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -471,6 +468,11 @@
                         <td><span class="event-badge">{{ record.event }}</span></td>
                         <td class="time-cell">{{ record.time }}</td>
                         <td class="memo-cell">{{ record.memo or '-' }}</td>
+                        <td>
+                            <a href="/record/{{ record.row_index }}/edit" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -487,30 +489,23 @@
 
 {% block extra_js %}
 {% if records %}
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const records = {{ records_json|safe }};
 
-// タイム文字列を秒に変換
 function timeToSeconds(timeStr) {
     const parts = timeStr.split(':');
-    if (parts.length === 2) {
-        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-    } else if (parts.length === 3) {
-        return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
-    }
+    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
     return 0;
 }
 
-// 秒をタイム文字列に変換
 function secondsToTime(seconds) {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-// グラフ用データ準備
 const labels = records.map(r => r.date);
 const data = records.map(r => timeToSeconds(r.time));
 
@@ -537,24 +532,12 @@ new Chart(ctx, {
         scales: {
             y: {
                 reverse: true,
-                ticks: {
-                    callback: function(value) {
-                        return secondsToTime(value);
-                    }
-                }
+                ticks: { callback: value => secondsToTime(value) }
             }
         },
         plugins: {
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return secondsToTime(context.raw);
-                    }
-                }
-            },
-            legend: {
-                display: false
-            }
+            tooltip: { callbacks: { label: ctx => secondsToTime(ctx.raw) } },
+            legend: { display: false }
         }
     }
 });

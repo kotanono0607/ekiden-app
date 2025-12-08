@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}チーム統計 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-bar-chart-line-fill text-primary"></i> チーム統計</h2>
+</div>
+
+<div class="row">
+    <!-- 概要カード -->
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="display-4 text-primary mb-2">{{ stats.total_players }}</div>
+                <div class="text-muted">登録選手数</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="display-4 text-success mb-2">{{ stats.total_records }}</div>
+                <div class="text-muted">総記録数</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="display-4 text-info mb-2">{{ stats.groups|length }}</div>
+                <div class="text-muted">グループ数</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="display-4 text-warning mb-2">{{ stats.event_counts|length }}</div>
+                <div class="text-muted">種目数</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- グループ別人数 -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-people text-primary"></i> グループ別人数</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="groupChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 種目別記録数 -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-trophy text-primary"></i> 種目別記録数</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="eventChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近の記録 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history text-primary"></i> 最近の記録</h5>
+    </div>
+    <div class="card-body">
+        {% if stats.recent_records %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>日付</th>
+                        <th>選手</th>
+                        <th>種目</th>
+                        <th>タイム</th>
+                        <th>メモ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in stats.recent_records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>
+                            <a href="/player/{{ record.player_id }}">
+                                {{ player_names.get(record.player_id|string, '不明') }}
+                            </a>
+                        </td>
+                        <td><span class="badge bg-primary">{{ record.event }}</span></td>
+                        <td class="font-monospace fw-bold">{{ record.time }}</td>
+                        <td class="text-muted">{{ record.memo or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle"></i> まだ記録がありません。
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// グループ別人数
+const groupData = {{ stats.groups|tojson }};
+const groupCtx = document.getElementById('groupChart').getContext('2d');
+new Chart(groupCtx, {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(groupData),
+        datasets: [{
+            data: Object.values(groupData),
+            backgroundColor: [
+                '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+// 種目別記録数
+const eventData = {{ stats.event_counts|tojson }};
+const eventCtx = document.getElementById('eventChart').getContext('2d');
+new Chart(eventCtx, {
+    type: 'bar',
+    data: {
+        labels: Object.keys(eventData),
+        datasets: [{
+            label: '記録数',
+            data: Object.values(eventData),
+            backgroundColor: '#3B82F6'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -31,6 +31,13 @@
                         </select>
                     </div>
 
+                    <!-- 日付 -->
+                    <div class="mb-3">
+                        <label for="date" class="form-label">日付 <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="date" name="date"
+                               value="{{ today }}" required>
+                    </div>
+
                     <!-- 種目 -->
                     <div class="mb-3">
                         <label for="event" class="form-label">種目 <span class="text-danger">*</span></label>
@@ -41,6 +48,11 @@
                                 <option value="3000m">3000m</option>
                                 <option value="5000m">5000m</option>
                                 <option value="10000m">10000m</option>
+                            </optgroup>
+                            <optgroup label="ロード">
+                                <option value="10km">10km</option>
+                                <option value="ハーフマラソン">ハーフマラソン</option>
+                                <option value="マラソン">マラソン</option>
                             </optgroup>
                             <optgroup label="駅伝区間">
                                 <option value="1区">1区</option>
@@ -63,11 +75,10 @@
                         <label for="time" class="form-label">タイム <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <input type="text" class="form-control" id="time" name="time"
-                                   placeholder="例: 15:30 または 1:02:30" required
-                                   pattern="[0-9]{1,2}:[0-9]{2}(:[0-9]{2})?">
+                                   placeholder="例: 15:30 または 930（秒数）" required>
                             <span class="input-group-text"><i class="bi bi-clock"></i></span>
                         </div>
-                        <div class="form-text">MM:SS または HH:MM:SS 形式で入力</div>
+                        <div class="form-text">MM:SS、HH:MM:SS、または秒数で入力可能</div>
                     </div>
 
                     <!-- メモ -->
@@ -91,4 +102,30 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// タイム入力の自動フォーマット
+document.getElementById('time').addEventListener('blur', function() {
+    let value = this.value.trim();
+
+    // 数字のみ（秒数）の場合、MM:SS形式に変換
+    if (/^\d+$/.test(value)) {
+        const totalSeconds = parseInt(value);
+        if (totalSeconds >= 3600) {
+            // 1時間以上の場合 HH:MM:SS
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            this.value = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        } else {
+            // 1時間未満の場合 MM:SS
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            this.value = `${m}:${s.toString().padStart(2, '0')}`;
+        }
+    }
+});
+</script>
 {% endblock %}

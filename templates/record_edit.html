@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}記録編集 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
+        <li class="breadcrumb-item active">記録編集</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-pencil text-primary"></i> 記録編集</h5>
+                <form action="/record/{{ record.row_index }}/delete" method="POST" class="d-inline"
+                      onsubmit="return confirm('この記録を削除しますか？');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i> 削除
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                <form action="/record/{{ record.row_index }}/edit" method="POST">
+                    <!-- 選手選択 -->
+                    <div class="mb-3">
+                        <label for="player_id" class="form-label">選手 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="player_id" name="player_id" required>
+                            <option value="">選手を選択してください</option>
+                            {% for player in players %}
+                            <option value="{{ player.id }}" {% if record.player_id|string == player.id|string %}selected{% endif %}>
+                                {{ player.name }} ({{ player.group }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- 日付 -->
+                    <div class="mb-3">
+                        <label for="date" class="form-label">日付 <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="date" name="date"
+                               value="{{ record.date }}" required>
+                    </div>
+
+                    <!-- 種目 -->
+                    <div class="mb-3">
+                        <label for="event" class="form-label">種目 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="event" name="event" required>
+                            <option value="">種目を選択してください</option>
+                            <optgroup label="トラック">
+                                <option value="1500m" {% if record.event == '1500m' %}selected{% endif %}>1500m</option>
+                                <option value="3000m" {% if record.event == '3000m' %}selected{% endif %}>3000m</option>
+                                <option value="5000m" {% if record.event == '5000m' %}selected{% endif %}>5000m</option>
+                                <option value="10000m" {% if record.event == '10000m' %}selected{% endif %}>10000m</option>
+                            </optgroup>
+                            <optgroup label="ロード">
+                                <option value="10km" {% if record.event == '10km' %}selected{% endif %}>10km</option>
+                                <option value="ハーフマラソン" {% if record.event == 'ハーフマラソン' %}selected{% endif %}>ハーフマラソン</option>
+                                <option value="マラソン" {% if record.event == 'マラソン' %}selected{% endif %}>マラソン</option>
+                            </optgroup>
+                            <optgroup label="駅伝区間">
+                                <option value="1区" {% if record.event == '1区' %}selected{% endif %}>1区</option>
+                                <option value="2区" {% if record.event == '2区' %}selected{% endif %}>2区</option>
+                                <option value="3区" {% if record.event == '3区' %}selected{% endif %}>3区</option>
+                                <option value="4区" {% if record.event == '4区' %}selected{% endif %}>4区</option>
+                                <option value="5区" {% if record.event == '5区' %}selected{% endif %}>5区</option>
+                                <option value="6区" {% if record.event == '6区' %}selected{% endif %}>6区</option>
+                                <option value="7区" {% if record.event == '7区' %}selected{% endif %}>7区</option>
+                            </optgroup>
+                            <optgroup label="その他">
+                                <option value="練習" {% if record.event == '練習' %}selected{% endif %}>練習</option>
+                                <option value="タイムトライアル" {% if record.event == 'タイムトライアル' %}selected{% endif %}>タイムトライアル</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- タイム -->
+                    <div class="mb-3">
+                        <label for="time" class="form-label">タイム <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="time" name="time"
+                                   value="{{ record.time }}" required>
+                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                        </div>
+                        <div class="form-text">MM:SS または HH:MM:SS 形式で入力</div>
+                    </div>
+
+                    <!-- メモ -->
+                    <div class="mb-4">
+                        <label for="memo" class="form-label">メモ</label>
+                        <textarea class="form-control" id="memo" name="memo" rows="3">{{ record.memo or '' }}</textarea>
+                    </div>
+
+                    <!-- 送信ボタン -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> 更新する
+                        </button>
+                        <a href="/player/{{ record.player_id }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> 戻る
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
