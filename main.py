@@ -16,14 +16,14 @@ def index():
     """選手一覧画面"""
     try:
         players = sheet_api.get_all_players()
-        affiliations = list(set(p.get('affiliation', '') for p in players if p.get('affiliation')))
+        categories = list(set(p.get('category', '') for p in players if p.get('category')))
 
         # ソートパラメータ
         sort_by = request.args.get('sort', 'name')
         if sort_by == 'name':
             players = sorted(players, key=lambda x: x.get('name', ''))
-        elif sort_by == 'affiliation':
-            players = sorted(players, key=lambda x: x.get('affiliation', ''))
+        elif sort_by == 'category':
+            players = sorted(players, key=lambda x: x.get('category', ''))
         elif sort_by == 'pb_5000m':
             players = sorted(players, key=lambda x: x.get('pb_5000m', '') or 'ZZZ')
 
@@ -32,12 +32,12 @@ def index():
 
         return render_template('index.html',
                                players=players,
-                               affiliations=sorted(affiliations),
+                               categories=sorted(categories),
                                sort_by=sort_by,
                                view_mode=view_mode)
     except Exception as e:
         flash(f'データの取得に失敗しました: {str(e)}', 'danger')
-        return render_template('index.html', players=[], affiliations=[], sort_by='name', view_mode='card')
+        return render_template('index.html', players=[], categories=[], sort_by='name', view_mode='card')
 
 # ============ 選手詳細 ============
 

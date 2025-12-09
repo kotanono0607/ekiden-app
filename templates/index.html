@@ -163,10 +163,10 @@
             </div>
         </div>
         <div class="col-4">
-            <select class="form-select" id="affiliationFilter">
-                <option value="">所属</option>
-                {% for affiliation in affiliations %}
-                <option value="{{ affiliation }}">{{ affiliation }}</option>
+            <select class="form-select" id="categoryFilter">
+                <option value="">区分</option>
+                {% for category in categories %}
+                <option value="{{ category }}">{{ category }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -178,15 +178,15 @@
     <div id="playerList">
         {% for player in players %}
         <a href="/player/{{ player.id }}" class="player-card player-item"
-           data-name="{{ player.name }}" data-affiliation="{{ player.affiliation or '' }}">
+           data-name="{{ player.name }}" data-category="{{ player.category or '' }}">
             <div class="player-avatar">
                 {{ player.name[:1] if player.name else '?' }}
             </div>
             <div class="player-info">
                 <div class="player-name">{{ player.name }}</div>
                 <div class="player-meta">
+                    {% if player.category %}<span><i class="bi bi-tag"></i> {{ player.category }}</span>{% endif %}
                     {% if player.affiliation %}<span><i class="bi bi-building"></i> {{ player.affiliation }}</span>{% endif %}
-                    {% if player.grade %}<span><i class="bi bi-mortarboard"></i> {{ player.grade }}</span>{% endif %}
                     {% if player.pb_5000m %}<span><i class="bi bi-stopwatch"></i> {{ player.pb_5000m }}</span>{% endif %}
                 </div>
             </div>
@@ -213,19 +213,19 @@
 {% block extra_js %}
 <script>
 document.getElementById('searchInput').addEventListener('input', filterPlayers);
-document.getElementById('affiliationFilter').addEventListener('change', filterPlayers);
+document.getElementById('categoryFilter').addEventListener('change', filterPlayers);
 
 function filterPlayers() {
     const searchText = document.getElementById('searchInput').value.toLowerCase();
-    const affiliationFilter = document.getElementById('affiliationFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
     const items = document.querySelectorAll('.player-item');
 
     items.forEach(item => {
         const name = item.dataset.name.toLowerCase();
-        const affiliation = item.dataset.affiliation || '';
+        const category = item.dataset.category || '';
         const matchName = name.includes(searchText);
-        const matchAffiliation = !affiliationFilter || affiliation === affiliationFilter;
-        item.style.display = (matchName && matchAffiliation) ? '' : 'none';
+        const matchCategory = !categoryFilter || category === categoryFilter;
+        item.style.display = (matchName && matchCategory) ? '' : 'none';
     });
 }
 </script>
