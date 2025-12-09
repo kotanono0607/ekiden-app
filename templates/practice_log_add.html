@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}練習日誌追加 - 南陽東置賜{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5><i class="bi bi-journal-plus text-primary"></i> 練習日誌追加</h5>
+    <a href="{{ url_for('practice_logs') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> 戻る
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">日付 <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" name="date" value="{{ date }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">タイトル <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="title" placeholder="例: ポイント練習、各自ジョグ" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">練習内容</label>
+                <textarea class="form-control" name="content" rows="5" placeholder="詳細な練習メニューや設定タイムなど"></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-6">
+                    <div class="mb-3">
+                        <label class="form-label">天候</label>
+                        <select class="form-select" name="weather">
+                            <option value="">選択</option>
+                            {% for code, name in weather_list %}
+                            <option value="{{ code }}">{{ name }}</option>
+                            {% endfor %}
+                            {% if not weather_list %}
+                            <option value="晴れ">晴れ</option>
+                            <option value="曇り">曇り</option>
+                            <option value="雨">雨</option>
+                            <option value="雪">雪</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="mb-3">
+                        <label class="form-label">気温 (℃)</label>
+                        <input type="number" class="form-control" name="temperature" placeholder="20">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">参加人数</label>
+                <input type="number" class="form-control" name="participants" placeholder="15">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">メモ</label>
+                <textarea class="form-control" name="memo" rows="2" placeholder="チーム全体の雰囲気、特記事項など"></textarea>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> 登録
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
