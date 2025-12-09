@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
     <title>{% block title %}駅伝アプリ{% endblock %}</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,10 +17,33 @@
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+            /* Light theme (default) */
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #ffffff;
+            --nav-bg: #ffffff;
+            --menu-bg: #ffffff;
+            --dropdown-bg: #ffffff;
+        }
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #1e293b;
+            --nav-bg: #1e293b;
+            --menu-bg: #1e293b;
+            --dropdown-bg: #1e293b;
         }
         body {
-            background-color: #f5f7fa;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             padding-bottom: 70px; /* Space for bottom nav */
+            transition: background-color 0.3s, color 0.3s;
         }
         @media (min-width: 992px) {
             body {
@@ -372,6 +398,8 @@
             border: none;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background-color: var(--card-bg);
+            transition: background-color 0.3s;
         }
         @media (min-width: 992px) {
             .card-hoverable {
@@ -381,6 +409,122 @@
                 transform: translateY(-4px);
                 box-shadow: 0 8px 25px rgba(0,0,0,0.1);
             }
+        }
+
+        /* Dark mode component overrides */
+        [data-theme="dark"] .bottom-nav {
+            background: var(--nav-bg);
+            border-top-color: var(--border-color);
+        }
+        [data-theme="dark"] .mobile-menu {
+            background: var(--menu-bg);
+        }
+        [data-theme="dark"] .mobile-menu-item {
+            color: var(--text-color);
+        }
+        [data-theme="dark"] .mobile-menu-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-color);
+        }
+        [data-theme="dark"] .mobile-menu-item i {
+            color: #818cf8;
+        }
+        [data-theme="dark"] .mobile-menu-divider {
+            background: var(--border-color);
+        }
+        [data-theme="dark"] .form-control,
+        [data-theme="dark"] .form-select {
+            background-color: var(--input-bg);
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+        [data-theme="dark"] .form-control:focus,
+        [data-theme="dark"] .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: #667eea;
+            color: var(--text-color);
+        }
+        [data-theme="dark"] .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--border-color);
+            color: var(--text-muted);
+        }
+        [data-theme="dark"] .dropdown-menu {
+            background: var(--dropdown-bg);
+            border-color: var(--border-color);
+        }
+        [data-theme="dark"] .dropdown-item {
+            color: var(--text-color);
+        }
+        [data-theme="dark"] .dropdown-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-color);
+        }
+        [data-theme="dark"] .pull-indicator {
+            background: var(--card-bg);
+            color: var(--text-muted);
+        }
+        [data-theme="dark"] .text-muted {
+            color: var(--text-muted) !important;
+        }
+        [data-theme="dark"] .btn-outline-secondary {
+            color: var(--text-muted);
+            border-color: var(--border-color);
+        }
+        [data-theme="dark"] .btn-light {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background 0.15s;
+        }
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .theme-toggle i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+            color: #667eea;
+        }
+        [data-theme="dark"] .theme-toggle i {
+            color: #fbbf24;
+        }
+        .theme-toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            position: relative;
+            margin-left: auto;
+            transition: background 0.3s;
+        }
+        .theme-toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        [data-theme="dark"] .theme-toggle-switch {
+            background: #667eea;
+        }
+        [data-theme="dark"] .theme-toggle-switch::after {
+            transform: translateX(20px);
         }
 
         /* Footer - hidden on mobile */
@@ -463,6 +607,12 @@
             <a href="/masters" class="mobile-menu-item"><i class="bi bi-list-ul"></i> マスタ管理</a>
             <a href="/export/players" class="mobile-menu-item"><i class="bi bi-download"></i> 選手CSV出力</a>
             <a href="/export/records" class="mobile-menu-item"><i class="bi bi-download"></i> 記録CSV出力</a>
+            <div class="mobile-menu-divider"></div>
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+                <span id="themeLabel">ダークモード</span>
+                <div class="theme-toggle-switch"></div>
+            </div>
         </div>
     </div>
 
@@ -543,6 +693,61 @@
                 }
             });
         });
+
+        // Dark Mode Toggle
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            setTheme(theme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeUI(theme);
+            // Update meta theme-color for mobile browsers
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) {
+                metaTheme.setAttribute('content', theme === 'dark' ? '#1e293b' : '#667eea');
+            }
+        }
+
+        function updateThemeUI(theme) {
+            const icon = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+            if (icon && label) {
+                if (theme === 'dark') {
+                    icon.className = 'bi bi-sun-fill';
+                    label.textContent = 'ライトモード';
+                } else {
+                    icon.className = 'bi bi-moon-fill';
+                    label.textContent = 'ダークモード';
+                }
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+
+        // Initialize theme on page load
+        initTheme();
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
 
         // Toast Notification System
         function showToast(message, type = 'info', duration = 4000) {
