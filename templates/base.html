@@ -2,87 +2,356 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>{% block title %}駅伝アプリ{% endblock %}</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
         body {
-            background-color: #f8f9fa;
+            background-color: #f5f7fa;
+            padding-bottom: 70px; /* Space for bottom nav */
+        }
+        @media (min-width: 992px) {
+            body {
+                padding-bottom: 0;
+            }
+        }
+
+        /* Top Navigation */
+        .top-navbar {
+            background: var(--primary-gradient);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+        .top-navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .navbar-brand {
-            font-weight: bold;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .card {
-            transition: transform 0.2s;
+        .navbar-brand:hover {
+            color: white;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        .navbar-actions {
+            display: flex;
+            gap: 8px;
         }
-        .player-card {
-            cursor: pointer;
+        .navbar-actions .btn {
+            color: white;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
         }
-        .section-icon {
-            width: 40px;
-            height: 40px;
+        .navbar-actions .btn:hover {
+            background: rgba(255,255,255,0.25);
+            color: white;
+        }
+
+        /* Desktop Navigation */
+        .desktop-nav {
+            display: none;
+        }
+        @media (min-width: 992px) {
+            .desktop-nav {
+                display: flex;
+                gap: 4px;
+            }
+            .desktop-nav .nav-link {
+                color: rgba(255,255,255,0.85);
+                padding: 8px 14px;
+                border-radius: 6px;
+                font-size: 14px;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.15s;
+            }
+            .desktop-nav .nav-link:hover,
+            .desktop-nav .nav-link.active {
+                color: white;
+                background: rgba(255,255,255,0.15);
+            }
+            .desktop-nav .dropdown-menu {
+                border: none;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                border-radius: 10px;
+                padding: 8px;
+            }
+            .desktop-nav .dropdown-item {
+                border-radius: 6px;
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+            .desktop-nav .dropdown-item:hover {
+                background: #f5f7fa;
+            }
+        }
+
+        /* Mobile Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            padding-bottom: calc(8px + var(--safe-area-bottom));
+            z-index: 1030;
+        }
+        @media (min-width: 992px) {
+            .bottom-nav {
+                display: none;
+            }
+        }
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #718096;
+            font-size: 10px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            transition: all 0.15s;
+        }
+        .bottom-nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        .bottom-nav-item:hover,
+        .bottom-nav-item.active {
+            color: #667eea;
+        }
+        .bottom-nav-item.active {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* Mobile Menu Overlay */
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        .mobile-menu-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background: white;
+            z-index: 1050;
+            transition: right 0.3s;
+            overflow-y: auto;
+        }
+        .mobile-menu.show {
+            right: 0;
+        }
+        .mobile-menu-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 20px 16px;
+        }
+        .mobile-menu-header h5 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .mobile-menu-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            font-size: 1.2rem;
+        }
+        .mobile-menu-list {
+            padding: 12px;
+        }
+        .mobile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            color: #2d3748;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            transition: background 0.15s;
+        }
+        .mobile-menu-item:hover {
+            background: #f5f7fa;
+            color: #2d3748;
+        }
+        .mobile-menu-item i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+            color: #667eea;
+        }
+        .mobile-menu-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 12px 0;
+        }
+
+        /* Main Content */
+        main.container {
+            padding: 1rem 12px;
+        }
+        @media (min-width: 992px) {
+            main.container {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Alert styling */
+        .alert {
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        /* Card hover effect - disabled on mobile */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        @media (min-width: 992px) {
+            .card-hoverable {
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            .card-hoverable:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            }
+        }
+
+        /* Footer - hidden on mobile */
+        footer {
+            display: none;
+        }
+        @media (min-width: 992px) {
+            footer {
+                display: block;
+                background: #f8f9fa;
+                padding: 1.5rem 0;
+                margin-top: auto;
+            }
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="bi bi-trophy"></i> 駅伝アプリ
+                <i class="bi bi-trophy-fill"></i> 駅伝アプリ
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="bi bi-people"></i> 選手</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/races"><i class="bi bi-trophy"></i> 大会</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/team_records"><i class="bi bi-flag"></i> チーム記録</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/record/add"><i class="bi bi-stopwatch"></i> 記録登録</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/simulation"><i class="bi bi-diagram-3"></i> シミュレーション</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-gear"></i> 設定
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/masters"><i class="bi bi-list-ul"></i> マスタ管理</a></li>
-                            <li><a class="dropdown-item" href="/statistics"><i class="bi bi-bar-chart-line"></i> 統計</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/export/players"><i class="bi bi-download"></i> 選手CSV</a></li>
-                            <li><a class="dropdown-item" href="/export/records"><i class="bi bi-download"></i> 記録CSV</a></li>
-                        </ul>
-                    </li>
-                </ul>
+
+            <!-- Desktop Navigation -->
+            <div class="desktop-nav">
+                <a class="nav-link" href="/"><i class="bi bi-people-fill"></i> 選手</a>
+                <a class="nav-link" href="/races"><i class="bi bi-trophy"></i> 大会</a>
+                <a class="nav-link" href="/team_records"><i class="bi bi-flag-fill"></i> チーム記録</a>
+                <a class="nav-link" href="/record/add"><i class="bi bi-stopwatch"></i> 記録登録</a>
+                <a class="nav-link" href="/simulation"><i class="bi bi-diagram-3"></i> シミュレーション</a>
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-gear"></i> 設定
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/masters"><i class="bi bi-list-ul me-2"></i>マスタ管理</a></li>
+                        <li><a class="dropdown-item" href="/statistics"><i class="bi bi-bar-chart-line me-2"></i>統計</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/export/players"><i class="bi bi-download me-2"></i>選手CSV</a></li>
+                        <li><a class="dropdown-item" href="/export/records"><i class="bi bi-download me-2"></i>記録CSV</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="navbar-actions d-lg-none">
+                <button class="btn" onclick="toggleMobileMenu()">
+                    <i class="bi bi-list" style="font-size: 20px;"></i>
+                </button>
             </div>
         </div>
     </nav>
 
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <h5><i class="bi bi-trophy-fill"></i> 駅伝アプリ</h5>
+            <button class="mobile-menu-close" onclick="toggleMobileMenu()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="mobile-menu-list">
+            <a href="/" class="mobile-menu-item"><i class="bi bi-people-fill"></i> 選手一覧</a>
+            <a href="/player/add" class="mobile-menu-item"><i class="bi bi-person-plus"></i> 選手追加</a>
+            <div class="mobile-menu-divider"></div>
+            <a href="/races" class="mobile-menu-item"><i class="bi bi-trophy"></i> 大会一覧</a>
+            <a href="/race/add" class="mobile-menu-item"><i class="bi bi-plus-circle"></i> 大会追加</a>
+            <div class="mobile-menu-divider"></div>
+            <a href="/team_records" class="mobile-menu-item"><i class="bi bi-flag-fill"></i> チーム記録</a>
+            <a href="/record/add" class="mobile-menu-item"><i class="bi bi-stopwatch"></i> 記録登録</a>
+            <div class="mobile-menu-divider"></div>
+            <a href="/simulation" class="mobile-menu-item"><i class="bi bi-diagram-3"></i> シミュレーション</a>
+            <a href="/statistics" class="mobile-menu-item"><i class="bi bi-bar-chart-line"></i> 統計</a>
+            <div class="mobile-menu-divider"></div>
+            <a href="/masters" class="mobile-menu-item"><i class="bi bi-list-ul"></i> マスタ管理</a>
+            <a href="/export/players" class="mobile-menu-item"><i class="bi bi-download"></i> 選手CSV出力</a>
+            <a href="/export/records" class="mobile-menu-item"><i class="bi bi-download"></i> 記録CSV出力</a>
+        </div>
+    </div>
+
     <!-- Main Content -->
-    <main class="container my-4">
+    <main class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -97,8 +366,32 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light py-3 mt-auto">
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/" class="bottom-nav-item">
+            <i class="bi bi-people-fill"></i>
+            <span>選手</span>
+        </a>
+        <a href="/races" class="bottom-nav-item">
+            <i class="bi bi-trophy"></i>
+            <span>大会</span>
+        </a>
+        <a href="/record/add" class="bottom-nav-item">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>記録</span>
+        </a>
+        <a href="/team_records" class="bottom-nav-item">
+            <i class="bi bi-flag-fill"></i>
+            <span>チーム</span>
+        </a>
+        <a href="/simulation" class="bottom-nav-item">
+            <i class="bi bi-diagram-3"></i>
+            <span>シミュ</span>
+        </a>
+    </nav>
+
+    <!-- Footer (Desktop only) -->
+    <footer>
         <div class="container text-center text-muted">
             <small>&copy; 2024 駅伝チーム管理システム</small>
         </div>
@@ -106,6 +399,24 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('show');
+            document.getElementById('mobileMenuOverlay').classList.toggle('show');
+            document.body.style.overflow = document.getElementById('mobileMenu').classList.contains('show') ? 'hidden' : '';
+        }
+
+        // Highlight current page in bottom nav
+        document.addEventListener('DOMContentLoaded', function() {
+            const path = window.location.pathname;
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                const href = item.getAttribute('href');
+                if (path === href || (href !== '/' && path.startsWith(href))) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

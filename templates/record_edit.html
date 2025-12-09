@@ -2,109 +2,278 @@
 
 {% block title %}記録編集 - 駅伝アプリ{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-header {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        color: white;
+        padding: 20px 16px;
+        margin: -1rem -12px 0 -12px;
+        text-align: center;
+    }
+    .form-header h5 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        margin: 16px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .section-title {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-body {
+        padding: 16px;
+    }
+    .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 6px;
+    }
+    .form-control, .form-select {
+        font-size: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #ed8936;
+        box-shadow: 0 0 0 3px rgba(237, 137, 54, 0.15);
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #718096;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+    .submit-area {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 16px;
+        margin: 16px -12px -1rem -12px;
+        border-top: 1px solid #e2e8f0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .submit-btn {
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    .event-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .event-btn {
+        padding: 12px 8px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a5568;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .event-btn:hover {
+        border-color: #ed8936;
+        color: #ed8936;
+    }
+    .event-btn.selected {
+        border-color: #ed8936;
+        background: rgba(237, 137, 54, 0.1);
+        color: #dd6b20;
+    }
+    .event-section-title {
+        font-size: 11px;
+        color: #a0aec0;
+        text-transform: uppercase;
+        margin: 12px 0 8px;
+        grid-column: 1 / -1;
+    }
+    .event-section-title:first-child {
+        margin-top: 0;
+    }
+    .delete-section {
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+    }
+    @media (min-width: 768px) {
+        .submit-area {
+            position: static;
+            margin: 16px 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+            display: flex;
+            gap: 12px;
+        }
+        .submit-btn {
+            padding: 14px 32px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
-        <li class="breadcrumb-item active">記録編集</li>
-    </ol>
-</nav>
+<a href="/player/{{ record.player_id }}" class="back-link">
+    <i class="bi bi-chevron-left"></i> 戻る
+</a>
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-pencil text-primary"></i> 記録編集</h5>
-                <form action="/record/{{ record.row_index }}/delete" method="POST" class="d-inline"
-                      onsubmit="return confirm('この記録を削除しますか？');">
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                        <i class="bi bi-trash"></i> 削除
-                    </button>
-                </form>
-            </div>
-            <div class="card-body">
-                <form action="/record/{{ record.row_index }}/edit" method="POST">
-                    <!-- 選手選択 -->
-                    <div class="mb-3">
-                        <label for="player_id" class="form-label">選手 <span class="text-danger">*</span></label>
-                        <select class="form-select" id="player_id" name="player_id" required>
-                            <option value="">選手を選択してください</option>
-                            {% for player in players %}
-                            <option value="{{ player.id }}" {% if record.player_id|string == player.id|string %}selected{% endif %}>
-                                {{ player.name }} ({{ player.group }})
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+<div class="form-header">
+    <h5><i class="bi bi-pencil"></i> 記録編集</h5>
+</div>
 
-                    <!-- 日付 -->
-                    <div class="mb-3">
-                        <label for="date" class="form-label">日付 <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="date" name="date"
-                               value="{{ record.date }}" required>
-                    </div>
+<form action="/record/{{ record.row_index }}/edit" method="POST">
+    <!-- 選手選択 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-person text-primary"></i> 選手
+        </div>
+        <div class="section-body">
+            <select class="form-select" id="player_id" name="player_id" required>
+                <option value="">選手を選択してください</option>
+                {% for player in players %}
+                <option value="{{ player.id }}" {% if record.player_id|string == player.id|string %}selected{% endif %}>
+                    {{ player.name }}{% if player.affiliation %} ({{ player.affiliation }}){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 
-                    <!-- 種目 -->
-                    <div class="mb-3">
-                        <label for="event" class="form-label">種目 <span class="text-danger">*</span></label>
-                        <select class="form-select" id="event" name="event" required>
-                            <option value="">種目を選択してください</option>
-                            <optgroup label="トラック">
-                                <option value="1500m" {% if record.event == '1500m' %}selected{% endif %}>1500m</option>
-                                <option value="3000m" {% if record.event == '3000m' %}selected{% endif %}>3000m</option>
-                                <option value="5000m" {% if record.event == '5000m' %}selected{% endif %}>5000m</option>
-                                <option value="10000m" {% if record.event == '10000m' %}selected{% endif %}>10000m</option>
-                            </optgroup>
-                            <optgroup label="ロード">
-                                <option value="10km" {% if record.event == '10km' %}selected{% endif %}>10km</option>
-                                <option value="ハーフマラソン" {% if record.event == 'ハーフマラソン' %}selected{% endif %}>ハーフマラソン</option>
-                                <option value="マラソン" {% if record.event == 'マラソン' %}selected{% endif %}>マラソン</option>
-                            </optgroup>
-                            <optgroup label="駅伝区間">
-                                <option value="1区" {% if record.event == '1区' %}selected{% endif %}>1区</option>
-                                <option value="2区" {% if record.event == '2区' %}selected{% endif %}>2区</option>
-                                <option value="3区" {% if record.event == '3区' %}selected{% endif %}>3区</option>
-                                <option value="4区" {% if record.event == '4区' %}selected{% endif %}>4区</option>
-                                <option value="5区" {% if record.event == '5区' %}selected{% endif %}>5区</option>
-                                <option value="6区" {% if record.event == '6区' %}selected{% endif %}>6区</option>
-                                <option value="7区" {% if record.event == '7区' %}selected{% endif %}>7区</option>
-                            </optgroup>
-                            <optgroup label="その他">
-                                <option value="練習" {% if record.event == '練習' %}selected{% endif %}>練習</option>
-                                <option value="タイムトライアル" {% if record.event == 'タイムトライアル' %}selected{% endif %}>タイムトライアル</option>
-                            </optgroup>
-                        </select>
-                    </div>
+    <!-- 日付 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-calendar3 text-info"></i> 日付
+        </div>
+        <div class="section-body">
+            <input type="date" class="form-control" id="date" name="date" value="{{ record.date }}" required>
+        </div>
+    </div>
 
-                    <!-- タイム -->
-                    <div class="mb-3">
-                        <label for="time" class="form-label">タイム <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="time" name="time"
-                                   value="{{ record.time }}" required>
-                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                        </div>
-                        <div class="form-text">MM:SS または HH:MM:SS 形式で入力</div>
-                    </div>
+    <!-- 種目 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-flag text-warning"></i> 種目
+        </div>
+        <div class="section-body">
+            <input type="hidden" id="event" name="event" value="{{ record.event }}" required>
+            <div class="event-grid">
+                <div class="event-section-title">トラック</div>
+                <button type="button" class="event-btn {% if record.event == '1500m' %}selected{% endif %}" data-event="1500m">1500m</button>
+                <button type="button" class="event-btn {% if record.event == '3000m' %}selected{% endif %}" data-event="3000m">3000m</button>
+                <button type="button" class="event-btn {% if record.event == '5000m' %}selected{% endif %}" data-event="5000m">5000m</button>
+                <button type="button" class="event-btn {% if record.event == '10000m' %}selected{% endif %}" data-event="10000m">10000m</button>
 
-                    <!-- メモ -->
-                    <div class="mb-4">
-                        <label for="memo" class="form-label">メモ</label>
-                        <textarea class="form-control" id="memo" name="memo" rows="3">{{ record.memo or '' }}</textarea>
-                    </div>
+                <div class="event-section-title">ロード</div>
+                <button type="button" class="event-btn {% if record.event == '10km' %}selected{% endif %}" data-event="10km">10km</button>
+                <button type="button" class="event-btn {% if record.event == 'ハーフ' or record.event == 'ハーフマラソン' %}selected{% endif %}" data-event="ハーフ">ハーフ</button>
+                <button type="button" class="event-btn {% if record.event == 'フル' or record.event == 'マラソン' %}selected{% endif %}" data-event="フル">フル</button>
 
-                    <!-- 送信ボタン -->
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-check-circle"></i> 更新する
-                        </button>
-                        <a href="/player/{{ record.player_id }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> 戻る
-                        </a>
-                    </div>
-                </form>
+                <div class="event-section-title">駅伝区間</div>
+                <button type="button" class="event-btn {% if record.event == '1区' %}selected{% endif %}" data-event="1区">1区</button>
+                <button type="button" class="event-btn {% if record.event == '2区' %}selected{% endif %}" data-event="2区">2区</button>
+                <button type="button" class="event-btn {% if record.event == '3区' %}selected{% endif %}" data-event="3区">3区</button>
+                <button type="button" class="event-btn {% if record.event == '4区' %}selected{% endif %}" data-event="4区">4区</button>
+                <button type="button" class="event-btn {% if record.event == '5区' %}selected{% endif %}" data-event="5区">5区</button>
+                <button type="button" class="event-btn {% if record.event == '6区' %}selected{% endif %}" data-event="6区">6区</button>
+                <button type="button" class="event-btn {% if record.event == '7区' %}selected{% endif %}" data-event="7区">7区</button>
+                <button type="button" class="event-btn {% if record.event == '8区' %}selected{% endif %}" data-event="8区">8区</button>
+                <button type="button" class="event-btn {% if record.event == '9区' %}selected{% endif %}" data-event="9区">9区</button>
+                <button type="button" class="event-btn {% if record.event == '10区' %}selected{% endif %}" data-event="10区">10区</button>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- タイム -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-clock text-success"></i> タイム
+        </div>
+        <div class="section-body">
+            <input type="text" class="form-control" id="time" name="time"
+                   value="{{ record.time }}" required
+                   style="text-align: center; font-size: 20px; font-weight: 600; font-family: monospace;">
+            <div class="form-text text-center mt-2">MM:SS または HH:MM:SS 形式で入力</div>
+        </div>
+    </div>
+
+    <!-- メモ -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-chat-text text-secondary"></i> メモ
+        </div>
+        <div class="section-body">
+            <textarea class="form-control" id="memo" name="memo" rows="2">{{ record.memo or '' }}</textarea>
+
+            <!-- 削除 -->
+            <div class="delete-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-danger"><i class="bi bi-trash"></i> この記録を削除</span>
+                    <form action="/record/{{ record.row_index }}/delete" method="POST" style="margin:0;"
+                          onsubmit="return confirm('この記録を削除しますか？');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            削除する
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 送信ボタン -->
+    <div class="submit-area">
+        <a href="/player/{{ record.player_id }}" class="btn btn-outline-secondary submit-btn">
+            キャンセル
+        </a>
+        <button type="submit" class="btn btn-warning submit-btn text-white">
+            <i class="bi bi-check-lg"></i> 更新
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 種目選択
+document.querySelectorAll('.event-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.event-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('event').value = this.dataset.event;
+    });
+});
+
+// フォーム送信前に種目チェック
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!document.getElementById('event').value) {
+        e.preventDefault();
+        alert('種目を選択してください');
+    }
+});
+</script>
 {% endblock %}
