@@ -244,11 +244,127 @@
             }
         }
 
-        /* Alert styling */
-        .alert {
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1060;
+            width: calc(100% - 32px);
+            max-width: 400px;
+            pointer-events: none;
+        }
+        .toast-item {
+            background: #1e293b;
+            color: white;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: toastSlideIn 0.3s ease;
+            pointer-events: auto;
+        }
+        .toast-item.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        .toast-item.danger, .toast-item.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        .toast-item.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        .toast-item.info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        .toast-item i {
+            font-size: 1.2rem;
+        }
+        .toast-item span {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        .toast-close {
+            background: rgba(255,255,255,0.2);
             border: none;
-            border-radius: 10px;
-            font-size: 14px;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes toastSlideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Pull to Refresh */
+        .pull-indicator {
+            position: fixed;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1020;
+            transition: transform 0.2s;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .pull-indicator.pulling {
+            transform: translateX(-50%) translateY(10px);
+        }
+        .pull-indicator.refreshing {
+            transform: translateX(-50%) translateY(10px);
+        }
+        .pull-indicator .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .pull-indicator .arrow {
+            transition: transform 0.2s;
+        }
+        .pull-indicator.ready .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Legacy alert (hidden, using toast instead) */
+        .alert {
+            display: none;
         }
 
         /* Card hover effect - disabled on mobile */
@@ -350,16 +466,27 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Pull to Refresh Indicator -->
+    <div class="pull-indicator" id="pullIndicator">
+        <i class="bi bi-arrow-down arrow"></i>
+        <span class="pull-text">下に引いて更新</span>
+        <div class="spinner" style="display: none;"></div>
+    </div>
+
     <!-- Main Content -->
-    <main class="container">
+    <main class="container" id="mainContent">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        {% for category, message in messages %}
+                        showToast('{{ message|e }}', '{{ category }}');
+                        {% endfor %}
+                    });
+                </script>
             {% endif %}
         {% endwith %}
 
@@ -416,6 +543,111 @@
                 }
             });
         });
+
+        // Toast Notification System
+        function showToast(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast-item ${type}`;
+
+            const icons = {
+                success: 'bi-check-circle-fill',
+                danger: 'bi-exclamation-circle-fill',
+                error: 'bi-exclamation-circle-fill',
+                warning: 'bi-exclamation-triangle-fill',
+                info: 'bi-info-circle-fill'
+            };
+
+            toast.innerHTML = `
+                <i class="bi ${icons[type] || icons.info}"></i>
+                <span>${message}</span>
+                <button class="toast-close" onclick="closeToast(this)">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto dismiss
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, duration);
+        }
+
+        function closeToast(btn) {
+            const toast = btn.closest('.toast-item');
+            toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }
+
+        // Pull to Refresh
+        (function() {
+            let startY = 0;
+            let pulling = false;
+            const threshold = 80;
+            const indicator = document.getElementById('pullIndicator');
+            const mainContent = document.getElementById('mainContent');
+
+            if (!indicator || !mainContent) return;
+
+            // Only enable on mobile
+            if (window.innerWidth >= 992) return;
+
+            mainContent.addEventListener('touchstart', function(e) {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].clientY;
+                    pulling = true;
+                }
+            }, { passive: true });
+
+            mainContent.addEventListener('touchmove', function(e) {
+                if (!pulling) return;
+
+                const currentY = e.touches[0].clientY;
+                const diff = currentY - startY;
+
+                if (diff > 0 && window.scrollY === 0) {
+                    const pullDistance = Math.min(diff, threshold * 1.5);
+                    indicator.classList.add('pulling');
+                    indicator.querySelector('.pull-text').textContent =
+                        diff > threshold ? '離して更新' : '下に引いて更新';
+
+                    if (diff > threshold) {
+                        indicator.classList.add('ready');
+                    } else {
+                        indicator.classList.remove('ready');
+                    }
+                }
+            }, { passive: true });
+
+            mainContent.addEventListener('touchend', function(e) {
+                if (!pulling) return;
+
+                const endY = e.changedTouches[0].clientY;
+                const diff = endY - startY;
+
+                if (diff > threshold && window.scrollY === 0) {
+                    // Trigger refresh
+                    indicator.classList.remove('pulling', 'ready');
+                    indicator.classList.add('refreshing');
+                    indicator.querySelector('.arrow').style.display = 'none';
+                    indicator.querySelector('.spinner').style.display = 'block';
+                    indicator.querySelector('.pull-text').textContent = '更新中...';
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                } else {
+                    indicator.classList.remove('pulling', 'ready');
+                }
+
+                pulling = false;
+                startY = 0;
+            }, { passive: true });
+        })();
     </script>
     {% block extra_js %}{% endblock %}
 </body>
