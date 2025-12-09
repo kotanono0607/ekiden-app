@@ -4,91 +4,22 @@
 
 {% block extra_css %}
 <style>
-    /* Skeleton Loading */
-    .skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: skeleton-loading 1.5s infinite;
-        border-radius: 4px;
-    }
-    @keyframes skeleton-loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-    .skeleton-card {
-        display: flex;
-        align-items: center;
-        padding: 12px 16px;
-        border-bottom: 1px solid #e9ecef;
-    }
-    .skeleton-avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        margin-right: 12px;
-    }
-    .skeleton-content {
-        flex: 1;
-    }
-    .skeleton-line {
-        height: 14px;
-        margin-bottom: 8px;
-    }
-    .skeleton-line.short { width: 60%; }
-    .skeleton-line.shorter { width: 40%; height: 12px; }
-
-    /* Swipe to Delete */
-    .swipe-container {
-        position: relative;
-        overflow: hidden;
-    }
-    .swipe-item {
-        position: relative;
-        transition: transform 0.2s ease;
-        background: white;
-        z-index: 1;
-    }
-    .swipe-item.swiping {
-        transition: none;
-    }
-    .swipe-actions {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 80px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #ef4444;
-        color: white;
-        z-index: 0;
-    }
-    .swipe-actions i {
-        font-size: 1.3rem;
-    }
-    .swipe-actions span {
-        font-size: 0.75rem;
-        margin-top: 2px;
-    }
-    .delete-action {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
     /* Player Card */
     .player-card {
         display: flex;
         align-items: center;
         padding: 12px 16px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid var(--border-color);
         text-decoration: none;
         color: inherit;
         transition: background 0.15s;
     }
     .player-card:hover, .player-card:active {
-        background: #f8f9fa;
+        background: rgba(0,0,0,0.03);
+    }
+    [data-theme="dark"] .player-card:hover,
+    [data-theme="dark"] .player-card:active {
+        background: rgba(255,255,255,0.05);
     }
     .player-card:last-child {
         border-bottom: none;
@@ -114,7 +45,7 @@
     .player-name {
         font-weight: 600;
         font-size: 15px;
-        color: #212529;
+        color: var(--text-color);
         margin-bottom: 2px;
         white-space: nowrap;
         overflow: hidden;
@@ -122,13 +53,18 @@
     }
     .player-meta {
         font-size: 12px;
-        color: #6c757d;
+        color: var(--text-muted);
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
     }
+    .player-meta span {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
     .player-arrow {
-        color: #adb5bd;
+        color: var(--text-muted);
         font-size: 18px;
         margin-left: 8px;
     }
@@ -136,7 +72,7 @@
         position: sticky;
         top: 56px;
         z-index: 100;
-        background: #f8f9fa;
+        background: var(--bg-color);
         padding: 12px 0;
         margin: -1rem -12px 0 -12px;
         padding-left: 12px;
@@ -151,12 +87,13 @@
     .header-row h5 {
         margin: 0;
         font-size: 18px;
+        color: var(--text-color);
     }
     .player-count {
         font-size: 13px;
-        color: #6c757d;
+        color: var(--text-muted);
         padding: 4px 8px;
-        background: #e9ecef;
+        background: var(--border-color);
         border-radius: 12px;
     }
     .fab-button {
@@ -180,92 +117,14 @@
         color: white;
         transform: scale(1.05);
     }
-
-    /* Swipe hint */
-    .swipe-hint {
-        background: #f8fafc;
-        padding: 10px 16px;
-        font-size: 0.8rem;
-        color: #64748b;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        border-bottom: 1px solid #e9ecef;
-    }
-    .swipe-hint i {
-        font-size: 1rem;
-    }
-
-    /* Delete confirmation modal */
-    .delete-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1100;
-        padding: 20px;
-    }
-    .delete-modal.show {
-        display: flex;
-    }
-    .delete-modal-content {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
+    .empty-state {
         text-align: center;
-        max-width: 320px;
-        width: 100%;
-        animation: modalPop 0.2s ease;
+        padding: 40px 20px;
+        color: var(--text-muted);
     }
-    @keyframes modalPop {
-        from { transform: scale(0.9); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-    .delete-modal-icon {
-        width: 60px;
-        height: 60px;
-        background: #fee2e2;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 16px;
-        color: #ef4444;
-        font-size: 1.5rem;
-    }
-    .delete-modal h4 {
-        margin: 0 0 8px;
-        font-size: 1.1rem;
-    }
-    .delete-modal p {
-        color: #64748b;
-        font-size: 0.9rem;
-        margin: 0 0 20px;
-    }
-    .delete-modal-actions {
-        display: flex;
-        gap: 10px;
-    }
-    .delete-modal-actions button {
-        flex: 1;
-        padding: 12px;
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 0.95rem;
-    }
-    .btn-modal-cancel {
-        background: #f1f5f9;
-        color: #64748b;
-    }
-    .btn-modal-delete {
-        background: #ef4444;
-        color: white;
+    .empty-state i {
+        font-size: 48px;
+        opacity: 0.5;
     }
 
     @media (min-width: 768px) {
@@ -276,9 +135,6 @@
             background: transparent;
         }
         .fab-button {
-            display: none;
-        }
-        .swipe-hint {
             display: none;
         }
     }
@@ -302,7 +158,7 @@
     <div class="row g-2">
         <div class="col-8">
             <div class="input-group">
-                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <span class="input-group-text"><i class="bi bi-search text-muted"></i></span>
                 <input type="text" class="form-control" id="searchInput" placeholder="選手名で検索">
             </div>
         </div>
@@ -319,41 +175,26 @@
 
 <!-- 選手リスト -->
 <div class="card">
-    <!-- Swipe hint for mobile -->
-    <div class="swipe-hint d-md-none">
-        <i class="bi bi-arrow-left-right"></i>
-        <span>左にスワイプで削除</span>
-    </div>
-
     <div id="playerList">
         {% for player in players %}
-        <div class="swipe-container player-item" data-name="{{ player.name }}" data-affiliation="{{ player.affiliation }}" data-player-id="{{ player.id }}">
-            <div class="swipe-actions">
-                <div class="delete-action">
-                    <i class="bi bi-trash"></i>
-                    <span>削除</span>
+        <a href="/player/{{ player.id }}" class="player-card player-item"
+           data-name="{{ player.name }}" data-affiliation="{{ player.affiliation or '' }}">
+            <div class="player-avatar">
+                {{ player.name[:1] if player.name else '?' }}
+            </div>
+            <div class="player-info">
+                <div class="player-name">{{ player.name }}</div>
+                <div class="player-meta">
+                    {% if player.affiliation %}<span><i class="bi bi-building"></i> {{ player.affiliation }}</span>{% endif %}
+                    {% if player.grade %}<span><i class="bi bi-mortarboard"></i> {{ player.grade }}</span>{% endif %}
+                    {% if player.pb_5000m %}<span><i class="bi bi-stopwatch"></i> {{ player.pb_5000m }}</span>{% endif %}
                 </div>
             </div>
-            <div class="swipe-item">
-                <a href="/player/{{ player.id }}" class="player-card">
-                    <div class="player-avatar">
-                        {{ player.name[:1] if player.name else '?' }}
-                    </div>
-                    <div class="player-info">
-                        <div class="player-name">{{ player.name }}</div>
-                        <div class="player-meta">
-                            {% if player.affiliation %}<span><i class="bi bi-building"></i> {{ player.affiliation }}</span>{% endif %}
-                            {% if player.grade %}<span><i class="bi bi-mortarboard"></i> {{ player.grade }}</span>{% endif %}
-                            {% if player.pb_5000m %}<span><i class="bi bi-stopwatch"></i> {{ player.pb_5000m }}</span>{% endif %}
-                        </div>
-                    </div>
-                    <i class="bi bi-chevron-right player-arrow"></i>
-                </a>
-            </div>
-        </div>
+            <i class="bi bi-chevron-right player-arrow"></i>
+        </a>
         {% else %}
-        <div class="text-center text-muted py-5">
-            <i class="bi bi-person-x" style="font-size: 48px;"></i>
+        <div class="empty-state">
+            <i class="bi bi-person-x"></i>
             <p class="mt-2 mb-0">選手が登録されていません</p>
             <a href="/player/add" class="btn btn-primary btn-sm mt-3">
                 <i class="bi bi-person-plus"></i> 選手を追加
@@ -367,26 +208,10 @@
 <a href="/player/add" class="fab-button d-md-none">
     <i class="bi bi-plus-lg"></i>
 </a>
-
-<!-- 削除確認モーダル -->
-<div class="delete-modal" id="deleteModal">
-    <div class="delete-modal-content">
-        <div class="delete-modal-icon">
-            <i class="bi bi-exclamation-triangle"></i>
-        </div>
-        <h4>選手を削除しますか？</h4>
-        <p id="deletePlayerName">この操作は取り消せません</p>
-        <div class="delete-modal-actions">
-            <button class="btn-modal-cancel" onclick="closeDeleteModal()">キャンセル</button>
-            <button class="btn-modal-delete" onclick="confirmDelete()">削除する</button>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Filter functionality
 document.getElementById('searchInput').addEventListener('input', filterPlayers);
 document.getElementById('affiliationFilter').addEventListener('change', filterPlayers);
 
@@ -403,100 +228,5 @@ function filterPlayers() {
         item.style.display = (matchName && matchAffiliation) ? '' : 'none';
     });
 }
-
-// Swipe to delete functionality
-let currentDeleteId = null;
-const swipeThreshold = 80;
-
-document.querySelectorAll('.swipe-container').forEach(container => {
-    const swipeItem = container.querySelector('.swipe-item');
-    let startX = 0;
-    let currentX = 0;
-    let isSwiping = false;
-
-    swipeItem.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        isSwiping = true;
-        swipeItem.classList.add('swiping');
-    }, { passive: true });
-
-    swipeItem.addEventListener('touchmove', (e) => {
-        if (!isSwiping) return;
-
-        currentX = e.touches[0].clientX;
-        const diff = startX - currentX;
-
-        if (diff > 0) {
-            // Swiping left (reveal delete)
-            const translateX = Math.min(diff, swipeThreshold);
-            swipeItem.style.transform = `translateX(-${translateX}px)`;
-        } else {
-            // Swiping right (hide delete)
-            swipeItem.style.transform = 'translateX(0)';
-        }
-    }, { passive: true });
-
-    swipeItem.addEventListener('touchend', (e) => {
-        if (!isSwiping) return;
-
-        swipeItem.classList.remove('swiping');
-        const diff = startX - currentX;
-
-        if (diff > swipeThreshold) {
-            // Show delete action
-            swipeItem.style.transform = `translateX(-${swipeThreshold}px)`;
-
-            // Trigger delete confirmation
-            const playerId = container.dataset.playerId;
-            const playerName = container.dataset.name;
-            showDeleteModal(playerId, playerName);
-        } else {
-            // Reset position
-            swipeItem.style.transform = 'translateX(0)';
-        }
-
-        isSwiping = false;
-    }, { passive: true });
-});
-
-// Reset all swipes when clicking elsewhere
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.swipe-container')) {
-        document.querySelectorAll('.swipe-item').forEach(item => {
-            item.style.transform = 'translateX(0)';
-        });
-    }
-});
-
-// Delete modal functionality
-function showDeleteModal(playerId, playerName) {
-    currentDeleteId = playerId;
-    document.getElementById('deletePlayerName').textContent = `「${playerName}」を削除しますか？`;
-    document.getElementById('deleteModal').classList.add('show');
-}
-
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.remove('show');
-    currentDeleteId = null;
-
-    // Reset swipe positions
-    document.querySelectorAll('.swipe-item').forEach(item => {
-        item.style.transform = 'translateX(0)';
-    });
-}
-
-function confirmDelete() {
-    if (!currentDeleteId) return;
-
-    // Redirect to delete (using edit page with delete flag or direct API)
-    window.location.href = `/player/${currentDeleteId}/delete`;
-}
-
-// Close modal on backdrop click
-document.getElementById('deleteModal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('deleteModal')) {
-        closeDeleteModal();
-    }
-});
 </script>
 {% endblock %}
