@@ -13,11 +13,12 @@
     .page-header h5 {
         margin: 0;
         font-size: 18px;
+        color: var(--text-color);
     }
     .race-card {
         display: block;
         padding: 14px 16px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid var(--border-color);
         text-decoration: none;
         color: inherit;
     }
@@ -33,11 +34,11 @@
     .race-name {
         font-weight: 600;
         font-size: 15px;
-        color: #212529;
+        color: var(--text-color);
     }
     .race-short {
         font-size: 12px;
-        color: #6c757d;
+        color: var(--text-muted);
     }
     .race-badges {
         display: flex;
@@ -47,7 +48,7 @@
         display: flex;
         gap: 12px;
         font-size: 13px;
-        color: #6c757d;
+        color: var(--text-muted);
         flex-wrap: wrap;
     }
     .race-meta i {
@@ -58,7 +59,7 @@
         gap: 8px;
         margin-top: 10px;
         padding-top: 10px;
-        border-top: 1px solid #f1f1f1;
+        border-top: 1px solid var(--border-color);
     }
     .race-actions .btn {
         flex: 1;
@@ -67,25 +68,28 @@
     }
     .fab-button {
         position: fixed;
-        bottom: 20px;
+        bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         right: 20px;
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        background: #0d6efd;
+        background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 24px;
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         text-decoration: none;
         z-index: 1000;
+    }
+    .fab-button:hover {
+        color: white;
     }
     .empty-state {
         text-align: center;
         padding: 40px 20px;
-        color: #6c757d;
+        color: var(--text-muted);
     }
     .empty-state i {
         font-size: 48px;

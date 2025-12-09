@@ -13,17 +13,22 @@
     .page-header h5 {
         margin: 0;
         font-size: 18px;
+        color: var(--text-color);
     }
     .record-card {
         display: block;
         padding: 14px 16px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid var(--border-color);
         text-decoration: none;
         color: inherit;
         transition: background 0.15s;
     }
     .record-card:hover, .record-card:active {
-        background: #f8f9fa;
+        background: rgba(0,0,0,0.03);
+    }
+    [data-theme="dark"] .record-card:hover,
+    [data-theme="dark"] .record-card:active {
+        background: rgba(255,255,255,0.05);
     }
     .record-card:last-child {
         border-bottom: none;
@@ -37,11 +42,11 @@
     .record-race {
         font-weight: 600;
         font-size: 15px;
-        color: #212529;
+        color: var(--text-color);
     }
     .record-date {
         font-size: 12px;
-        color: #6c757d;
+        color: var(--text-muted);
     }
     .record-time {
         font-size: 20px;
@@ -53,24 +58,24 @@
         display: flex;
         gap: 12px;
         font-size: 13px;
-        color: #6c757d;
+        color: var(--text-muted);
     }
     .record-meta i {
         margin-right: 4px;
     }
     .record-arrow {
-        color: #adb5bd;
+        color: var(--text-muted);
         font-size: 18px;
         align-self: center;
     }
     .fab-button {
         position: fixed;
-        bottom: 20px;
+        bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         right: 20px;
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        background: #dc3545;
+        background: linear-gradient(135deg, #dc2626, #ea580c);
         color: white;
         display: flex;
         align-items: center;
@@ -80,10 +85,13 @@
         text-decoration: none;
         z-index: 1000;
     }
+    .fab-button:hover {
+        color: white;
+    }
     .empty-state {
         text-align: center;
         padding: 40px 20px;
-        color: #6c757d;
+        color: var(--text-muted);
     }
     .empty-state i {
         font-size: 48px;
