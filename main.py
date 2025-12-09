@@ -133,9 +133,10 @@ def record_add():
             event = request.form.get('event')
             time = request.form.get('time')
             memo = request.form.get('memo', '')
-            race_name = request.form.get('race_name', '')
+            race_id = request.form.get('race_id', '')
+            distance_km = request.form.get('distance_km', '')
 
-            sheet_api.add_record(player_id, event, time, memo, date, race_name)
+            sheet_api.add_record(player_id, event, time, memo, date, race_id, distance_km)
             flash('記録を登録しました', 'success')
             return redirect(url_for('player_detail', player_id=player_id))
         except Exception as e:
@@ -166,9 +167,10 @@ def record_edit(row_index):
             event = request.form.get('event')
             time = request.form.get('time')
             memo = request.form.get('memo', '')
-            race_name = request.form.get('race_name', '')
+            race_id = request.form.get('race_id', '')
+            distance_km = request.form.get('distance_km', '')
 
-            sheet_api.update_record(row_index, date, player_id, event, time, memo, race_name)
+            sheet_api.update_record(row_index, date, player_id, event, time, memo, race_id, distance_km)
             flash('記録を更新しました', 'success')
             return redirect(url_for('player_detail', player_id=player_id))
         except Exception as e:
