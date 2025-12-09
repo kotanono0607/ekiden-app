@@ -215,7 +215,7 @@
     <div class="section-body">
         {% if orders %}
         {% for order in orders %}
-        {% set player = player_dict.get(order.player_id) %}
+        {% set player = player_dict.get(order.player_id|string) %}
         <div class="order-item">
             <div class="order-section">
                 <span class="order-section-badge">{{ order.section_no }}</span>
