@@ -2,83 +2,191 @@
 
 {% block title %}選手一覧 - 駅伝アプリ{% endblock %}
 
+{% block extra_css %}
+<style>
+    .player-card {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e9ecef;
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.15s;
+    }
+    .player-card:hover, .player-card:active {
+        background: #f8f9fa;
+    }
+    .player-card:last-child {
+        border-bottom: none;
+    }
+    .player-avatar {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-right: 12px;
+    }
+    .player-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .player-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: #212529;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .player-meta {
+        font-size: 12px;
+        color: #6c757d;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .player-arrow {
+        color: #adb5bd;
+        font-size: 18px;
+        margin-left: 8px;
+    }
+    .search-bar {
+        position: sticky;
+        top: 56px;
+        z-index: 100;
+        background: #f8f9fa;
+        padding: 12px 0;
+        margin: -1rem -12px 0 -12px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .header-row h5 {
+        margin: 0;
+        font-size: 18px;
+    }
+    .player-count {
+        font-size: 13px;
+        color: #6c757d;
+        padding: 4px 8px;
+        background: #e9ecef;
+        border-radius: 12px;
+    }
+    .fab-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #0d6efd;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+        text-decoration: none;
+        z-index: 1000;
+    }
+    .fab-button:hover {
+        background: #0b5ed7;
+        color: white;
+    }
+    @media (min-width: 768px) {
+        .search-bar {
+            position: static;
+            margin: 0 0 1rem 0;
+            padding: 0;
+            background: transparent;
+        }
+        .fab-button {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-people-fill text-primary"></i> 選手名簿</h2>
-    <div class="d-flex gap-2">
-        <a href="/export/players" class="btn btn-outline-success btn-sm">
-            <i class="bi bi-download"></i> CSV
-        </a>
-        <a href="/player/add" class="btn btn-primary btn-sm">
+<!-- ヘッダー -->
+<div class="header-row">
+    <h5><i class="bi bi-people-fill text-primary"></i> 選手名簿</h5>
+    <div class="d-flex align-items-center gap-2">
+        <span class="player-count">{{ players|length }}名</span>
+        <a href="/player/add" class="btn btn-primary btn-sm d-none d-md-inline-block">
             <i class="bi bi-person-plus"></i> 追加
         </a>
     </div>
 </div>
 
-<!-- 検索 -->
-<div class="card mb-4">
-    <div class="card-body py-2">
-        <div class="row g-2 align-items-center">
-            <div class="col-md-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control" id="searchInput" placeholder="選手名で検索...">
-                </div>
+<!-- 検索バー -->
+<div class="search-bar">
+    <div class="row g-2">
+        <div class="col-8">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control" id="searchInput" placeholder="選手名で検索">
             </div>
-            <div class="col-md-4">
-                <select class="form-select form-select-sm" id="affiliationFilter">
-                    <option value="">すべての所属</option>
-                    {% for affiliation in affiliations %}
-                    <option value="{{ affiliation }}">{{ affiliation }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2 text-end">
-                <small class="text-muted">{{ players|length }}名</small>
-            </div>
+        </div>
+        <div class="col-4">
+            <select class="form-select" id="affiliationFilter">
+                <option value="">所属</option>
+                {% for affiliation in affiliations %}
+                <option value="{{ affiliation }}">{{ affiliation }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 </div>
 
-<!-- 選手一覧テーブル -->
+<!-- 選手リスト -->
 <div class="card">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 80px;">No.</th>
-                    <th>氏名</th>
-                    <th>所属</th>
-                    <th style="width: 60px;"></th>
-                </tr>
-            </thead>
-            <tbody id="playerTableBody">
-                {% for player in players %}
-                <tr class="player-item" data-name="{{ player.name }}" data-affiliation="{{ player.affiliation }}">
-                    <td class="text-muted">{{ player.registration_number }}</td>
-                    <td>
-                        <a href="/player/{{ player.id }}" class="text-decoration-none fw-bold">
-                            {{ player.name }}
-                        </a>
-                    </td>
-                    <td><span class="badge bg-secondary">{{ player.affiliation }}</span></td>
-                    <td>
-                        <a href="/player/{{ player.id }}" class="btn btn-sm btn-outline-primary py-0">
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-4">
-                        <i class="bi bi-info-circle"></i> 選手が登録されていません
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div id="playerList">
+        {% for player in players %}
+        <a href="/player/{{ player.id }}" class="player-card player-item"
+           data-name="{{ player.name }}" data-affiliation="{{ player.affiliation }}">
+            <div class="player-avatar">
+                {{ player.name[:1] if player.name else '?' }}
+            </div>
+            <div class="player-info">
+                <div class="player-name">{{ player.name }}</div>
+                <div class="player-meta">
+                    {% if player.affiliation %}<span><i class="bi bi-building"></i> {{ player.affiliation }}</span>{% endif %}
+                    {% if player.grade %}<span><i class="bi bi-mortarboard"></i> {{ player.grade }}</span>{% endif %}
+                    {% if player.pb_5000m %}<span><i class="bi bi-stopwatch"></i> {{ player.pb_5000m }}</span>{% endif %}
+                </div>
+            </div>
+            <i class="bi bi-chevron-right player-arrow"></i>
+        </a>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-person-x" style="font-size: 48px;"></i>
+            <p class="mt-2 mb-0">選手が登録されていません</p>
+            <a href="/player/add" class="btn btn-primary btn-sm mt-3">
+                <i class="bi bi-person-plus"></i> 選手を追加
+            </a>
+        </div>
+        {% endfor %}
     </div>
 </div>
+
+<!-- FAB（モバイル用追加ボタン） -->
+<a href="/player/add" class="fab-button d-md-none">
+    <i class="bi bi-plus-lg"></i>
+</a>
 {% endblock %}
 
 {% block extra_js %}
@@ -93,7 +201,7 @@ function filterPlayers() {
 
     items.forEach(item => {
         const name = item.dataset.name.toLowerCase();
-        const affiliation = item.dataset.affiliation;
+        const affiliation = item.dataset.affiliation || '';
         const matchName = name.includes(searchText);
         const matchAffiliation = !affiliationFilter || affiliation === affiliationFilter;
         item.style.display = (matchName && matchAffiliation) ? '' : 'none';

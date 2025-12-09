@@ -4,511 +4,416 @@
 
 {% block extra_css %}
 <style>
-    body {
-        background-color: #F5F7FA;
-    }
-
-    .profile-container {
-        display: grid;
-        grid-template-columns: 420px 1fr;
-        gap: 24px;
-    }
-
-    .profile-card {
-        background: #FFFFFF;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        padding: 24px;
-    }
-
-    .card-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #718096;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .left-column {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
+    /* モバイルファースト */
     .profile-header {
-        display: flex;
-        gap: 24px;
-        margin-bottom: 24px;
+        text-align: center;
+        padding: 20px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        margin: -1rem -12px 0 -12px;
     }
-
-    .profile-photo {
-        width: 140px;
-        height: 180px;
-        background: linear-gradient(135deg, #E2E8F0 0%, #CBD5E1 100%);
-        border-radius: 8px;
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #94A3B8;
-        font-size: 48px;
-        flex-shrink: 0;
-        overflow: hidden;
+        font-size: 32px;
+        margin: 0 auto 12px;
     }
-
-    .profile-photo img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .profile-main {
-        flex: 1;
-    }
-
     .profile-name {
-        font-size: 28px;
+        font-size: 22px;
         font-weight: 700;
-        color: #1A202C;
         margin-bottom: 4px;
     }
-
+    .profile-reg-no {
+        font-size: 13px;
+        opacity: 0.8;
+    }
     .profile-tags {
         display: flex;
-        gap: 8px;
-        margin-top: 16px;
+        justify-content: center;
+        gap: 6px;
         flex-wrap: wrap;
+        margin-top: 12px;
+    }
+    .profile-tag {
+        padding: 4px 10px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        font-size: 12px;
+    }
+    .profile-tag.active {
+        background: #48BB78;
     }
 
-    .tag {
-        padding: 6px 14px;
-        background: #EDF2F7;
-        border-radius: 20px;
-        font-size: 13px;
-        color: #4A5568;
-        font-weight: 500;
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        margin: 16px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .section-header {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-body {
+        padding: 16px;
     }
 
-    .tag.active { background: #48BB78; color: #FFFFFF; }
-    .tag.inactive { background: #A0AEC0; color: #FFFFFF; }
-
-    .profile-divider {
-        height: 1px;
-        background: #E2E8F0;
-        margin: 20px 0;
-    }
-
-    .profile-info-grid {
+    .info-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 16px;
     }
-
     .info-item {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+        text-align: center;
     }
-
-    .info-item.full-width { grid-column: 1 / -1; }
-
     .info-label {
         font-size: 11px;
-        color: #A0AEC0;
+        color: #a0aec0;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        margin-bottom: 4px;
     }
-
     .info-value {
         font-size: 15px;
-        color: #2D3748;
-        font-weight: 500;
+        font-weight: 600;
+        color: #2d3748;
     }
 
-    .info-value.highlight { color: #3B82F6; }
+    .pb-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .pb-item {
+        background: #f7fafc;
+        border-radius: 8px;
+        padding: 10px 8px;
+        text-align: center;
+    }
+    .pb-event {
+        font-size: 11px;
+        color: #718096;
+        margin-bottom: 2px;
+    }
+    .pb-time {
+        font-size: 14px;
+        font-weight: 700;
+        color: #3182ce;
+        font-family: 'SF Mono', 'Consolas', monospace;
+    }
 
-    .stats-boxes {
+    .stats-row {
         display: flex;
         gap: 12px;
     }
-
     .stat-box {
         flex: 1;
-        background: #F8FAFC;
+        background: #f7fafc;
         border-radius: 8px;
-        padding: 16px;
+        padding: 16px 12px;
         text-align: center;
     }
-
-    .stat-label {
-        font-size: 11px;
-        color: #A0AEC0;
-        margin-bottom: 4px;
-    }
-
-    .stat-value {
-        font-size: 24px;
+    .stat-number {
+        font-size: 28px;
         font-weight: 700;
-        color: #2D3748;
-        font-family: 'SF Mono', 'Consolas', monospace;
+        color: #3182ce;
     }
-
-    .stat-value.primary { color: #3B82F6; }
-    .stat-value.success { color: #48BB78; }
-
-    .right-column {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .records-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .records-table thead { background: #F8FAFC; }
-
-    .records-table th {
-        padding: 12px 16px;
-        text-align: left;
-        font-size: 12px;
-        font-weight: 600;
-        color: #718096;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    .records-table td {
-        padding: 14px 16px;
+    .stat-number .unit {
         font-size: 14px;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    .records-table tbody tr { transition: background 0.15s; }
-    .records-table tbody tr:hover { background: #F8FAFC; }
-
-    .date-cell { font-weight: 500; color: #2D3748; }
-
-    .event-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        background: #3B82F6;
-        color: white;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .time-cell {
-        font-family: 'SF Mono', 'Consolas', monospace;
-        font-weight: 600;
-        color: #2D3748;
-    }
-
-    .memo-cell { color: #718096; font-size: 13px; }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-    }
-
-    .stats-item {
-        text-align: center;
-        padding: 20px;
-        background: #F8FAFC;
-        border-radius: 10px;
-    }
-
-    .stats-number {
-        font-size: 36px;
-        font-weight: 700;
-        color: #3B82F6;
-    }
-
-    .stats-number .unit {
-        font-size: 16px;
-        color: #718096;
         font-weight: 400;
+        color: #718096;
     }
-
-    .stats-label-bottom {
-        font-size: 13px;
+    .stat-label {
+        font-size: 12px;
         color: #718096;
         margin-top: 4px;
     }
 
-    .action-buttons {
+    .record-item {
         display: flex;
-        gap: 12px;
-        margin-top: 16px;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .record-item:last-child {
+        border-bottom: none;
+    }
+    .record-date {
+        font-size: 12px;
+        color: #718096;
+        width: 80px;
+        flex-shrink: 0;
+    }
+    .record-event {
+        background: #3182ce;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-right: 10px;
+    }
+    .record-time {
+        font-size: 15px;
+        font-weight: 600;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        flex: 1;
+    }
+    .record-edit {
+        color: #a0aec0;
+        padding: 4px 8px;
     }
 
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 16px;
+        position: sticky;
+        bottom: 0;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        margin: 16px -12px -1rem -12px;
+    }
     .action-btn {
-        flex: 1;
-        padding: 12px;
+        padding: 12px 16px;
         border-radius: 8px;
         font-size: 14px;
         font-weight: 500;
         text-decoration: none;
         text-align: center;
-        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .action-btn.primary {
+        background: #3182ce;
+        color: white;
+    }
+    .action-btn.secondary {
+        background: #edf2f7;
+        color: #4a5568;
     }
 
-    .action-btn.primary { background: #3B82F6; color: white; }
-    .action-btn.primary:hover { background: #2563EB; }
-    .action-btn.secondary { background: #F8FAFC; color: #4A5568; border: 1px solid #E2E8F0; }
-    .action-btn.secondary:hover { background: #EDF2F7; }
-
-    .pb-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 12px;
-    }
-
-    .pb-item {
-        background: #F8FAFC;
-        border-radius: 8px;
+    .comment-text {
+        font-size: 14px;
+        color: #4a5568;
+        line-height: 1.7;
         padding: 12px;
-        text-align: center;
-    }
-
-    .pb-event { font-size: 12px; color: #718096; margin-bottom: 4px; }
-    .pb-time { font-size: 16px; font-weight: 700; color: #3B82F6; font-family: monospace; }
-    .pb-date { font-size: 10px; color: #A0AEC0; margin-top: 4px; }
-
-    .message-text {
-        font-size: 15px;
-        color: #4A5568;
-        line-height: 1.8;
-        padding: 16px;
-        background: #F8FAFC;
+        background: #f7fafc;
         border-radius: 8px;
-        border-left: 3px solid #3B82F6;
+        border-left: 3px solid #3182ce;
     }
 
-    @media (max-width: 1024px) {
-        .profile-container { grid-template-columns: 1fr; }
-        .profile-header { flex-direction: column; align-items: center; text-align: center; }
-        .profile-tags { justify-content: center; }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #718096;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 0;
     }
 
-    @media (max-width: 640px) {
-        .stats-boxes { flex-direction: column; }
-        .stats-grid { grid-template-columns: 1fr; }
-        .records-table { font-size: 13px; }
-        .records-table th, .records-table td { padding: 10px 12px; }
+    .empty-records {
+        text-align: center;
+        padding: 24px 16px;
+        color: #a0aec0;
+    }
+
+    @media (min-width: 768px) {
+        .profile-header {
+            margin: -1rem -12px 0 -12px;
+            padding: 32px;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
+        }
+        .profile-name {
+            font-size: 28px;
+        }
+        .pb-grid {
+            grid-template-columns: repeat(6, 1fr);
+        }
+        .action-buttons {
+            position: static;
+            margin: 16px 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
-        <li class="breadcrumb-item active">{{ player.name }}</li>
-    </ol>
-</nav>
+<!-- 戻るリンク -->
+<a href="/" class="back-link">
+    <i class="bi bi-chevron-left"></i> 選手一覧
+</a>
 
-<div class="profile-container">
-    <!-- 左カラム：プロフィール -->
-    <div class="left-column">
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-photo">
-                    <i class="bi bi-person-fill"></i>
-                </div>
-                <div class="profile-main">
-                    <div class="profile-name">{{ player.name }}</div>
-                    {% if player.registration_number %}
-                    <div class="text-muted small">登録番号: {{ player.registration_number }}</div>
-                    {% endif %}
-                    <div class="profile-tags">
-                        {% if player.affiliation %}<span class="tag">{{ player.affiliation }}</span>{% endif %}
-                        {% if player.grade %}<span class="tag">{{ player.grade }}</span>{% endif %}
-                        {% if player.category %}<span class="tag">{{ player.category }}</span>{% endif %}
-                        {% if player.status == '現役' or not player.status %}
-                        <span class="tag active">現役</span>
-                        {% else %}
-                        <span class="tag inactive">{{ player.status }}</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="profile-divider"></div>
-
-            <div class="profile-info-grid">
-                <div class="info-item">
-                    <span class="info-label">所属</span>
-                    <span class="info-value">{{ player.affiliation or '-' }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">学年</span>
-                    <span class="info-value">{{ player.grade or '-' }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">カテゴリ</span>
-                    <span class="info-value">{{ player.category or '-' }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">生年月日</span>
-                    <span class="info-value">{{ player.birth_date or '-' }}</span>
-                </div>
-            </div>
-
-            <div class="profile-divider"></div>
-
-            <!-- 自己ベスト一覧 -->
-            <div class="card-title"><i class="bi bi-trophy text-warning"></i> 自己ベスト</div>
-            <div class="pb-grid">
-                {% if player.pb_1500m %}
-                <div class="pb-item">
-                    <div class="pb-event">1500m</div>
-                    <div class="pb-time">{{ player.pb_1500m }}</div>
-                </div>
-                {% endif %}
-                {% if player.pb_3000m %}
-                <div class="pb-item">
-                    <div class="pb-event">3000m</div>
-                    <div class="pb-time">{{ player.pb_3000m }}</div>
-                </div>
-                {% endif %}
-                {% if player.pb_5000m %}
-                <div class="pb-item">
-                    <div class="pb-event">5000m</div>
-                    <div class="pb-time">{{ player.pb_5000m }}</div>
-                </div>
-                {% endif %}
-                {% if player.pb_10000m %}
-                <div class="pb-item">
-                    <div class="pb-event">10000m</div>
-                    <div class="pb-time">{{ player.pb_10000m }}</div>
-                </div>
-                {% endif %}
-                {% if player.pb_half %}
-                <div class="pb-item">
-                    <div class="pb-event">ハーフ</div>
-                    <div class="pb-time">{{ player.pb_half }}</div>
-                </div>
-                {% endif %}
-                {% if player.pb_full %}
-                <div class="pb-item">
-                    <div class="pb-event">フル</div>
-                    <div class="pb-time">{{ player.pb_full }}</div>
-                </div>
-                {% endif %}
-                {% if not player.pb_1500m and not player.pb_3000m and not player.pb_5000m and not player.pb_10000m and not player.pb_half and not player.pb_full %}
-                <div class="text-muted">未登録</div>
-                {% endif %}
-            </div>
-
-            <div class="action-buttons">
-                <a href="/record/add?player_id={{ player.id }}" class="action-btn primary">
-                    <i class="bi bi-plus-circle"></i> 記録追加
-                </a>
-                <a href="/player/{{ player.id }}/edit" class="action-btn secondary">
-                    <i class="bi bi-pencil"></i> 編集
-                </a>
-            </div>
-        </div>
-
-        <!-- コメント -->
-        {% if player.comment %}
-        <div class="profile-card">
-            <div class="card-title"><i class="bi bi-chat-quote text-primary"></i> コメント</div>
-            <div class="message-text">{{ player.comment }}</div>
-        </div>
-        {% endif %}
-
-        <!-- 種目別自己ベスト（記録から算出） -->
-        {% if personal_bests %}
-        <div class="profile-card">
-            <div class="card-title"><i class="bi bi-graph-up-arrow text-success"></i> 記録からの自己ベスト</div>
-            <div class="pb-grid">
-                {% for event, pb in personal_bests.items() %}
-                <div class="pb-item">
-                    <div class="pb-event">{{ event }}</div>
-                    <div class="pb-time">{{ pb.time }}</div>
-                    <div class="pb-date">{{ pb.date }}</div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+<!-- プロフィールヘッダー -->
+<div class="profile-header">
+    <div class="profile-avatar">
+        <i class="bi bi-person-fill"></i>
+    </div>
+    <div class="profile-name">{{ player.name }}</div>
+    {% if player.registration_number %}
+    <div class="profile-reg-no">No. {{ player.registration_number }}</div>
+    {% endif %}
+    <div class="profile-tags">
+        {% if player.affiliation %}<span class="profile-tag">{{ player.affiliation }}</span>{% endif %}
+        {% if player.grade %}<span class="profile-tag">{{ player.grade }}</span>{% endif %}
+        {% if player.category %}<span class="profile-tag">{{ player.category }}</span>{% endif %}
+        {% if player.status == '現役' or not player.status %}
+        <span class="profile-tag active">現役</span>
+        {% else %}
+        <span class="profile-tag">{{ player.status }}</span>
         {% endif %}
     </div>
+</div>
 
-    <!-- 右カラム：記録 -->
-    <div class="right-column">
-        <div class="profile-card">
-            <div class="card-title"><i class="bi bi-bar-chart-fill text-primary"></i> 通算成績</div>
-            <div class="stats-grid">
-                <div class="stats-item">
-                    <div class="stats-number">{{ records|length }}<span class="unit">件</span></div>
-                    <div class="stats-label-bottom">登録記録</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-number">{{ personal_bests|length }}<span class="unit">種目</span></div>
-                    <div class="stats-label-bottom">出場種目数</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-number">{{ player.pb_5000m or '-' }}</div>
-                    <div class="stats-label-bottom">5000m PB</div>
-                </div>
+<!-- 基本情報 -->
+<div class="section-card">
+    <div class="section-header">
+        <i class="bi bi-person text-primary"></i> 基本情報
+    </div>
+    <div class="section-body">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">所属</div>
+                <div class="info-value">{{ player.affiliation or '-' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">学年</div>
+                <div class="info-value">{{ player.grade or '-' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">カテゴリ</div>
+                <div class="info-value">{{ player.category or '-' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">生年月日</div>
+                <div class="info-value">{{ player.birth_date or '-' }}</div>
             </div>
         </div>
+    </div>
+</div>
 
+<!-- 自己ベスト -->
+<div class="section-card">
+    <div class="section-header">
+        <i class="bi bi-trophy text-warning"></i> 自己ベスト
+    </div>
+    <div class="section-body">
+        <div class="pb-grid">
+            <div class="pb-item">
+                <div class="pb-event">1500m</div>
+                <div class="pb-time">{{ player.pb_1500m or '-' }}</div>
+            </div>
+            <div class="pb-item">
+                <div class="pb-event">3000m</div>
+                <div class="pb-time">{{ player.pb_3000m or '-' }}</div>
+            </div>
+            <div class="pb-item">
+                <div class="pb-event">5000m</div>
+                <div class="pb-time">{{ player.pb_5000m or '-' }}</div>
+            </div>
+            <div class="pb-item">
+                <div class="pb-event">10000m</div>
+                <div class="pb-time">{{ player.pb_10000m or '-' }}</div>
+            </div>
+            <div class="pb-item">
+                <div class="pb-event">ハーフ</div>
+                <div class="pb-time">{{ player.pb_half or '-' }}</div>
+            </div>
+            <div class="pb-item">
+                <div class="pb-event">フル</div>
+                <div class="pb-time">{{ player.pb_full or '-' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 通算成績 -->
+<div class="section-card">
+    <div class="section-header">
+        <i class="bi bi-bar-chart text-success"></i> 通算成績
+    </div>
+    <div class="section-body">
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-number">{{ records|length }}<span class="unit">件</span></div>
+                <div class="stat-label">登録記録</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ personal_bests|length }}<span class="unit">種目</span></div>
+                <div class="stat-label">出場種目</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- コメント -->
+{% if player.comment %}
+<div class="section-card">
+    <div class="section-header">
+        <i class="bi bi-chat-quote text-info"></i> コメント
+    </div>
+    <div class="section-body">
+        <div class="comment-text">{{ player.comment }}</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 記録一覧 -->
+<div class="section-card">
+    <div class="section-header">
+        <i class="bi bi-list-ul text-primary"></i> 記録一覧
+    </div>
+    <div class="section-body" style="padding: 8px 16px;">
         {% if records %}
-        <div class="profile-card">
-            <div class="card-title"><i class="bi bi-graph-up text-primary"></i> 記録推移グラフ</div>
-            <canvas id="recordChart" height="100"></canvas>
+        {% for record in records %}
+        <div class="record-item">
+            <div class="record-date">{{ record.date }}</div>
+            <span class="record-event">{{ record.event }}</span>
+            <div class="record-time">{{ record.time }}</div>
+            <a href="/record/{{ record.row_index }}/edit" class="record-edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-records">
+            <i class="bi bi-inbox" style="font-size: 32px;"></i>
+            <p class="mb-0 mt-2">記録がありません</p>
         </div>
         {% endif %}
-
-        <div class="profile-card">
-            <div class="card-title d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-list-ul text-primary"></i> 記録一覧</span>
-                <a href="/export/records" class="btn btn-sm btn-outline-success">
-                    <i class="bi bi-download"></i> CSV
-                </a>
-            </div>
-            {% if records %}
-            <table class="records-table">
-                <thead>
-                    <tr>
-                        <th>日付</th>
-                        <th>種目</th>
-                        <th>タイム</th>
-                        <th>メモ</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in records %}
-                    <tr>
-                        <td class="date-cell">{{ record.date }}</td>
-                        <td><span class="event-badge">{{ record.event }}</span></td>
-                        <td class="time-cell">{{ record.time }}</td>
-                        <td class="memo-cell">{{ record.memo or '-' }}</td>
-                        <td>
-                            <a href="/record/{{ record.row_index }}/edit" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="alert alert-info mb-0">
-                <i class="bi bi-info-circle"></i> まだ記録が登録されていません。
-            </div>
-            {% endif %}
-        </div>
     </div>
+</div>
+
+<!-- アクションボタン -->
+<div class="action-buttons">
+    <a href="/record/add?player_id={{ player.id }}" class="action-btn primary">
+        <i class="bi bi-plus-circle"></i> 記録追加
+    </a>
+    <a href="/player/{{ player.id }}/edit" class="action-btn secondary">
+        <i class="bi bi-pencil"></i> 編集
+    </a>
 </div>
 {% endblock %}
 
@@ -517,55 +422,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const records = {{ records_json|safe }};
-
-function timeToSeconds(timeStr) {
-    const parts = timeStr.split(':');
-    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
-    return 0;
-}
-
-function secondsToTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-}
-
-const labels = records.map(r => r.date);
-const data = records.map(r => timeToSeconds(r.time));
-
-const ctx = document.getElementById('recordChart').getContext('2d');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'タイム',
-            data: data,
-            borderColor: '#3B82F6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            fill: true,
-            tension: 0.3,
-            pointBackgroundColor: '#3B82F6',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 5
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                reverse: true,
-                ticks: { callback: value => secondsToTime(value) }
-            }
-        },
-        plugins: {
-            tooltip: { callbacks: { label: ctx => secondsToTime(ctx.raw) } },
-            legend: { display: false }
-        }
-    }
-});
 </script>
 {% endif %}
 {% endblock %}

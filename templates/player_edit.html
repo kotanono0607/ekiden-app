@@ -2,186 +2,241 @@
 
 {% block title %}{{ player.name }} - 編集 - 駅伝アプリ{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 16px;
+        margin: -1rem -12px 0 -12px;
+        text-align: center;
+    }
+    .form-header h5 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        margin: 16px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .section-title {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-body {
+        padding: 16px;
+    }
+    .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 6px;
+    }
+    .form-control, .form-select {
+        font-size: 16px;
+        padding: 10px 12px;
+        border-radius: 8px;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #718096;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+    .submit-area {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 16px;
+        margin: 16px -12px -1rem -12px;
+        border-top: 1px solid #e2e8f0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .submit-btn {
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    .delete-check {
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        border-radius: 8px;
+        padding: 12px;
+    }
+    @media (min-width: 768px) {
+        .submit-area {
+            position: static;
+            margin: 16px 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+            display: flex;
+            gap: 12px;
+        }
+        .submit-btn {
+            padding: 12px 32px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
-        <li class="breadcrumb-item"><a href="/player/{{ player.id }}">{{ player.name }}</a></li>
-        <li class="breadcrumb-item active">編集</li>
-    </ol>
-</nav>
+<a href="/player/{{ player.id }}" class="back-link">
+    <i class="bi bi-chevron-left"></i> {{ player.name }}
+</a>
 
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-pencil text-primary"></i> 選手情報の編集</h5>
-            </div>
-            <div class="card-body">
-                <form action="/player/{{ player.id }}/edit" method="POST">
-                    <div class="row">
-                        <!-- 基本情報 -->
-                        <div class="col-12">
-                            <h6 class="text-muted mb-3"><i class="bi bi-person"></i> 基本情報</h6>
-                        </div>
+<div class="form-header">
+    <h5><i class="bi bi-pencil"></i> 選手情報の編集</h5>
+</div>
 
-                        <!-- 登録番号 -->
-                        <div class="col-md-4 mb-3">
-                            <label for="registration_number" class="form-label">登録番号</label>
-                            <input type="text" class="form-control" id="registration_number" name="registration_number"
-                                   value="{{ player.registration_number or '' }}">
-                        </div>
-
-                        <!-- 姓 -->
-                        <div class="col-md-4 mb-3">
-                            <label for="name_sei" class="form-label">姓 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name_sei" name="name_sei" required
-                                   value="{{ player.name_sei or '' }}">
-                        </div>
-
-                        <!-- 名 -->
-                        <div class="col-md-4 mb-3">
-                            <label for="name_mei" class="form-label">名 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name_mei" name="name_mei" required
-                                   value="{{ player.name_mei or '' }}">
-                        </div>
-
-                        <!-- 生年月日 -->
-                        <div class="col-md-4 mb-3">
-                            <label for="birth_date" class="form-label">生年月日</label>
-                            <input type="date" class="form-control" id="birth_date" name="birth_date"
-                                   value="{{ player.birth_date or '' }}">
-                        </div>
-
-                        <!-- 学年 -->
-                        <div class="col-md-4 mb-3">
-                            <label for="grade" class="form-label">学年</label>
-                            <select class="form-select" id="grade" name="grade">
-                                <option value="">選択してください</option>
-                                {% for code, name in grade_list %}
-                                <option value="{{ code }}" {% if player.grade == code %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- 所属 -->
-                        <div class="col-md-4 mb-3">
-                            <label for="affiliation" class="form-label">所属</label>
-                            <select class="form-select" id="affiliation" name="affiliation">
-                                <option value="">選択してください</option>
-                                {% for code, name in affiliation_list %}
-                                <option value="{{ code }}" {% if player.affiliation == code %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- カテゴリ -->
-                        <div class="col-md-6 mb-3">
-                            <label for="category" class="form-label">カテゴリ</label>
-                            <select class="form-select" id="category" name="category">
-                                <option value="">選択してください</option>
-                                {% for code, name in category_list %}
-                                <option value="{{ code }}" {% if player.category == code %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- ステータス -->
-                        <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label">ステータス</label>
-                            <select class="form-select" id="status" name="status">
-                                {% for code, name in status_list %}
-                                <option value="{{ code }}" {% if player.status == code %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- 自己ベスト記録 -->
-                        <div class="col-12">
-                            <h6 class="text-muted mb-3"><i class="bi bi-stopwatch"></i> 自己ベスト記録</h6>
-                        </div>
-
-                        <!-- 1500m -->
-                        <div class="col-md-4 mb-3">
-                            <label for="pb_1500m" class="form-label">1500m</label>
-                            <input type="text" class="form-control" id="pb_1500m" name="pb_1500m"
-                                   value="{{ player.pb_1500m or '' }}" placeholder="例: 4:15">
-                        </div>
-
-                        <!-- 3000m -->
-                        <div class="col-md-4 mb-3">
-                            <label for="pb_3000m" class="form-label">3000m</label>
-                            <input type="text" class="form-control" id="pb_3000m" name="pb_3000m"
-                                   value="{{ player.pb_3000m or '' }}" placeholder="例: 9:00">
-                        </div>
-
-                        <!-- 5000m -->
-                        <div class="col-md-4 mb-3">
-                            <label for="pb_5000m" class="form-label">5000m</label>
-                            <input type="text" class="form-control" id="pb_5000m" name="pb_5000m"
-                                   value="{{ player.pb_5000m or '' }}" placeholder="例: 15:30">
-                        </div>
-
-                        <!-- 10000m -->
-                        <div class="col-md-4 mb-3">
-                            <label for="pb_10000m" class="form-label">10000m</label>
-                            <input type="text" class="form-control" id="pb_10000m" name="pb_10000m"
-                                   value="{{ player.pb_10000m or '' }}" placeholder="例: 32:00">
-                        </div>
-
-                        <!-- ハーフ -->
-                        <div class="col-md-4 mb-3">
-                            <label for="pb_half" class="form-label">ハーフマラソン</label>
-                            <input type="text" class="form-control" id="pb_half" name="pb_half"
-                                   value="{{ player.pb_half or '' }}" placeholder="例: 1:10:00">
-                        </div>
-
-                        <!-- フル -->
-                        <div class="col-md-4 mb-3">
-                            <label for="pb_full" class="form-label">フルマラソン</label>
-                            <input type="text" class="form-control" id="pb_full" name="pb_full"
-                                   value="{{ player.pb_full or '' }}" placeholder="例: 2:30:00">
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- その他 -->
-                        <div class="col-12">
-                            <h6 class="text-muted mb-3"><i class="bi bi-chat-quote"></i> その他</h6>
-                        </div>
-
-                        <!-- コメント -->
-                        <div class="col-12 mb-3">
-                            <label for="comment" class="form-label">コメント</label>
-                            <textarea class="form-control" id="comment" name="comment" rows="3">{{ player.comment or '' }}</textarea>
-                        </div>
-
-                        <!-- 削除フラグ -->
-                        <div class="col-12 mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_deleted" name="is_deleted" value="1"
-                                       {% if player.is_deleted == '1' or player.is_deleted == 'TRUE' %}checked{% endif %}>
-                                <label class="form-check-label" for="is_deleted">
-                                    削除済みとしてマーク
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 送信ボタン -->
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-check-circle"></i> 更新する
-                        </button>
-                        <a href="/player/{{ player.id }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> 戻る
-                        </a>
-                    </div>
-                </form>
+<form action="/player/{{ player.id }}/edit" method="POST">
+    <!-- 基本情報 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-person text-primary"></i> 基本情報
+        </div>
+        <div class="section-body">
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">姓 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name_sei" required value="{{ player.name_sei or '' }}">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">名 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name_mei" required value="{{ player.name_mei or '' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">登録番号</label>
+                    <input type="text" class="form-control" name="registration_number" value="{{ player.registration_number or '' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">生年月日</label>
+                    <input type="date" class="form-control" name="birth_date" value="{{ player.birth_date or '' }}">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">学年</label>
+                    <select class="form-select" name="grade">
+                        <option value="">選択</option>
+                        {% for code, name in grade_list %}
+                        <option value="{{ code }}" {% if player.grade == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">所属</label>
+                    <select class="form-select" name="affiliation">
+                        <option value="">選択</option>
+                        {% for code, name in affiliation_list %}
+                        <option value="{{ code }}" {% if player.affiliation == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">カテゴリ</label>
+                    <select class="form-select" name="category">
+                        <option value="">選択</option>
+                        {% for code, name in category_list %}
+                        <option value="{{ code }}" {% if player.category == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">ステータス</label>
+                    <select class="form-select" name="status">
+                        {% for code, name in status_list %}
+                        <option value="{{ code }}" {% if player.status == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- 自己ベスト -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-trophy text-warning"></i> 自己ベスト
+        </div>
+        <div class="section-body">
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">1500m</label>
+                    <input type="text" class="form-control" name="pb_1500m" value="{{ player.pb_1500m or '' }}" placeholder="4:15">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">3000m</label>
+                    <input type="text" class="form-control" name="pb_3000m" value="{{ player.pb_3000m or '' }}" placeholder="9:00">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">5000m</label>
+                    <input type="text" class="form-control" name="pb_5000m" value="{{ player.pb_5000m or '' }}" placeholder="15:30">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">10000m</label>
+                    <input type="text" class="form-control" name="pb_10000m" value="{{ player.pb_10000m or '' }}" placeholder="32:00">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">ハーフ</label>
+                    <input type="text" class="form-control" name="pb_half" value="{{ player.pb_half or '' }}" placeholder="1:10:00">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">フル</label>
+                    <input type="text" class="form-control" name="pb_full" value="{{ player.pb_full or '' }}" placeholder="2:30:00">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- その他 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-chat-quote text-info"></i> その他
+        </div>
+        <div class="section-body">
+            <div class="mb-3">
+                <label class="form-label">コメント</label>
+                <textarea class="form-control" name="comment" rows="3">{{ player.comment or '' }}</textarea>
+            </div>
+            <div class="delete-check">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_deleted" name="is_deleted" value="1"
+                           {% if player.is_deleted == '1' or player.is_deleted == 'TRUE' %}checked{% endif %}>
+                    <label class="form-check-label" for="is_deleted">
+                        <i class="bi bi-trash text-danger"></i> 削除済みとしてマーク
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 送信ボタン -->
+    <div class="submit-area">
+        <a href="/player/{{ player.id }}" class="btn btn-outline-secondary submit-btn">
+            キャンセル
+        </a>
+        <button type="submit" class="btn btn-primary submit-btn">
+            <i class="bi bi-check-lg"></i> 更新
+        </button>
+    </div>
+</form>
 {% endblock %}
