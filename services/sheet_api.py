@@ -34,9 +34,8 @@ def clear_cache():
 # スプレッドシートの実際のカラム名をアプリの内部名にマッピング
 
 PLAYER_COLUMN_MAPPING = {
-    'affiliation': 'group',
+    'group': 'affiliation',  # スプレッドシートの'group'を'affiliation'に変換
     'category': 'category',
-    'comment': 'message',
     'status': 'status',
 }
 
@@ -269,7 +268,7 @@ def delete_player(player_id):
             player_id,
             player.get('name_sei', ''),
             player.get('name_mei', ''),
-            player.get('group', ''),
+            player.get('affiliation', ''),
             player.get('category', ''),
             player.get('status', ''),
             player.get('grade', ''),
@@ -280,7 +279,7 @@ def delete_player(player_id):
             player.get('pb_10000m', ''),
             player.get('pb_half', ''),
             player.get('pb_full', ''),
-            player.get('message', ''),
+            player.get('comment', ''),
             player.get('registration_number', ''),
             is_deleted='TRUE'
         )
@@ -459,10 +458,10 @@ def get_team_statistics():
         'event_counts': {}
     }
 
-    # グループ別人数
+    # 所属別人数
     for player in players:
-        group = player.get('group', '未分類')
-        stats['groups'][group] = stats['groups'].get(group, 0) + 1
+        affiliation = player.get('affiliation', '未分類')
+        stats['groups'][affiliation] = stats['groups'].get(affiliation, 0) + 1
 
     # 種目別記録数
     for record in records:
