@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}大会追加 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/races" class="text-decoration-none"><i class="bi bi-arrow-left"></i> 大会一覧に戻る</a>
+</div>
+
+<h2 class="mb-4"><i class="bi bi-trophy-fill text-warning"></i> 大会追加</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form action="/race/add" method="POST">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">大会名 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="race_name" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">略称 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="short_name" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">開催日 <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="date" value="{{ today }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">開催地</label>
+                    <input type="text" class="form-control" name="location">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">大会タイプ</label>
+                    <select class="form-select" name="type" id="raceType">
+                        <option value="">選択してください</option>
+                        {% for code, name in race_types %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                        <option value="track">トラック</option>
+                        <option value="road">ロード</option>
+                        <option value="ekiden">駅伝</option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="sectionCountDiv" style="display:none;">
+                    <label class="form-label">区間数</label>
+                    <input type="number" class="form-control" name="section_count" min="1">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">重要度</label>
+                    <select class="form-select" name="importance">
+                        <option value="">選択してください</option>
+                        {% for code, name in importance_list %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                        <option value="A">A（重要）</option>
+                        <option value="B">B（中程度）</option>
+                        <option value="C">C（一般）</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">備考</label>
+                    <textarea class="form-control" name="memo" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> 登録
+                </button>
+                <a href="/races" class="btn btn-outline-secondary">キャンセル</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('raceType').addEventListener('change', function() {
+    const div = document.getElementById('sectionCountDiv');
+    div.style.display = this.value === 'ekiden' ? '' : 'none';
+});
+</script>
+{% endblock %}

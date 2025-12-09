@@ -315,6 +315,229 @@ def export_records():
         flash(f'エクスポートに失敗しました: {str(e)}', 'danger')
         return redirect(url_for('index'))
 
+# ============ 大会管理 ============
+
+@app.route("/races")
+def races():
+    """大会一覧画面"""
+    try:
+        race_list = sheet_api.get_all_races()
+        race_types = sheet_api.get_master_choices('race_type_list')
+        return render_template('races.html', races=race_list, race_types=race_types)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return render_template('races.html', races=[], race_types=[])
+
+@app.route("/race/add", methods=['GET', 'POST'])
+def race_add():
+    """大会追加画面"""
+    if request.method == 'POST':
+        try:
+            race_name = request.form.get('race_name')
+            short_name = request.form.get('short_name')
+            date = request.form.get('date')
+            location = request.form.get('location', '')
+            race_type = request.form.get('type', '')
+            section_count = request.form.get('section_count', '')
+            importance = request.form.get('importance', '')
+            memo = request.form.get('memo', '')
+
+            sheet_api.add_race(race_name, short_name, date, location, race_type, section_count, importance, memo)
+            flash(f'{race_name}を登録しました', 'success')
+            return redirect(url_for('races'))
+        except Exception as e:
+            flash(f'登録に失敗しました: {str(e)}', 'danger')
+
+    race_types = sheet_api.get_master_choices('race_type_list')
+    importance_list = sheet_api.get_master_choices('importance_list')
+    today = datetime.now().strftime('%Y-%m-%d')
+    return render_template('race_add.html', race_types=race_types, importance_list=importance_list, today=today)
+
+@app.route("/race/<race_id>/edit", methods=['GET', 'POST'])
+def race_edit(race_id):
+    """大会編集画面"""
+    race = sheet_api.get_race_by_id(race_id)
+    if not race:
+        flash('大会が見つかりません', 'warning')
+        return redirect(url_for('races'))
+
+    if request.method == 'POST':
+        try:
+            race_name = request.form.get('race_name')
+            short_name = request.form.get('short_name')
+            date = request.form.get('date')
+            location = request.form.get('location', '')
+            race_type = request.form.get('type', '')
+            section_count = request.form.get('section_count', '')
+            importance = request.form.get('importance', '')
+            memo = request.form.get('memo', '')
+
+            sheet_api.update_race(race_id, race_name, short_name, date, location, race_type, section_count, importance, memo)
+            flash('大会情報を更新しました', 'success')
+            return redirect(url_for('races'))
+        except Exception as e:
+            flash(f'更新に失敗しました: {str(e)}', 'danger')
+
+    race_types = sheet_api.get_master_choices('race_type_list')
+    importance_list = sheet_api.get_master_choices('importance_list')
+    return render_template('race_edit.html', race=race, race_types=race_types, importance_list=importance_list)
+
+@app.route("/race/<race_id>/delete", methods=['POST'])
+def race_delete(race_id):
+    """大会を削除"""
+    try:
+        sheet_api.delete_race(race_id)
+        flash('大会を削除しました', 'success')
+    except Exception as e:
+        flash(f'削除に失敗しました: {str(e)}', 'danger')
+    return redirect(url_for('races'))
+
+# ============ チーム記録管理 ============
+
+@app.route("/team_records")
+def team_records():
+    """チーム記録一覧画面"""
+    try:
+        records = sheet_api.get_all_team_records()
+        race_list = sheet_api.get_all_races()
+        race_dict = {r.get('race_id'): r for r in race_list}
+        return render_template('team_records.html', records=records, race_dict=race_dict)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return render_template('team_records.html', records=[], race_dict={})
+
+@app.route("/team_record/add", methods=['GET', 'POST'])
+def team_record_add():
+    """チーム記録追加画面"""
+    if request.method == 'POST':
+        try:
+            race_id = request.form.get('race_id')
+            total_time = request.form.get('total_time')
+            total_time_sec = request.form.get('total_time_sec', '')
+            rank = request.form.get('rank', '')
+            total_teams = request.form.get('total_teams', '')
+            category = request.form.get('category', '')
+            memo = request.form.get('memo', '')
+
+            team_record_id = sheet_api.add_team_record(race_id, total_time, total_time_sec, rank, total_teams, category, memo)
+            flash('チーム記録を登録しました', 'success')
+            return redirect(url_for('team_record_detail', team_record_id=team_record_id))
+        except Exception as e:
+            flash(f'登録に失敗しました: {str(e)}', 'danger')
+
+    races = sheet_api.get_all_races()
+    return render_template('team_record_add.html', races=races)
+
+@app.route("/team_record/<team_record_id>")
+def team_record_detail(team_record_id):
+    """チーム記録詳細画面"""
+    try:
+        record = sheet_api.get_team_record_by_id(team_record_id)
+        if not record:
+            flash('チーム記録が見つかりません', 'warning')
+            return redirect(url_for('team_records'))
+
+        race = sheet_api.get_race_by_id(record.get('race_id'))
+        orders = sheet_api.get_race_orders_by_team_record(team_record_id)
+        players = sheet_api.get_all_players()
+        player_dict = {str(p.get('id')): p for p in players}
+
+        return render_template('team_record_detail.html',
+                               record=record,
+                               race=race,
+                               orders=orders,
+                               player_dict=player_dict,
+                               players=players)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return redirect(url_for('team_records'))
+
+@app.route("/team_record/<team_record_id>/delete", methods=['POST'])
+def team_record_delete(team_record_id):
+    """チーム記録を削除"""
+    try:
+        sheet_api.delete_team_record(team_record_id)
+        flash('チーム記録を削除しました', 'success')
+    except Exception as e:
+        flash(f'削除に失敗しました: {str(e)}', 'danger')
+    return redirect(url_for('team_records'))
+
+# ============ 大会オーダー管理 ============
+
+@app.route("/team_record/<team_record_id>/order/add", methods=['POST'])
+def race_order_add(team_record_id):
+    """大会オーダーを追加"""
+    try:
+        section_no = request.form.get('section_no')
+        section_name = request.form.get('section_name')
+        player_id = request.form.get('player_id')
+        record_id = request.form.get('record_id', '')
+        memo = request.form.get('memo', '')
+
+        sheet_api.add_race_order(team_record_id, section_no, section_name, player_id, record_id, memo)
+        flash('区間オーダーを追加しました', 'success')
+    except Exception as e:
+        flash(f'追加に失敗しました: {str(e)}', 'danger')
+    return redirect(url_for('team_record_detail', team_record_id=team_record_id))
+
+@app.route("/race_order/<order_id>/delete", methods=['POST'])
+def race_order_delete(order_id):
+    """大会オーダーを削除"""
+    team_record_id = request.form.get('team_record_id')
+    try:
+        sheet_api.delete_race_order(order_id)
+        flash('区間オーダーを削除しました', 'success')
+    except Exception as e:
+        flash(f'削除に失敗しました: {str(e)}', 'danger')
+    return redirect(url_for('team_record_detail', team_record_id=team_record_id))
+
+# ============ マスタ管理 ============
+
+@app.route("/masters")
+def masters():
+    """マスタ管理画面"""
+    try:
+        all_masters = sheet_api.get_all_masters()
+        # タイプ別にグループ化
+        grouped = {}
+        for m in all_masters:
+            t = m.get('type', '未分類')
+            if t not in grouped:
+                grouped[t] = []
+            grouped[t].append(m)
+        return render_template('masters.html', grouped_masters=grouped)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return render_template('masters.html', grouped_masters={})
+
+@app.route("/master/add", methods=['POST'])
+def master_add():
+    """マスタを追加"""
+    try:
+        master_type = request.form.get('type')
+        code = request.form.get('code')
+        name = request.form.get('name')
+        sort_order = request.form.get('sort_order', 0)
+        memo = request.form.get('memo', '')
+
+        sheet_api.add_master(master_type, code, name, sort_order, memo)
+        flash('マスタを追加しました', 'success')
+    except Exception as e:
+        flash(f'追加に失敗しました: {str(e)}', 'danger')
+    return redirect(url_for('masters'))
+
+@app.route("/master/delete", methods=['POST'])
+def master_delete():
+    """マスタを削除"""
+    try:
+        master_type = request.form.get('type')
+        code = request.form.get('code')
+        sheet_api.delete_master(master_type, code)
+        flash('マスタを削除しました', 'success')
+    except Exception as e:
+        flash(f'削除に失敗しました: {str(e)}', 'danger')
+    return redirect(url_for('masters'))
+
 # ============ メイン ============
 
 if __name__ == "__main__":

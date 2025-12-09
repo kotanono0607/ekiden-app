@@ -50,7 +50,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="bi bi-people"></i> 選手一覧</a>
+                        <a class="nav-link" href="/"><i class="bi bi-people"></i> 選手</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/races"><i class="bi bi-trophy"></i> 大会</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/team_records"><i class="bi bi-flag"></i> チーム記録</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/record/add"><i class="bi bi-stopwatch"></i> 記録登録</a>
@@ -58,8 +64,17 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/simulation"><i class="bi bi-diagram-3"></i> シミュレーション</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/statistics"><i class="bi bi-bar-chart-line"></i> 統計</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> 設定
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/masters"><i class="bi bi-list-ul"></i> マスタ管理</a></li>
+                            <li><a class="dropdown-item" href="/statistics"><i class="bi bi-bar-chart-line"></i> 統計</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/export/players"><i class="bi bi-download"></i> 選手CSV</a></li>
+                            <li><a class="dropdown-item" href="/export/records"><i class="bi bi-download"></i> 記録CSV</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>

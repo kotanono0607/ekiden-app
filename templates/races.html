@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}大会一覧 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-trophy-fill text-warning"></i> 大会一覧</h2>
+    <a href="/race/add" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle"></i> 大会追加
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>大会名</th>
+                    <th>開催日</th>
+                    <th>タイプ</th>
+                    <th>開催地</th>
+                    <th>重要度</th>
+                    <th style="width: 100px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for race in races %}
+                <tr>
+                    <td>
+                        <strong>{{ race.race_name }}</strong>
+                        {% if race.short_name %}
+                        <small class="text-muted">({{ race.short_name }})</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ race.date }}</td>
+                    <td>
+                        {% if race.type == 'ekiden' %}
+                        <span class="badge bg-danger">駅伝</span>
+                        {% elif race.type == 'track' %}
+                        <span class="badge bg-primary">トラック</span>
+                        {% elif race.type == 'road' %}
+                        <span class="badge bg-success">ロード</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ race.type }}</span>
+                        {% endif %}
+                        {% if race.section_count %}
+                        <small class="text-muted">{{ race.section_count }}区間</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ race.location }}</td>
+                    <td>
+                        {% if race.importance == 'A' %}
+                        <span class="badge bg-danger">A</span>
+                        {% elif race.importance == 'B' %}
+                        <span class="badge bg-warning text-dark">B</span>
+                        {% elif race.importance == 'C' %}
+                        <span class="badge bg-info">C</span>
+                        {% else %}
+                        {{ race.importance }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/race/{{ race.race_id }}/edit" class="btn btn-outline-secondary btn-sm py-0">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="/race/{{ race.race_id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('削除しますか？');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm py-0">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        <i class="bi bi-info-circle"></i> 大会が登録されていません
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

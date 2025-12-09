@@ -59,6 +59,25 @@ RECORD_EXPECTED_HEADERS = [
     'split_times_json', 'rank_in_section', 'memo', 'created_at', 'updated_at'
 ]
 
+RACES_EXPECTED_HEADERS = [
+    'race_id', 'race_name', 'short_name', 'date', 'location',
+    'type', 'section_count', 'importance', 'memo', 'created_at', 'updated_at'
+]
+
+TEAM_RECORDS_EXPECTED_HEADERS = [
+    'team_record_id', 'race_id', 'total_time', 'total_time_sec',
+    'rank', 'total_teams', 'category', 'memo', 'created_at', 'updated_at'
+]
+
+RACE_ORDERS_EXPECTED_HEADERS = [
+    'order_id', 'team_record_id', 'section_no', 'section_name',
+    'player_id', 'record_id', 'memo'
+]
+
+MASTERS_EXPECTED_HEADERS = [
+    'type', 'code', 'name', 'sort_order', 'memo'
+]
+
 def normalize_player(player):
     """スプレッドシートのカラム名をアプリ内部の名前に変換"""
     normalized = {}
@@ -461,3 +480,350 @@ def get_personal_bests(player_id):
                 pbs[event] = {'time': time, 'date': date}
 
     return pbs
+
+# ============ Masters (汎用マスタ) ============
+
+def get_all_masters():
+    """全マスタデータを取得（キャッシュ付き）"""
+    cached = _get_cache('all_masters')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Masters')
+    except gspread.exceptions.WorksheetNotFound:
+        return []
+
+    # 仕様: 1行目=物理名, 2行目=論理名, 3行目以降=データ
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for row in all_values[2:]:
+        record = dict(zip(headers, row))
+        records.append(record)
+
+    _set_cache('all_masters', records)
+    return records
+
+def get_masters_by_type(master_type):
+    """種別でマスタを取得"""
+    masters = get_all_masters()
+    filtered = [m for m in masters if m.get('type') == master_type]
+    return sorted(filtered, key=lambda x: int(x.get('sort_order', 0) or 0))
+
+def get_master_choices(master_type):
+    """マスタの選択肢リストを取得 (code, name)のタプルリスト"""
+    masters = get_masters_by_type(master_type)
+    return [(m.get('code', ''), m.get('name', '')) for m in masters]
+
+def add_master(master_type, code, name, sort_order=0, memo=''):
+    """マスタを追加"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Masters')
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = sh.add_worksheet(title='Masters', rows=500, cols=5)
+        worksheet.append_row(MASTERS_EXPECTED_HEADERS)
+        worksheet.append_row(['マスタ種別', 'コード値', '表示名', '表示順', 'メモ'])
+
+    worksheet.append_row([master_type, code, name, sort_order, memo])
+    clear_cache()
+
+def delete_master(master_type, code):
+    """マスタを削除"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Masters')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:  # ヘッダー行をスキップ
+            continue
+        if row[0] == master_type and row[1] == code:
+            worksheet.delete_rows(i + 1)
+            clear_cache()
+            return True
+    return False
+
+# ============ Races (大会マスタ) ============
+
+def get_all_races():
+    """全大会を取得（キャッシュ付き）"""
+    cached = _get_cache('all_races')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Races')
+    except gspread.exceptions.WorksheetNotFound:
+        return []
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for i, row in enumerate(all_values[2:]):
+        record = dict(zip(headers, row))
+        record['row_index'] = i + 3
+        records.append(record)
+
+    _set_cache('all_races', records)
+    return records
+
+def get_race_by_id(race_id):
+    """IDで大会を取得"""
+    races = get_all_races()
+    for race in races:
+        if str(race.get('race_id')) == str(race_id):
+            return race
+    return None
+
+def add_race(race_name, short_name, date, location='', race_type='', section_count='', importance='', memo=''):
+    """大会を追加"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Races')
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = sh.add_worksheet(title='Races', rows=500, cols=11)
+        worksheet.append_row(RACES_EXPECTED_HEADERS)
+        worksheet.append_row(['大会ID', '大会名', '略称', '開催日', '開催地', '大会タイプ', '区間数', '重要度', '備考', '作成日時', '更新日時'])
+
+    all_values = worksheet.get_all_values()
+    new_race_id = f"RAC{len(all_values):03d}"
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    worksheet.append_row([
+        new_race_id, race_name, short_name, date, location,
+        race_type, section_count, importance, memo, now, now
+    ])
+    clear_cache()
+    return new_race_id
+
+def update_race(race_id, race_name, short_name, date, location='', race_type='', section_count='', importance='', memo=''):
+    """大会を更新"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Races')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(race_id):
+            created_at = row[9] if len(row) > 9 else ''
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            worksheet.update(f'A{i+1}:K{i+1}', [[
+                race_id, race_name, short_name, date, location,
+                race_type, section_count, importance, memo, created_at, now
+            ]])
+            clear_cache()
+            return True
+    return False
+
+def delete_race(race_id):
+    """大会を削除"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Races')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(race_id):
+            worksheet.delete_rows(i + 1)
+            clear_cache()
+            return True
+    return False
+
+# ============ TeamRecords (チーム記録) ============
+
+def get_all_team_records():
+    """全チーム記録を取得（キャッシュ付き）"""
+    cached = _get_cache('all_team_records')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('TeamRecords')
+    except gspread.exceptions.WorksheetNotFound:
+        return []
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for i, row in enumerate(all_values[2:]):
+        record = dict(zip(headers, row))
+        record['row_index'] = i + 3
+        records.append(record)
+
+    _set_cache('all_team_records', records)
+    return records
+
+def get_team_record_by_id(team_record_id):
+    """IDでチーム記録を取得"""
+    records = get_all_team_records()
+    for record in records:
+        if str(record.get('team_record_id')) == str(team_record_id):
+            return record
+    return None
+
+def add_team_record(race_id, total_time, total_time_sec='', rank='', total_teams='', category='', memo=''):
+    """チーム記録を追加"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('TeamRecords')
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = sh.add_worksheet(title='TeamRecords', rows=500, cols=10)
+        worksheet.append_row(TEAM_RECORDS_EXPECTED_HEADERS)
+        worksheet.append_row(['チーム記録ID', '大会ID', '総合タイム', '総合タイム(秒)', '総合順位', '出場チーム数', '出場カテゴリ', 'メモ', '作成日時', '更新日時'])
+
+    all_values = worksheet.get_all_values()
+    new_id = f"TR{len(all_values):03d}"
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    worksheet.append_row([
+        new_id, race_id, total_time, total_time_sec,
+        rank, total_teams, category, memo, now, now
+    ])
+    clear_cache()
+    return new_id
+
+def update_team_record(team_record_id, race_id, total_time, total_time_sec='', rank='', total_teams='', category='', memo=''):
+    """チーム記録を更新"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('TeamRecords')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(team_record_id):
+            created_at = row[8] if len(row) > 8 else ''
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            worksheet.update(f'A{i+1}:J{i+1}', [[
+                team_record_id, race_id, total_time, total_time_sec,
+                rank, total_teams, category, memo, created_at, now
+            ]])
+            clear_cache()
+            return True
+    return False
+
+def delete_team_record(team_record_id):
+    """チーム記録を削除"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('TeamRecords')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(team_record_id):
+            worksheet.delete_rows(i + 1)
+            clear_cache()
+            return True
+    return False
+
+# ============ RaceOrders (大会オーダー) ============
+
+def get_race_orders_by_team_record(team_record_id):
+    """チーム記録IDで大会オーダーを取得"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('RaceOrders')
+    except gspread.exceptions.WorksheetNotFound:
+        return []
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for i, row in enumerate(all_values[2:]):
+        record = dict(zip(headers, row))
+        record['row_index'] = i + 3
+        if str(record.get('team_record_id')) == str(team_record_id):
+            records.append(record)
+
+    return sorted(records, key=lambda x: int(x.get('section_no', 0) or 0))
+
+def add_race_order(team_record_id, section_no, section_name, player_id, record_id='', memo=''):
+    """大会オーダーを追加"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('RaceOrders')
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = sh.add_worksheet(title='RaceOrders', rows=500, cols=7)
+        worksheet.append_row(RACE_ORDERS_EXPECTED_HEADERS)
+        worksheet.append_row(['オーダーID', 'チーム記録ID', '区間番号', '区間名', '選手ID', '記録ID', 'メモ'])
+
+    all_values = worksheet.get_all_values()
+    new_id = f"ORD{len(all_values):03d}"
+
+    worksheet.append_row([
+        new_id, team_record_id, section_no, section_name, player_id, record_id, memo
+    ])
+    clear_cache()
+    return new_id
+
+def update_race_order(order_id, team_record_id, section_no, section_name, player_id, record_id='', memo=''):
+    """大会オーダーを更新"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('RaceOrders')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(order_id):
+            worksheet.update(f'A{i+1}:G{i+1}', [[
+                order_id, team_record_id, section_no, section_name, player_id, record_id, memo
+            ]])
+            clear_cache()
+            return True
+    return False
+
+def delete_race_order(order_id):
+    """大会オーダーを削除"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('RaceOrders')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(order_id):
+            worksheet.delete_rows(i + 1)
+            clear_cache()
+            return True
+    return False
