@@ -26,10 +26,10 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <select class="form-select form-select-sm" id="groupFilter">
-                    <option value="">すべてのグループ</option>
-                    {% for group in groups %}
-                    <option value="{{ group }}">{{ group }}</option>
+                <select class="form-select form-select-sm" id="affiliationFilter">
+                    <option value="">すべての所属</option>
+                    {% for affiliation in affiliations %}
+                    <option value="{{ affiliation }}">{{ affiliation }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -54,14 +54,14 @@
             </thead>
             <tbody id="playerTableBody">
                 {% for player in players %}
-                <tr class="player-item" data-name="{{ player.name }}" data-group="{{ player.group }}">
+                <tr class="player-item" data-name="{{ player.name }}" data-affiliation="{{ player.affiliation }}">
                     <td class="text-muted">{{ player.registration_number }}</td>
                     <td>
                         <a href="/player/{{ player.id }}" class="text-decoration-none fw-bold">
                             {{ player.name }}
                         </a>
                     </td>
-                    <td><span class="badge bg-secondary">{{ player.group }}</span></td>
+                    <td><span class="badge bg-secondary">{{ player.affiliation }}</span></td>
                     <td>
                         <a href="/player/{{ player.id }}" class="btn btn-sm btn-outline-primary py-0">
                             <i class="bi bi-chevron-right"></i>
@@ -84,19 +84,19 @@
 {% block extra_js %}
 <script>
 document.getElementById('searchInput').addEventListener('input', filterPlayers);
-document.getElementById('groupFilter').addEventListener('change', filterPlayers);
+document.getElementById('affiliationFilter').addEventListener('change', filterPlayers);
 
 function filterPlayers() {
     const searchText = document.getElementById('searchInput').value.toLowerCase();
-    const groupFilter = document.getElementById('groupFilter').value;
+    const affiliationFilter = document.getElementById('affiliationFilter').value;
     const items = document.querySelectorAll('.player-item');
 
     items.forEach(item => {
         const name = item.dataset.name.toLowerCase();
-        const group = item.dataset.group;
+        const affiliation = item.dataset.affiliation;
         const matchName = name.includes(searchText);
-        const matchGroup = !groupFilter || group === groupFilter;
-        item.style.display = (matchName && matchGroup) ? '' : 'none';
+        const matchAffiliation = !affiliationFilter || affiliation === affiliationFilter;
+        item.style.display = (matchName && matchAffiliation) ? '' : 'none';
     });
 }
 </script>

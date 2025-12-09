@@ -265,7 +265,7 @@
 
     .pb-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
         gap: 12px;
     }
 
@@ -319,21 +319,21 @@
         <div class="profile-card">
             <div class="profile-header">
                 <div class="profile-photo">
-                    {% if player.photo_url %}
-                    <img src="{{ player.photo_url }}" alt="{{ player.name }}">
-                    {% else %}
                     <i class="bi bi-person-fill"></i>
-                    {% endif %}
                 </div>
                 <div class="profile-main">
                     <div class="profile-name">{{ player.name }}</div>
+                    {% if player.registration_number %}
+                    <div class="text-muted small">登録番号: {{ player.registration_number }}</div>
+                    {% endif %}
                     <div class="profile-tags">
-                        <span class="tag">{{ player.group }}</span>
+                        {% if player.affiliation %}<span class="tag">{{ player.affiliation }}</span>{% endif %}
                         {% if player.grade %}<span class="tag">{{ player.grade }}</span>{% endif %}
-                        {% if player.active == 'TRUE' or player.active == True %}
+                        {% if player.category %}<span class="tag">{{ player.category }}</span>{% endif %}
+                        {% if player.status == '現役' or not player.status %}
                         <span class="tag active">現役</span>
                         {% else %}
-                        <span class="tag inactive">引退</span>
+                        <span class="tag inactive">{{ player.status }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -344,41 +344,66 @@
             <div class="profile-info-grid">
                 <div class="info-item">
                     <span class="info-label">所属</span>
-                    <span class="info-value">{{ player.group }}</span>
+                    <span class="info-value">{{ player.affiliation or '-' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">学年</span>
                     <span class="info-value">{{ player.grade or '-' }}</span>
                 </div>
-                {% if player.school %}
-                <div class="info-item full-width">
-                    <span class="info-label">出身校</span>
-                    <span class="info-value">{{ player.school }}</span>
-                </div>
-                {% endif %}
-                {% if player.height or player.weight %}
                 <div class="info-item">
-                    <span class="info-label">身長</span>
-                    <span class="info-value">{{ player.height }}{% if player.height %}cm{% else %}-{% endif %}</span>
+                    <span class="info-label">カテゴリ</span>
+                    <span class="info-value">{{ player.category or '-' }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">体重</span>
-                    <span class="info-value">{{ player.weight }}{% if player.weight %}kg{% else %}-{% endif %}</span>
+                    <span class="info-label">生年月日</span>
+                    <span class="info-value">{{ player.birth_date or '-' }}</span>
                 </div>
-                {% endif %}
             </div>
 
             <div class="profile-divider"></div>
 
-            <div class="stats-boxes">
-                <div class="stat-box">
-                    <div class="stat-label">5000m PB</div>
-                    <div class="stat-value primary">{{ player.best_5000m or '-' }}</div>
+            <!-- 自己ベスト一覧 -->
+            <div class="card-title"><i class="bi bi-trophy text-warning"></i> 自己ベスト</div>
+            <div class="pb-grid">
+                {% if player.pb_1500m %}
+                <div class="pb-item">
+                    <div class="pb-event">1500m</div>
+                    <div class="pb-time">{{ player.pb_1500m }}</div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-label">目標タイム</div>
-                    <div class="stat-value success">{{ player.target_time or '-' }}</div>
+                {% endif %}
+                {% if player.pb_3000m %}
+                <div class="pb-item">
+                    <div class="pb-event">3000m</div>
+                    <div class="pb-time">{{ player.pb_3000m }}</div>
                 </div>
+                {% endif %}
+                {% if player.pb_5000m %}
+                <div class="pb-item">
+                    <div class="pb-event">5000m</div>
+                    <div class="pb-time">{{ player.pb_5000m }}</div>
+                </div>
+                {% endif %}
+                {% if player.pb_10000m %}
+                <div class="pb-item">
+                    <div class="pb-event">10000m</div>
+                    <div class="pb-time">{{ player.pb_10000m }}</div>
+                </div>
+                {% endif %}
+                {% if player.pb_half %}
+                <div class="pb-item">
+                    <div class="pb-event">ハーフ</div>
+                    <div class="pb-time">{{ player.pb_half }}</div>
+                </div>
+                {% endif %}
+                {% if player.pb_full %}
+                <div class="pb-item">
+                    <div class="pb-event">フル</div>
+                    <div class="pb-time">{{ player.pb_full }}</div>
+                </div>
+                {% endif %}
+                {% if not player.pb_1500m and not player.pb_3000m and not player.pb_5000m and not player.pb_10000m and not player.pb_half and not player.pb_full %}
+                <div class="text-muted">未登録</div>
+                {% endif %}
             </div>
 
             <div class="action-buttons">
@@ -391,18 +416,18 @@
             </div>
         </div>
 
-        <!-- 意気込み -->
-        {% if player.message %}
+        <!-- コメント -->
+        {% if player.comment %}
         <div class="profile-card">
-            <div class="card-title"><i class="bi bi-chat-quote text-primary"></i> 意気込み</div>
-            <div class="message-text">{{ player.message }}</div>
+            <div class="card-title"><i class="bi bi-chat-quote text-primary"></i> コメント</div>
+            <div class="message-text">{{ player.comment }}</div>
         </div>
         {% endif %}
 
-        <!-- 種目別自己ベスト -->
+        <!-- 種目別自己ベスト（記録から算出） -->
         {% if personal_bests %}
         <div class="profile-card">
-            <div class="card-title"><i class="bi bi-trophy text-primary"></i> 種目別自己ベスト</div>
+            <div class="card-title"><i class="bi bi-graph-up-arrow text-success"></i> 記録からの自己ベスト</div>
             <div class="pb-grid">
                 {% for event, pb in personal_bests.items() %}
                 <div class="pb-item">
@@ -430,7 +455,7 @@
                     <div class="stats-label-bottom">出場種目数</div>
                 </div>
                 <div class="stats-item">
-                    <div class="stats-number">{{ player.best_5000m or '-' }}</div>
+                    <div class="stats-number">{{ player.pb_5000m or '-' }}</div>
                     <div class="stats-label-bottom">5000m PB</div>
                 </div>
             </div>
