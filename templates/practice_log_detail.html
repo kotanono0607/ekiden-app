@@ -146,7 +146,7 @@
 <div class="attendance-section">
     <h6 class="mb-3"><i class="bi bi-person-check"></i> 出欠状況</h6>
     {% for att in attendance %}
-    {% set player = player_dict.get(att.player_id) %}
+    {% set player = player_dict.get(att.player_id|string) %}
     <div class="attendance-item">
         <span>{{ player.name if player else att.player_id }}</span>
         <span class="attendance-status {% if att.status == '出席' %}present{% elif att.status == '欠席' %}absent{% else %}late{% endif %}">
