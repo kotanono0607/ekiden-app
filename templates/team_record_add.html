@@ -2,59 +2,319 @@
 
 {% block title %}チーム記録追加 - 駅伝アプリ{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+        color: white;
+        padding: 20px 16px;
+        margin: -16px -16px 16px -16px;
+    }
+
+    .back-link {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    .page-header h1 {
+        font-size: 1.3rem;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    /* フォームカード */
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .form-card-title {
+        font-size: 0.8rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-label .required {
+        color: #ef4444;
+        margin-left: 2px;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+
+    /* タイム入力 */
+    .time-input-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .time-input-group input {
+        flex: 1;
+        text-align: center;
+        font-family: monospace;
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+
+    .time-separator {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #64748b;
+    }
+
+    .time-label {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        text-align: center;
+        margin-top: 4px;
+    }
+
+    .time-input-wrapper {
+        flex: 1;
+    }
+
+    /* 数値入力のグリッド */
+    .number-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    /* ヒント */
+    .info-card {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 100px;
+    }
+
+    .info-card-content {
+        display: flex;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: #1e40af;
+    }
+
+    .info-card-content i {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    /* スティッキー送信ボタン */
+    .sticky-submit {
+        position: fixed;
+        bottom: calc(70px + var(--safe-area-bottom));
+        left: 16px;
+        right: 16px;
+        z-index: 100;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        padding: 14px;
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .btn-submit {
+        flex: 2;
+        padding: 14px;
+        background: linear-gradient(135deg, #dc2626, #ea580c);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-submit:active, .btn-cancel:active {
+        transform: scale(0.98);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="mb-4">
-    <a href="/team_records" class="text-decoration-none"><i class="bi bi-arrow-left"></i> チーム記録一覧に戻る</a>
+<div class="page-header">
+    <a href="/team_records" class="back-link">
+        <i class="bi bi-chevron-left"></i> チーム記録一覧
+    </a>
+    <h1><i class="bi bi-flag-fill"></i> チーム記録追加</h1>
 </div>
 
-<h2 class="mb-4"><i class="bi bi-flag-fill text-danger"></i> チーム記録追加</h2>
-
-<div class="card">
-    <div class="card-body">
-        <form action="/team_record/add" method="POST">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">大会 <span class="text-danger">*</span></label>
-                    <select class="form-select" name="race_id" required>
-                        <option value="">選択してください</option>
-                        {% for race in races %}
-                        <option value="{{ race.race_id }}">{{ race.race_name }} ({{ race.date }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">出場カテゴリ</label>
-                    <input type="text" class="form-control" name="category" placeholder="例: 一般の部">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">総合タイム <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="total_time" placeholder="HH:MM:SS" required>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">総合順位</label>
-                    <input type="number" class="form-control" name="rank" min="1">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">出場チーム数</label>
-                    <input type="number" class="form-control" name="total_teams" min="1">
-                </div>
-                <div class="col-12">
-                    <label class="form-label">メモ</label>
-                    <textarea class="form-control" name="memo" rows="2"></textarea>
-                </div>
-            </div>
-            <div class="mt-4">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> 登録
-                </button>
-                <a href="/team_records" class="btn btn-outline-secondary">キャンセル</a>
-            </div>
-        </form>
+<form action="/team_record/add" method="POST" id="addForm">
+    <!-- 大会情報 -->
+    <div class="form-card">
+        <div class="form-card-title">
+            <i class="bi bi-calendar-event"></i> 大会情報
+        </div>
+        <div class="form-group">
+            <label class="form-label">大会 <span class="required">*</span></label>
+            <select class="form-select" name="race_id" required>
+                <option value="">選択してください</option>
+                {% for race in races %}
+                <option value="{{ race.race_id }}">{{ race.race_name }} ({{ race.date }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">出場カテゴリ</label>
+            <input type="text" class="form-control" name="category" placeholder="例: 一般の部">
+        </div>
     </div>
-</div>
 
-<div class="alert alert-info mt-4">
-    <i class="bi bi-info-circle"></i>
-    登録後、詳細画面で区間オーダー（誰がどの区間を走ったか）を入力できます。
-</div>
+    <!-- タイム・順位 -->
+    <div class="form-card">
+        <div class="form-card-title">
+            <i class="bi bi-stopwatch"></i> 結果
+        </div>
+        <div class="form-group">
+            <label class="form-label">総合タイム <span class="required">*</span></label>
+            <div class="time-input-group">
+                <div class="time-input-wrapper">
+                    <input type="text" class="form-control" id="time_h" maxlength="2" placeholder="00" inputmode="numeric">
+                    <div class="time-label">時</div>
+                </div>
+                <span class="time-separator">:</span>
+                <div class="time-input-wrapper">
+                    <input type="text" class="form-control" id="time_m" maxlength="2" placeholder="00" inputmode="numeric">
+                    <div class="time-label">分</div>
+                </div>
+                <span class="time-separator">:</span>
+                <div class="time-input-wrapper">
+                    <input type="text" class="form-control" id="time_s" maxlength="2" placeholder="00" inputmode="numeric">
+                    <div class="time-label">秒</div>
+                </div>
+            </div>
+            <input type="hidden" name="total_time" id="total_time">
+        </div>
+        <div class="number-grid">
+            <div class="form-group">
+                <label class="form-label">総合順位</label>
+                <input type="number" class="form-control" name="rank" min="1" placeholder="1" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label class="form-label">出場チーム数</label>
+                <input type="number" class="form-control" name="total_teams" min="1" placeholder="50" inputmode="numeric">
+            </div>
+        </div>
+    </div>
+
+    <!-- メモ -->
+    <div class="form-card">
+        <div class="form-card-title">
+            <i class="bi bi-chat-left-text"></i> メモ
+        </div>
+        <div class="form-group">
+            <textarea class="form-control" name="memo" rows="3" placeholder="レース状況や感想など..."></textarea>
+        </div>
+    </div>
+
+    <!-- ヒント -->
+    <div class="info-card">
+        <div class="info-card-content">
+            <i class="bi bi-lightbulb"></i>
+            <span>登録後、詳細画面で区間オーダー（誰がどの区間を走ったか）を入力できます。</span>
+        </div>
+    </div>
+
+    <!-- スティッキー送信ボタン -->
+    <div class="sticky-submit">
+        <a href="/team_records" class="btn-cancel">キャンセル</a>
+        <button type="submit" class="btn-submit">
+            <i class="bi bi-check-lg"></i> 登録する
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// タイム入力の自動フォーマット
+const timeInputs = ['time_h', 'time_m', 'time_s'];
+timeInputs.forEach((id, index) => {
+    const input = document.getElementById(id);
+    input.addEventListener('input', function() {
+        // 数字以外を除去
+        this.value = this.value.replace(/[^0-9]/g, '');
+        // 2桁になったら次へ
+        if (this.value.length >= 2 && index < timeInputs.length - 1) {
+            document.getElementById(timeInputs[index + 1]).focus();
+        }
+        updateTotalTime();
+    });
+});
+
+function updateTotalTime() {
+    const h = document.getElementById('time_h').value.padStart(2, '0');
+    const m = document.getElementById('time_m').value.padStart(2, '0');
+    const s = document.getElementById('time_s').value.padStart(2, '0');
+    document.getElementById('total_time').value = `${h}:${m}:${s}`;
+}
+
+// フォーム送信前にタイム確認
+document.getElementById('addForm').addEventListener('submit', function(e) {
+    const totalTime = document.getElementById('total_time').value;
+    if (!totalTime || totalTime === '00:00:00') {
+        e.preventDefault();
+        alert('総合タイムを入力してください');
+        document.getElementById('time_h').focus();
+    }
+});
+</script>
 {% endblock %}

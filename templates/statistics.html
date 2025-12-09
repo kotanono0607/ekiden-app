@@ -2,121 +2,265 @@
 
 {% block title %}チーム統計 - 駅伝アプリ{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .stats-header {
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        color: white;
+        padding: 20px 16px;
+        margin: -16px -16px 16px -16px;
+        text-align: center;
+    }
+
+    .stats-header h1 {
+        font-size: 1.3rem;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    /* 統計カードグリッド */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        line-height: 1.2;
+    }
+
+    .stat-value.primary { color: #3b82f6; }
+    .stat-value.success { color: #10b981; }
+    .stat-value.info { color: #06b6d4; }
+    .stat-value.warning { color: #f59e0b; }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    /* グラフセクション */
+    .chart-section {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chart-title i {
+        color: #3b82f6;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 200px;
+    }
+
+    /* 最近の記録 */
+    .recent-section {
+        margin-bottom: 100px;
+    }
+
+    .section-title {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .record-card {
+        background: white;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .record-info {
+        flex: 1;
+    }
+
+    .record-player {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 2px;
+    }
+
+    .record-player a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .record-meta {
+        font-size: 0.8rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .record-event {
+        background: #dbeafe;
+        color: #2563eb;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .record-time {
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #3b82f6;
+    }
+
+    /* 空状態 */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #94a3b8;
+        background: white;
+        border-radius: 12px;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+
+    /* レスポンシブ調整 */
+    @media (min-width: 768px) {
+        .stat-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-bar-chart-line-fill text-primary"></i> チーム統計</h2>
+<div class="stats-header">
+    <h1><i class="bi bi-bar-chart-line-fill"></i> チーム統計</h1>
 </div>
 
-<div class="row">
-    <!-- 概要カード -->
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <div class="display-4 text-primary mb-2">{{ stats.total_players }}</div>
-                <div class="text-muted">登録選手数</div>
-            </div>
-        </div>
+<!-- 概要カード -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-value primary">{{ stats.total_players }}</div>
+        <div class="stat-label">登録選手数</div>
     </div>
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <div class="display-4 text-success mb-2">{{ stats.total_records }}</div>
-                <div class="text-muted">総記録数</div>
-            </div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-value success">{{ stats.total_records }}</div>
+        <div class="stat-label">総記録数</div>
     </div>
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <div class="display-4 text-info mb-2">{{ stats.groups|length }}</div>
-                <div class="text-muted">グループ数</div>
-            </div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-value info">{{ stats.groups|length }}</div>
+        <div class="stat-label">グループ数</div>
     </div>
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <div class="display-4 text-warning mb-2">{{ stats.event_counts|length }}</div>
-                <div class="text-muted">種目数</div>
-            </div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-value warning">{{ stats.event_counts|length }}</div>
+        <div class="stat-label">種目数</div>
     </div>
 </div>
 
-<div class="row">
-    <!-- グループ別人数 -->
-    <div class="col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-people text-primary"></i> グループ別人数</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="groupChart" height="200"></canvas>
-            </div>
+<!-- グラフ -->
+<div class="charts-row">
+    <div class="chart-section">
+        <div class="chart-title">
+            <i class="bi bi-people-fill"></i>
+            グループ別人数
+        </div>
+        <div class="chart-container">
+            <canvas id="groupChart"></canvas>
         </div>
     </div>
 
-    <!-- 種目別記録数 -->
-    <div class="col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-trophy text-primary"></i> 種目別記録数</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="eventChart" height="200"></canvas>
-            </div>
+    <div class="chart-section">
+        <div class="chart-title">
+            <i class="bi bi-trophy-fill"></i>
+            種目別記録数
+        </div>
+        <div class="chart-container">
+            <canvas id="eventChart"></canvas>
         </div>
     </div>
 </div>
 
 <!-- 最近の記録 -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-clock-history text-primary"></i> 最近の記録</h5>
+<div class="recent-section">
+    <div class="section-title">
+        <i class="bi bi-clock-history"></i> 最近の記録
     </div>
-    <div class="card-body">
-        {% if stats.recent_records %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>日付</th>
-                        <th>選手</th>
-                        <th>種目</th>
-                        <th>タイム</th>
-                        <th>メモ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in stats.recent_records %}
-                    <tr>
-                        <td>{{ record.date }}</td>
-                        <td>
-                            <a href="/player/{{ record.player_id }}">
-                                {{ player_names.get(record.player_id|string, '不明') }}
-                            </a>
-                        </td>
-                        <td><span class="badge bg-primary">{{ record.event }}</span></td>
-                        <td class="font-monospace fw-bold">{{ record.time }}</td>
-                        <td class="text-muted">{{ record.memo or '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if stats.recent_records %}
+        {% for record in stats.recent_records %}
+        <div class="record-card">
+            <div class="record-info">
+                <div class="record-player">
+                    <a href="/player/{{ record.player_id }}">
+                        {{ player_names.get(record.player_id|string, '不明') }}
+                    </a>
+                </div>
+                <div class="record-meta">
+                    <span class="record-event">{{ record.event }}</span>
+                    <span>{{ record.date }}</span>
+                </div>
+            </div>
+            <div class="record-time">{{ record.time }}</div>
         </div>
-        {% else %}
-        <div class="alert alert-info mb-0">
-            <i class="bi bi-info-circle"></i> まだ記録がありません。
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>まだ記録がありません</p>
         </div>
-        {% endif %}
-    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// グループ別人数
+// グループ別人数（ドーナツ）
 const groupData = {{ stats.groups|tojson }};
 const groupCtx = document.getElementById('groupChart').getContext('2d');
 new Chart(groupCtx, {
@@ -127,18 +271,28 @@ new Chart(groupCtx, {
             data: Object.values(groupData),
             backgroundColor: [
                 '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
-            ]
+            ],
+            borderWidth: 0
         }]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-            legend: { position: 'bottom' }
-        }
+            legend: {
+                position: 'bottom',
+                labels: {
+                    boxWidth: 12,
+                    padding: 8,
+                    font: { size: 11 }
+                }
+            }
+        },
+        cutout: '60%'
     }
 });
 
-// 種目別記録数
+// 種目別記録数（横棒）
 const eventData = {{ stats.event_counts|tojson }};
 const eventCtx = document.getElementById('eventChart').getContext('2d');
 new Chart(eventCtx, {
@@ -148,16 +302,26 @@ new Chart(eventCtx, {
         datasets: [{
             label: '記録数',
             data: Object.values(eventData),
-            backgroundColor: '#3B82F6'
+            backgroundColor: '#3B82F6',
+            borderRadius: 4
         }]
     },
     options: {
+        indexAxis: 'y',
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: { display: false }
         },
         scales: {
-            y: { beginAtZero: true }
+            x: {
+                beginAtZero: true,
+                grid: { display: false }
+            },
+            y: {
+                grid: { display: false },
+                ticks: { font: { size: 11 } }
+            }
         }
     }
 });
