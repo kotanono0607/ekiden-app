@@ -1,7 +1,7 @@
 {
-  "name": "駅伝チーム管理アプリ",
-  "short_name": "駅伝アプリ",
-  "description": "駅伝チームの選手・記録管理アプリ",
+  "name": "南陽東置賜",
+  "short_name": "南陽東置賜",
+  "description": "南陽東置賜駅伝チームの選手・記録管理アプリ",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f7fa",
