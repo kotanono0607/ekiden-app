@@ -2,110 +2,266 @@
 
 {% block title %}記録登録 - 駅伝アプリ{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-header {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        padding: 20px 16px;
+        margin: -1rem -12px 0 -12px;
+        text-align: center;
+    }
+    .form-header h5 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        margin: 16px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .section-title {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-body {
+        padding: 16px;
+    }
+    .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 6px;
+    }
+    .form-control, .form-select {
+        font-size: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #48bb78;
+        box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #718096;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+    .submit-area {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 16px;
+        margin: 16px -12px -1rem -12px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .submit-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        border: none;
+    }
+    .event-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .event-btn {
+        padding: 12px 8px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a5568;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .event-btn:hover {
+        border-color: #48bb78;
+        color: #48bb78;
+    }
+    .event-btn.selected {
+        border-color: #48bb78;
+        background: rgba(72, 187, 120, 0.1);
+        color: #38a169;
+    }
+    .event-section-title {
+        font-size: 11px;
+        color: #a0aec0;
+        text-transform: uppercase;
+        margin: 12px 0 8px;
+        grid-column: 1 / -1;
+    }
+    .event-section-title:first-child {
+        margin-top: 0;
+    }
+    .time-input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .time-input-group input {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        padding: 16px 12px;
+    }
+    .time-separator {
+        font-size: 24px;
+        color: #718096;
+        font-weight: 600;
+    }
+    @media (min-width: 768px) {
+        .submit-area {
+            position: static;
+            margin: 16px 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+        }
+        .submit-btn {
+            width: auto;
+            padding: 14px 40px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
-        <li class="breadcrumb-item active">記録登録</li>
-    </ol>
-</nav>
+<a href="/" class="back-link">
+    <i class="bi bi-chevron-left"></i> 選手一覧
+</a>
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-stopwatch text-primary"></i> 記録登録</h5>
-            </div>
-            <div class="card-body">
-                <form action="/record/add" method="POST">
-                    <!-- 選手選択 -->
-                    <div class="mb-3">
-                        <label for="player_id" class="form-label">選手 <span class="text-danger">*</span></label>
-                        <select class="form-select" id="player_id" name="player_id" required>
-                            <option value="">選手を選択してください</option>
-                            {% for player in players %}
-                            <option value="{{ player.id }}" {% if selected_player_id == player.id|string %}selected{% endif %}>
-                                {{ player.name }} ({{ player.group }})
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+<div class="form-header">
+    <h5><i class="bi bi-stopwatch"></i> 記録登録</h5>
+</div>
 
-                    <!-- 日付 -->
-                    <div class="mb-3">
-                        <label for="date" class="form-label">日付 <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="date" name="date"
-                               value="{{ today }}" required>
-                    </div>
+<form action="/record/add" method="POST">
+    <!-- 選手選択 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-person text-primary"></i> 選手
+        </div>
+        <div class="section-body">
+            <select class="form-select" id="player_id" name="player_id" required>
+                <option value="">選手を選択してください</option>
+                {% for player in players %}
+                <option value="{{ player.id }}" {% if selected_player_id == player.id|string %}selected{% endif %}>
+                    {{ player.name }}{% if player.affiliation %} ({{ player.affiliation }}){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 
-                    <!-- 種目 -->
-                    <div class="mb-3">
-                        <label for="event" class="form-label">種目 <span class="text-danger">*</span></label>
-                        <select class="form-select" id="event" name="event" required>
-                            <option value="">種目を選択してください</option>
-                            <optgroup label="トラック">
-                                <option value="1500m">1500m</option>
-                                <option value="3000m">3000m</option>
-                                <option value="5000m">5000m</option>
-                                <option value="10000m">10000m</option>
-                            </optgroup>
-                            <optgroup label="ロード">
-                                <option value="10km">10km</option>
-                                <option value="ハーフマラソン">ハーフマラソン</option>
-                                <option value="マラソン">マラソン</option>
-                            </optgroup>
-                            <optgroup label="駅伝区間">
-                                <option value="1区">1区</option>
-                                <option value="2区">2区</option>
-                                <option value="3区">3区</option>
-                                <option value="4区">4区</option>
-                                <option value="5区">5区</option>
-                                <option value="6区">6区</option>
-                                <option value="7区">7区</option>
-                            </optgroup>
-                            <optgroup label="その他">
-                                <option value="練習">練習</option>
-                                <option value="タイムトライアル">タイムトライアル</option>
-                            </optgroup>
-                        </select>
-                    </div>
+    <!-- 日付 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-calendar3 text-info"></i> 日付
+        </div>
+        <div class="section-body">
+            <input type="date" class="form-control" id="date" name="date" value="{{ today }}" required>
+        </div>
+    </div>
 
-                    <!-- タイム -->
-                    <div class="mb-3">
-                        <label for="time" class="form-label">タイム <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="time" name="time"
-                                   placeholder="例: 15:30 または 930（秒数）" required>
-                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                        </div>
-                        <div class="form-text">MM:SS、HH:MM:SS、または秒数で入力可能</div>
-                    </div>
+    <!-- 種目 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-flag text-warning"></i> 種目
+        </div>
+        <div class="section-body">
+            <input type="hidden" id="event" name="event" required>
+            <div class="event-grid">
+                <div class="event-section-title">トラック</div>
+                <button type="button" class="event-btn" data-event="1500m">1500m</button>
+                <button type="button" class="event-btn" data-event="3000m">3000m</button>
+                <button type="button" class="event-btn" data-event="5000m">5000m</button>
+                <button type="button" class="event-btn" data-event="10000m">10000m</button>
 
-                    <!-- メモ -->
-                    <div class="mb-4">
-                        <label for="memo" class="form-label">メモ</label>
-                        <textarea class="form-control" id="memo" name="memo" rows="3"
-                                  placeholder="天候、コンディション、コースなど"></textarea>
-                    </div>
+                <div class="event-section-title">ロード</div>
+                <button type="button" class="event-btn" data-event="10km">10km</button>
+                <button type="button" class="event-btn" data-event="ハーフ">ハーフ</button>
+                <button type="button" class="event-btn" data-event="フル">フル</button>
 
-                    <!-- 送信ボタン -->
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-check-circle"></i> 登録する
-                        </button>
-                        <a href="/" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> 戻る
-                        </a>
-                    </div>
-                </form>
+                <div class="event-section-title">駅伝区間</div>
+                <button type="button" class="event-btn" data-event="1区">1区</button>
+                <button type="button" class="event-btn" data-event="2区">2区</button>
+                <button type="button" class="event-btn" data-event="3区">3区</button>
+                <button type="button" class="event-btn" data-event="4区">4区</button>
+                <button type="button" class="event-btn" data-event="5区">5区</button>
+                <button type="button" class="event-btn" data-event="6区">6区</button>
+                <button type="button" class="event-btn" data-event="7区">7区</button>
+                <button type="button" class="event-btn" data-event="8区">8区</button>
+                <button type="button" class="event-btn" data-event="9区">9区</button>
+                <button type="button" class="event-btn" data-event="10区">10区</button>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- タイム -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-clock text-success"></i> タイム
+        </div>
+        <div class="section-body">
+            <input type="text" class="form-control" id="time" name="time"
+                   placeholder="15:30 または 1:05:30" required
+                   style="text-align: center; font-size: 20px; font-weight: 600; font-family: monospace;">
+            <div class="form-text text-center mt-2">MM:SS または HH:MM:SS 形式で入力</div>
+        </div>
+    </div>
+
+    <!-- メモ -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-chat-text text-secondary"></i> メモ
+        </div>
+        <div class="section-body">
+            <textarea class="form-control" id="memo" name="memo" rows="2"
+                      placeholder="天候、コンディション、コースなど"></textarea>
+        </div>
+    </div>
+
+    <!-- 送信ボタン -->
+    <div class="submit-area">
+        <button type="submit" class="btn btn-success submit-btn">
+            <i class="bi bi-check-lg"></i> 登録する
+        </button>
+    </div>
+</form>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// 種目選択
+document.querySelectorAll('.event-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.event-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('event').value = this.dataset.event;
+    });
+});
+
 // タイム入力の自動フォーマット
 document.getElementById('time').addEventListener('blur', function() {
     let value = this.value.trim();
@@ -114,17 +270,23 @@ document.getElementById('time').addEventListener('blur', function() {
     if (/^\d+$/.test(value)) {
         const totalSeconds = parseInt(value);
         if (totalSeconds >= 3600) {
-            // 1時間以上の場合 HH:MM:SS
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60);
             const s = totalSeconds % 60;
             this.value = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         } else {
-            // 1時間未満の場合 MM:SS
             const m = Math.floor(totalSeconds / 60);
             const s = totalSeconds % 60;
             this.value = `${m}:${s.toString().padStart(2, '0')}`;
         }
+    }
+});
+
+// フォーム送信前に種目チェック
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!document.getElementById('event').value) {
+        e.preventDefault();
+        alert('種目を選択してください');
     }
 });
 </script>

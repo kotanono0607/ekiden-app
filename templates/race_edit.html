@@ -2,82 +2,281 @@
 
 {% block title %}大会編集 - 駅伝アプリ{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-header {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        color: white;
+        padding: 20px 16px;
+        margin: -1rem -12px 0 -12px;
+        text-align: center;
+    }
+    .form-header h5 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        margin: 16px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .section-title {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-body {
+        padding: 16px;
+    }
+    .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 6px;
+    }
+    .form-control, .form-select {
+        font-size: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #ed8936;
+        box-shadow: 0 0 0 3px rgba(237, 137, 54, 0.15);
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #718096;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+    .submit-area {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 16px;
+        margin: 16px -12px -1rem -12px;
+        border-top: 1px solid #e2e8f0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .submit-btn {
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    .type-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .type-btn {
+        padding: 14px 8px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .type-btn:hover {
+        border-color: #ed8936;
+    }
+    .type-btn.selected {
+        border-color: #ed8936;
+        background: rgba(237, 137, 54, 0.1);
+    }
+    .type-btn i {
+        font-size: 24px;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .type-btn span {
+        font-size: 12px;
+        font-weight: 500;
+        color: #4a5568;
+    }
+    .importance-grid {
+        display: flex;
+        gap: 8px;
+    }
+    .importance-btn {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.15s;
+    }
+    .importance-btn.selected {
+        color: white;
+    }
+    .importance-btn[data-value="A"].selected {
+        background: #e53e3e;
+        border-color: #e53e3e;
+    }
+    .importance-btn[data-value="B"].selected {
+        background: #ecc94b;
+        border-color: #ecc94b;
+    }
+    .importance-btn[data-value="C"].selected {
+        background: #4299e1;
+        border-color: #4299e1;
+    }
+    @media (min-width: 768px) {
+        .submit-area {
+            position: static;
+            margin: 16px 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+            display: flex;
+            gap: 12px;
+        }
+        .submit-btn {
+            padding: 14px 32px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="mb-4">
-    <a href="/races" class="text-decoration-none"><i class="bi bi-arrow-left"></i> 大会一覧に戻る</a>
+<a href="/races" class="back-link">
+    <i class="bi bi-chevron-left"></i> 大会一覧
+</a>
+
+<div class="form-header">
+    <h5><i class="bi bi-pencil"></i> 大会編集</h5>
 </div>
 
-<h2 class="mb-4"><i class="bi bi-pencil-fill text-warning"></i> 大会編集</h2>
-
-<div class="card">
-    <div class="card-body">
-        <form action="/race/{{ race.race_id }}/edit" method="POST">
+<form action="/race/{{ race.race_id }}/edit" method="POST">
+    <!-- 基本情報 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-info-circle text-primary"></i> 基本情報
+        </div>
+        <div class="section-body">
             <div class="row g-3">
-                <div class="col-md-8">
+                <div class="col-12">
                     <label class="form-label">大会名 <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="race_name" value="{{ race.race_name }}" required>
                 </div>
-                <div class="col-md-4">
+                <div class="col-6">
                     <label class="form-label">略称 <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="short_name" value="{{ race.short_name }}" required>
                 </div>
-                <div class="col-md-4">
+                <div class="col-6">
                     <label class="form-label">開催日 <span class="text-danger">*</span></label>
                     <input type="date" class="form-control" name="date" value="{{ race.date }}" required>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12">
                     <label class="form-label">開催地</label>
                     <input type="text" class="form-control" name="location" value="{{ race.location }}">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">大会タイプ</label>
-                    <select class="form-select" name="type" id="raceType">
-                        <option value="">選択してください</option>
-                        {% for code, name in race_types %}
-                        <option value="{{ code }}" {% if race.type == code %}selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
-                        <option value="track" {% if race.type == 'track' %}selected{% endif %}>トラック</option>
-                        <option value="road" {% if race.type == 'road' %}selected{% endif %}>ロード</option>
-                        <option value="ekiden" {% if race.type == 'ekiden' %}selected{% endif %}>駅伝</option>
-                    </select>
-                </div>
-                <div class="col-md-4" id="sectionCountDiv" {% if race.type != 'ekiden' %}style="display:none;"{% endif %}>
-                    <label class="form-label">区間数</label>
-                    <input type="number" class="form-control" name="section_count" value="{{ race.section_count }}" min="1">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">重要度</label>
-                    <select class="form-select" name="importance">
-                        <option value="">選択してください</option>
-                        {% for code, name in importance_list %}
-                        <option value="{{ code }}" {% if race.importance == code %}selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
-                        <option value="A" {% if race.importance == 'A' %}selected{% endif %}>A（重要）</option>
-                        <option value="B" {% if race.importance == 'B' %}selected{% endif %}>B（中程度）</option>
-                        <option value="C" {% if race.importance == 'C' %}selected{% endif %}>C（一般）</option>
-                    </select>
-                </div>
-                <div class="col-12">
-                    <label class="form-label">備考</label>
-                    <textarea class="form-control" name="memo" rows="2">{{ race.memo }}</textarea>
-                </div>
             </div>
-            <div class="mt-4">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> 更新
-                </button>
-                <a href="/races" class="btn btn-outline-secondary">キャンセル</a>
-            </div>
-        </form>
+        </div>
     </div>
-</div>
+
+    <!-- 大会タイプ -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-tag text-success"></i> 大会タイプ
+        </div>
+        <div class="section-body">
+            <input type="hidden" id="type" name="type" value="{{ race.type }}">
+            <div class="type-grid">
+                <div class="type-btn {% if race.type == 'track' %}selected{% endif %}" data-type="track">
+                    <i class="bi bi-circle text-primary"></i>
+                    <span>トラック</span>
+                </div>
+                <div class="type-btn {% if race.type == 'road' %}selected{% endif %}" data-type="road">
+                    <i class="bi bi-signpost text-success"></i>
+                    <span>ロード</span>
+                </div>
+                <div class="type-btn {% if race.type == 'ekiden' %}selected{% endif %}" data-type="ekiden">
+                    <i class="bi bi-flag text-danger"></i>
+                    <span>駅伝</span>
+                </div>
+            </div>
+            <div id="sectionCountDiv" class="mt-3" {% if race.type != 'ekiden' %}style="display:none;"{% endif %}>
+                <label class="form-label">区間数</label>
+                <input type="number" class="form-control" name="section_count" value="{{ race.section_count }}" min="1">
+            </div>
+        </div>
+    </div>
+
+    <!-- 重要度 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-star text-warning"></i> 重要度
+        </div>
+        <div class="section-body">
+            <input type="hidden" id="importance" name="importance" value="{{ race.importance }}">
+            <div class="importance-grid">
+                <div class="importance-btn {% if race.importance == 'A' %}selected{% endif %}" data-value="A">A</div>
+                <div class="importance-btn {% if race.importance == 'B' %}selected{% endif %}" data-value="B">B</div>
+                <div class="importance-btn {% if race.importance == 'C' %}selected{% endif %}" data-value="C">C</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 備考 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-chat-text text-secondary"></i> 備考
+        </div>
+        <div class="section-body">
+            <textarea class="form-control" name="memo" rows="2">{{ race.memo }}</textarea>
+        </div>
+    </div>
+
+    <!-- 送信ボタン -->
+    <div class="submit-area">
+        <a href="/races" class="btn btn-outline-secondary submit-btn">
+            キャンセル
+        </a>
+        <button type="submit" class="btn btn-warning submit-btn text-white">
+            <i class="bi bi-check-lg"></i> 更新
+        </button>
+    </div>
+</form>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.getElementById('raceType').addEventListener('change', function() {
-    const div = document.getElementById('sectionCountDiv');
-    div.style.display = this.value === 'ekiden' ? '' : 'none';
+// 大会タイプ選択
+document.querySelectorAll('.type-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('type').value = this.dataset.type;
+        document.getElementById('sectionCountDiv').style.display = this.dataset.type === 'ekiden' ? '' : 'none';
+    });
+});
+
+// 重要度選択
+document.querySelectorAll('.importance-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.importance-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('importance').value = this.dataset.value;
+    });
 });
 </script>
 {% endblock %}

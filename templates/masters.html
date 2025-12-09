@@ -2,43 +2,180 @@
 
 {% block title %}マスタ管理 - 駅伝アプリ{% endblock %}
 
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+        color: white;
+        padding: 20px 16px;
+        margin: -1rem -12px 0 -12px;
+        text-align: center;
+    }
+    .page-header h5 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        margin: 16px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .section-header {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .section-body {
+        padding: 16px;
+    }
+
+    .add-form .form-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 4px;
+    }
+    .add-form .form-control,
+    .add-form .form-select {
+        font-size: 16px;
+        padding: 10px 12px;
+        border-radius: 8px;
+    }
+
+    .master-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .master-item:last-child {
+        border-bottom: none;
+    }
+    .master-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .master-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: #2d3748;
+    }
+    .master-meta {
+        font-size: 12px;
+        color: #718096;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 2px;
+    }
+    .master-code {
+        font-family: 'SF Mono', 'Consolas', monospace;
+        background: #edf2f7;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+    .master-delete {
+        padding: 8px;
+        color: #a0aec0;
+    }
+
+    .type-badge {
+        padding: 4px 10px;
+        background: #edf2f7;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #4a5568;
+    }
+
+    .help-card {
+        background: #f7fafc;
+        border-radius: 12px;
+        padding: 16px;
+        margin: 16px 0;
+    }
+    .help-card h6 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 12px;
+    }
+    .help-list {
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+    }
+    .help-list li {
+        font-size: 13px;
+        color: #718096;
+        padding: 4px 0;
+        display: flex;
+        gap: 8px;
+    }
+    .help-list code {
+        background: #e2e8f0;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-gear-fill text-secondary"></i> マスタ管理</h2>
+<div class="page-header">
+    <h5><i class="bi bi-gear"></i> マスタ管理</h5>
 </div>
 
 <!-- マスタ追加フォーム -->
-<div class="card mb-4">
-    <div class="card-header">
-        <i class="bi bi-plus-circle"></i> マスタ追加
+<div class="section-card">
+    <div class="section-header">
+        <span><i class="bi bi-plus-circle text-primary"></i> マスタ追加</span>
     </div>
-    <div class="card-body">
+    <div class="section-body add-form">
         <form action="/master/add" method="POST">
             <div class="row g-2">
-                <div class="col-md-2">
-                    <select class="form-select form-select-sm" name="type" required>
+                <div class="col-12">
+                    <label class="form-label">種別</label>
+                    <select class="form-select" name="type" required>
                         <option value="">種別を選択</option>
                         <option value="category_list">区分リスト</option>
                         <option value="status_list">状態リスト</option>
+                        <option value="grade_list">学年リスト</option>
+                        <option value="affiliation_list">所属リスト</option>
                         <option value="race_type_list">大会タイプ</option>
                         <option value="importance_list">重要度</option>
-                        <option value="grade_list">学年</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <input type="text" class="form-control form-control-sm" name="code" placeholder="コード値" required>
+                <div class="col-6">
+                    <label class="form-label">コード値</label>
+                    <input type="text" class="form-control" name="code" placeholder="例: univ" required>
                 </div>
-                <div class="col-md-3">
-                    <input type="text" class="form-control form-control-sm" name="name" placeholder="表示名" required>
+                <div class="col-6">
+                    <label class="form-label">表示名</label>
+                    <input type="text" class="form-control" name="name" placeholder="例: 大学生" required>
                 </div>
-                <div class="col-md-1">
-                    <input type="number" class="form-control form-control-sm" name="sort_order" placeholder="順" value="0">
+                <div class="col-6">
+                    <label class="form-label">順序</label>
+                    <input type="number" class="form-control" name="sort_order" value="0" placeholder="0">
                 </div>
-                <div class="col-md-2">
-                    <input type="text" class="form-control form-control-sm" name="memo" placeholder="メモ">
+                <div class="col-6">
+                    <label class="form-label">メモ</label>
+                    <input type="text" class="form-control" name="memo" placeholder="備考">
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100">追加</button>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-lg"></i> 追加
+                    </button>
                 </div>
             </div>
         </form>
@@ -47,60 +184,52 @@
 
 <!-- マスタ一覧 -->
 {% for type_name, items in grouped_masters.items() %}
-<div class="card mb-3">
-    <div class="card-header">
-        <strong>{{ type_name }}</strong>
-        <span class="badge bg-secondary">{{ items|length }}件</span>
+<div class="section-card">
+    <div class="section-header">
+        <span>{{ type_name }}</span>
+        <span class="type-badge">{{ items|length }}件</span>
     </div>
-    <div class="table-responsive">
-        <table class="table table-sm table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>コード</th>
-                    <th>表示名</th>
-                    <th>順序</th>
-                    <th>メモ</th>
-                    <th style="width: 60px;"></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td><code>{{ item.code }}</code></td>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.sort_order }}</td>
-                    <td class="text-muted">{{ item.memo }}</td>
-                    <td>
-                        <form action="/master/delete" method="POST" style="display:inline;" onsubmit="return confirm('削除しますか？');">
-                            <input type="hidden" name="type" value="{{ item.type }}">
-                            <input type="hidden" name="code" value="{{ item.code }}">
-                            <button type="submit" class="btn btn-outline-danger btn-sm py-0">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="section-body" style="padding: 0;">
+        {% for item in items %}
+        <div class="master-item">
+            <div class="master-info">
+                <div class="master-name">{{ item.name }}</div>
+                <div class="master-meta">
+                    <span class="master-code">{{ item.code }}</span>
+                    {% if item.sort_order %}<span>順序: {{ item.sort_order }}</span>{% endif %}
+                    {% if item.memo %}<span>{{ item.memo }}</span>{% endif %}
+                </div>
+            </div>
+            <form action="/master/delete" method="POST" style="margin:0;" onsubmit="return confirm('削除しますか？');">
+                <input type="hidden" name="type" value="{{ item.type }}">
+                <input type="hidden" name="code" value="{{ item.code }}">
+                <button type="submit" class="btn btn-link master-delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% else %}
-<div class="alert alert-info">
-    <i class="bi bi-info-circle"></i> マスタデータがありません。上のフォームから追加してください。
+<div class="section-card">
+    <div class="section-body text-center text-muted py-4">
+        <i class="bi bi-inbox" style="font-size: 32px;"></i>
+        <p class="mb-0 mt-2">マスタデータがありません</p>
+    </div>
 </div>
 {% endfor %}
 
-<div class="card bg-light">
-    <div class="card-body">
-        <h6>マスタ種別の説明</h6>
-        <ul class="mb-0 small">
-            <li><code>category_list</code> - 選手区分（大学生、社会人など）</li>
-            <li><code>status_list</code> - 選手状態（現役、引退など）</li>
-            <li><code>race_type_list</code> - 大会タイプ（トラック、ロード、駅伝）</li>
-            <li><code>importance_list</code> - 大会重要度（A、B、Cなど）</li>
-            <li><code>grade_list</code> - 学年（1年、2年など）</li>
-        </ul>
-    </div>
+<!-- ヘルプ -->
+<div class="help-card">
+    <h6><i class="bi bi-question-circle"></i> マスタ種別の説明</h6>
+    <ul class="help-list">
+        <li><code>category_list</code> 選手区分（大学生、社会人など）</li>
+        <li><code>status_list</code> 選手状態（現役、引退など）</li>
+        <li><code>grade_list</code> 学年（1年、2年など）</li>
+        <li><code>affiliation_list</code> 所属（チーム、大学名など）</li>
+        <li><code>race_type_list</code> 大会タイプ（トラック、ロード、駅伝）</li>
+        <li><code>importance_list</code> 大会重要度（A、B、Cなど）</li>
+    </ul>
 </div>
 {% endblock %}
