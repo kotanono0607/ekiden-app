@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}大会編集 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/races" class="text-decoration-none"><i class="bi bi-arrow-left"></i> 大会一覧に戻る</a>
+</div>
+
+<h2 class="mb-4"><i class="bi bi-pencil-fill text-warning"></i> 大会編集</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form action="/race/{{ race.race_id }}/edit" method="POST">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">大会名 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="race_name" value="{{ race.race_name }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">略称 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="short_name" value="{{ race.short_name }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">開催日 <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="date" value="{{ race.date }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">開催地</label>
+                    <input type="text" class="form-control" name="location" value="{{ race.location }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">大会タイプ</label>
+                    <select class="form-select" name="type" id="raceType">
+                        <option value="">選択してください</option>
+                        {% for code, name in race_types %}
+                        <option value="{{ code }}" {% if race.type == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                        <option value="track" {% if race.type == 'track' %}selected{% endif %}>トラック</option>
+                        <option value="road" {% if race.type == 'road' %}selected{% endif %}>ロード</option>
+                        <option value="ekiden" {% if race.type == 'ekiden' %}selected{% endif %}>駅伝</option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="sectionCountDiv" {% if race.type != 'ekiden' %}style="display:none;"{% endif %}>
+                    <label class="form-label">区間数</label>
+                    <input type="number" class="form-control" name="section_count" value="{{ race.section_count }}" min="1">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">重要度</label>
+                    <select class="form-select" name="importance">
+                        <option value="">選択してください</option>
+                        {% for code, name in importance_list %}
+                        <option value="{{ code }}" {% if race.importance == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                        <option value="A" {% if race.importance == 'A' %}selected{% endif %}>A（重要）</option>
+                        <option value="B" {% if race.importance == 'B' %}selected{% endif %}>B（中程度）</option>
+                        <option value="C" {% if race.importance == 'C' %}selected{% endif %}>C（一般）</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">備考</label>
+                    <textarea class="form-control" name="memo" rows="2">{{ race.memo }}</textarea>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> 更新
+                </button>
+                <a href="/races" class="btn btn-outline-secondary">キャンセル</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('raceType').addEventListener('change', function() {
+    const div = document.getElementById('sectionCountDiv');
+    div.style.display = this.value === 'ekiden' ? '' : 'none';
+});
+</script>
+{% endblock %}

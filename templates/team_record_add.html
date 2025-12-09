@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}チーム記録追加 - 駅伝アプリ{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/team_records" class="text-decoration-none"><i class="bi bi-arrow-left"></i> チーム記録一覧に戻る</a>
+</div>
+
+<h2 class="mb-4"><i class="bi bi-flag-fill text-danger"></i> チーム記録追加</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form action="/team_record/add" method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">大会 <span class="text-danger">*</span></label>
+                    <select class="form-select" name="race_id" required>
+                        <option value="">選択してください</option>
+                        {% for race in races %}
+                        <option value="{{ race.race_id }}">{{ race.race_name }} ({{ race.date }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">出場カテゴリ</label>
+                    <input type="text" class="form-control" name="category" placeholder="例: 一般の部">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">総合タイム <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="total_time" placeholder="HH:MM:SS" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">総合順位</label>
+                    <input type="number" class="form-control" name="rank" min="1">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">出場チーム数</label>
+                    <input type="number" class="form-control" name="total_teams" min="1">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">メモ</label>
+                    <textarea class="form-control" name="memo" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> 登録
+                </button>
+                <a href="/team_records" class="btn btn-outline-secondary">キャンセル</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    <i class="bi bi-info-circle"></i>
+    登録後、詳細画面で区間オーダー（誰がどの区間を走ったか）を入力できます。
+</div>
+{% endblock %}
