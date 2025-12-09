@@ -4,133 +4,444 @@
 
 {% block extra_css %}
 <style>
-    .section-slot {
-        min-height: 80px;
-        border: 2px dashed #dee2e6;
+    :root {
+        --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .sim-header {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        padding: 20px 16px;
+        margin: -16px -16px 16px -16px;
+        text-align: center;
+    }
+
+    .sim-header h1 {
+        font-size: 1.3rem;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .sim-title-input {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
         border-radius: 8px;
+        color: white;
+        padding: 10px 12px;
+        width: 100%;
+        margin-top: 12px;
+        font-size: 0.95rem;
+    }
+
+    .sim-title-input::placeholder {
+        color: rgba(255,255,255,0.7);
+    }
+
+    .sim-title-input:focus {
+        outline: none;
+        background: rgba(255,255,255,0.3);
+    }
+
+    /* 区間スロット */
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .section-number {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s;
-    }
-    .section-slot.drag-over {
-        border-color: #0d6efd;
-        background-color: rgba(13, 110, 253, 0.1);
-    }
-    .section-slot .player-badge {
-        cursor: grab;
-    }
-    .player-badge {
-        padding: 10px 15px;
-        background-color: #0d6efd;
-        color: white;
-        border-radius: 20px;
-        cursor: grab;
-        user-select: none;
-    }
-    .player-badge:active {
-        cursor: grabbing;
-    }
-    .player-pool .player-badge {
-        margin: 5px;
-        display: inline-block;
-    }
-    .section-label {
         font-weight: bold;
+        font-size: 1rem;
+        margin-right: 12px;
+    }
+
+    .section-info {
+        flex: 1;
+    }
+
+    .section-label {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .section-note {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    .section-slot {
+        background: #f8fafc;
+        border: 2px dashed #e2e8f0;
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .section-slot:active {
+        transform: scale(0.98);
+    }
+
+    .section-slot.has-player {
+        background: linear-gradient(135deg, #dbeafe, #ede9fe);
+        border: 2px solid #6366f1;
+    }
+
+    .section-slot .placeholder {
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    .section-slot .placeholder i {
         font-size: 1.2rem;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .selected-player {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .selected-player-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .selected-player-name {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .selected-player-time {
+        font-size: 0.8rem;
+        color: #6366f1;
+        font-family: monospace;
+    }
+
+    .remove-player {
+        width: 28px;
+        height: 28px;
+        background: #fee2e2;
+        color: #ef4444;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    /* 選手選択モーダル */
+    .player-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .player-modal.show {
+        display: flex;
+    }
+
+    .player-modal-content {
+        background: white;
+        border-radius: 20px 20px 0 0;
+        width: 100%;
+        max-height: 70vh;
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+
+    .player-modal-header {
+        padding: 16px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+    }
+
+    .player-modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .modal-close-btn {
+        width: 32px;
+        height: 32px;
+        background: #f1f5f9;
+        border: none;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        color: #64748b;
+    }
+
+    .player-search {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        position: sticky;
+        top: 57px;
+        background: white;
+        z-index: 10;
+    }
+
+    .player-search input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+    }
+
+    .player-list {
+        overflow-y: auto;
+        max-height: calc(70vh - 130px);
+        padding-bottom: calc(16px + var(--safe-area-bottom));
+    }
+
+    .player-item {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .player-item:active {
+        background: #f1f5f9;
+    }
+
+    .player-item.assigned {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+
+    .player-item-name {
+        font-weight: 500;
+        color: #1e293b;
+    }
+
+    .player-item-time {
+        font-size: 0.85rem;
+        color: #6366f1;
+        font-family: monospace;
+    }
+
+    /* 保存済みシミュレーション */
+    .saved-section {
+        margin-top: 24px;
+    }
+
+    .saved-section-title {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .saved-item {
+        background: white;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .saved-item:active {
+        transform: scale(0.98);
+        background: #f8fafc;
+    }
+
+    .saved-item-title {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 4px;
+    }
+
+    .saved-item-date {
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+
+    /* スティッキー保存ボタン */
+    .sticky-save {
+        position: fixed;
+        bottom: calc(70px + var(--safe-area-bottom));
+        left: 16px;
+        right: 16px;
+        z-index: 100;
+    }
+
+    .save-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .save-btn:active {
+        transform: scale(0.98);
+    }
+
+    .content-wrapper {
+        padding-bottom: 100px;
+    }
+
+    /* 空状態 */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #94a3b8;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        opacity: 0.5;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-diagram-3 text-primary"></i> 区間シミュレーション</h2>
-    <button class="btn btn-success" onclick="saveSimulation()">
-        <i class="bi bi-save"></i> 保存
+<div class="content-wrapper">
+    <div class="sim-header">
+        <h1><i class="bi bi-diagram-3"></i> 区間シミュレーション</h1>
+        <input type="text" class="sim-title-input" id="simTitle" placeholder="シミュレーション名を入力...">
+    </div>
+
+    <!-- 区間配置エリア -->
+    <div id="sectionArea">
+        {% for i in range(1, 8) %}
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-number">{{ i }}</div>
+                <div class="section-info">
+                    <div class="section-label">{{ i }}区</div>
+                    <div class="section-note">
+                        {% if i == 1 %}スタート区間
+                        {% elif i == 7 %}アンカー
+                        {% elif i == 4 %}最長区間
+                        {% else %}中継区間
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="section-slot" data-section="{{ i }}" onclick="openPlayerModal({{ i }})">
+                <div class="placeholder">
+                    <i class="bi bi-person-plus"></i>
+                    タップして選手を選択
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 保存済みシミュレーション -->
+    <div class="saved-section">
+        <div class="saved-section-title">
+            <i class="bi bi-folder"></i> 保存済みシミュレーション
+        </div>
+        {% if simulations %}
+            {% for sim in simulations %}
+            <div class="saved-item" onclick="loadSimulation('{{ sim.title }}', {{ sim.order_data|tojson }})">
+                <div class="saved-item-title">{{ sim.title }}</div>
+                <div class="saved-item-date">{{ sim.created_at }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>保存済みのシミュレーションはありません</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- スティッキー保存ボタン -->
+<div class="sticky-save">
+    <button class="save-btn" onclick="saveSimulation()">
+        <i class="bi bi-check-lg"></i> シミュレーションを保存
     </button>
 </div>
 
-<div class="row">
-    <!-- 区間配置エリア -->
-    <div class="col-lg-8 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-signpost-2"></i> 区間オーダー</h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">シミュレーション名</label>
-                    <input type="text" class="form-control" id="simTitle" placeholder="例: 県大会想定オーダー">
-                </div>
-                <hr>
-                <div class="row g-3" id="sectionArea">
-                    {% for i in range(1, 8) %}
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center mb-2">
-                            <span class="section-label text-primary me-2">{{ i }}区</span>
-                            <small class="text-muted">
-                                {% if i == 1 %}(スタート)
-                                {% elif i == 7 %}(アンカー)
-                                {% endif %}
-                            </small>
-                        </div>
-                        <div class="section-slot" data-section="{{ i }}"
-                             ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
-                            <span class="text-muted">選手をドラッグ</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+<!-- 選手選択モーダル -->
+<div class="player-modal" id="playerModal">
+    <div class="player-modal-content">
+        <div class="player-modal-header">
+            <h3><span id="modalSectionLabel">1</span>区の選手を選択</h3>
+            <button class="modal-close-btn" onclick="closePlayerModal()">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
-    </div>
-
-    <!-- 選手プール -->
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-people"></i> 選手一覧</h5>
-            </div>
-            <div class="card-body player-pool" id="playerPool">
-                {% for player in players %}
-                <span class="player-badge" draggable="true"
-                      data-player-id="{{ player.id }}"
-                      data-player-name="{{ player.name }}"
-                      ondragstart="drag(event)">
-                    {{ player.name }}
-                    {% if player.best_5000m %}
-                    <small>({{ player.best_5000m }})</small>
-                    {% endif %}
-                </span>
-                {% endfor %}
-                {% if not players %}
-                <div class="alert alert-info mb-0">
-                    選手が登録されていません
-                </div>
+        <div class="player-search">
+            <input type="text" id="playerSearchInput" placeholder="選手名で検索..." oninput="filterPlayers()">
+        </div>
+        <div class="player-list" id="playerList">
+            {% for player in players %}
+            <div class="player-item" data-player-id="{{ player.id }}" data-player-name="{{ player.name }}"
+                 data-player-time="{{ player.pb_5000m or '' }}" onclick="selectPlayer(this)">
+                <span class="player-item-name">{{ player.name }}</span>
+                {% if player.pb_5000m %}
+                <span class="player-item-time">{{ player.pb_5000m }}</span>
                 {% endif %}
             </div>
-        </div>
-
-        <!-- 保存済みシミュレーション -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-folder"></i> 保存済み</h5>
+            {% endfor %}
+            {% if not players %}
+            <div class="empty-state">
+                <i class="bi bi-people"></i>
+                <p>選手が登録されていません</p>
             </div>
-            <div class="card-body">
-                {% if simulations %}
-                <div class="list-group list-group-flush">
-                    {% for sim in simulations %}
-                    <a href="#" class="list-group-item list-group-item-action"
-                       onclick="loadSimulation('{{ sim.title }}', {{ sim.order_data|tojson }})">
-                        <strong>{{ sim.title }}</strong>
-                        <br><small class="text-muted">{{ sim.created_at }}</small>
-                    </a>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted mb-0">保存済みのシミュレーションはありません</p>
-                {% endif %}
-            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -138,51 +449,92 @@
 
 {% block extra_js %}
 <script>
-let draggedElement = null;
+let currentSection = null;
+const assignments = {}; // section -> {id, name, time}
 
-function drag(e) {
-    draggedElement = e.target;
-    e.dataTransfer.setData('text/plain', e.target.dataset.playerName);
-    e.target.style.opacity = '0.5';
+function openPlayerModal(section) {
+    currentSection = section;
+    document.getElementById('modalSectionLabel').textContent = section;
+    document.getElementById('playerModal').classList.add('show');
+    document.getElementById('playerSearchInput').value = '';
+    filterPlayers();
+    updatePlayerListStatus();
+    document.body.style.overflow = 'hidden';
 }
 
-function allowDrop(e) {
-    e.preventDefault();
-    e.currentTarget.classList.add('drag-over');
+function closePlayerModal() {
+    document.getElementById('playerModal').classList.remove('show');
+    document.body.style.overflow = '';
+    currentSection = null;
 }
 
-function dragLeave(e) {
-    e.currentTarget.classList.remove('drag-over');
+function updatePlayerListStatus() {
+    const assignedIds = Object.values(assignments).map(a => a.id);
+    document.querySelectorAll('.player-item').forEach(item => {
+        const playerId = item.dataset.playerId;
+        if (assignedIds.includes(playerId)) {
+            item.classList.add('assigned');
+        } else {
+            item.classList.remove('assigned');
+        }
+    });
 }
 
-function drop(e) {
-    e.preventDefault();
-    e.currentTarget.classList.remove('drag-over');
+function filterPlayers() {
+    const query = document.getElementById('playerSearchInput').value.toLowerCase();
+    document.querySelectorAll('.player-item').forEach(item => {
+        const name = item.dataset.playerName.toLowerCase();
+        item.style.display = name.includes(query) ? '' : 'none';
+    });
+}
 
-    const slot = e.currentTarget;
-    const playerName = e.dataTransfer.getData('text/plain');
-    const playerId = draggedElement.dataset.playerId;
+function selectPlayer(element) {
+    const playerId = element.dataset.playerId;
+    const playerName = element.dataset.playerName;
+    const playerTime = element.dataset.playerTime;
 
-    // 既存の選手をプールに戻す
-    const existingBadge = slot.querySelector('.player-badge');
-    if (existingBadge) {
-        document.getElementById('playerPool').appendChild(existingBadge);
-    }
+    // 配置を保存
+    assignments[currentSection] = {
+        id: playerId,
+        name: playerName,
+        time: playerTime
+    };
 
-    // 新しい選手を配置
-    slot.innerHTML = '';
-    const badge = draggedElement.cloneNode(true);
-    badge.style.opacity = '1';
-    badge.ondragstart = drag;
-    slot.appendChild(badge);
+    // スロットを更新
+    updateSlot(currentSection, playerName, playerTime);
 
-    // 元の選手をプールから削除
-    if (draggedElement.parentElement.id === 'playerPool') {
-        draggedElement.remove();
-    }
+    closePlayerModal();
+}
 
-    draggedElement.style.opacity = '1';
-    draggedElement = null;
+function updateSlot(section, name, time) {
+    const slot = document.querySelector(`.section-slot[data-section="${section}"]`);
+    slot.classList.add('has-player');
+    slot.innerHTML = `
+        <div class="selected-player">
+            <div class="selected-player-info">
+                <i class="bi bi-person-fill" style="color: #6366f1;"></i>
+                <div>
+                    <div class="selected-player-name">${name}</div>
+                    ${time ? `<div class="selected-player-time">${time}</div>` : ''}
+                </div>
+            </div>
+            <button class="remove-player" onclick="event.stopPropagation(); removePlayer(${section})">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+}
+
+function removePlayer(section) {
+    delete assignments[section];
+    const slot = document.querySelector(`.section-slot[data-section="${section}"]`);
+    slot.classList.remove('has-player');
+    slot.innerHTML = `
+        <div class="placeholder">
+            <i class="bi bi-person-plus"></i>
+            タップして選手を選択
+        </div>
+    `;
 }
 
 function saveSimulation() {
@@ -192,14 +544,15 @@ function saveSimulation() {
         return;
     }
 
+    if (Object.keys(assignments).length === 0) {
+        alert('少なくとも1人の選手を配置してください');
+        return;
+    }
+
     const orderData = {};
-    document.querySelectorAll('.section-slot').forEach(slot => {
-        const section = slot.dataset.section;
-        const badge = slot.querySelector('.player-badge');
-        if (badge) {
-            orderData[section + '区'] = badge.dataset.playerName;
-        }
-    });
+    for (const [section, player] of Object.entries(assignments)) {
+        orderData[section + '区'] = player.name;
+    }
 
     fetch('/simulation/save', {
         method: 'POST',
@@ -214,6 +567,9 @@ function saveSimulation() {
         } else {
             alert('保存に失敗しました');
         }
+    })
+    .catch(() => {
+        alert('通信エラーが発生しました');
     });
 }
 
@@ -221,25 +577,31 @@ function loadSimulation(title, orderData) {
     document.getElementById('simTitle').value = title;
 
     // 全スロットをリセット
-    document.querySelectorAll('.section-slot').forEach(slot => {
-        const badge = slot.querySelector('.player-badge');
-        if (badge) {
-            document.getElementById('playerPool').appendChild(badge);
-        }
-        slot.innerHTML = '<span class="text-muted">選手をドラッグ</span>';
-    });
+    for (let i = 1; i <= 7; i++) {
+        removePlayer(i);
+    }
 
     // オーダーを復元
     for (const [section, playerName] of Object.entries(orderData)) {
-        const sectionNum = section.replace('区', '');
-        const slot = document.querySelector(`.section-slot[data-section="${sectionNum}"]`);
-        const badge = document.querySelector(`#playerPool .player-badge[data-player-name="${playerName}"]`);
+        const sectionNum = parseInt(section.replace('区', ''));
+        const playerItem = document.querySelector(`.player-item[data-player-name="${playerName}"]`);
 
-        if (slot && badge) {
-            slot.innerHTML = '';
-            slot.appendChild(badge);
+        if (playerItem) {
+            assignments[sectionNum] = {
+                id: playerItem.dataset.playerId,
+                name: playerName,
+                time: playerItem.dataset.playerTime
+            };
+            updateSlot(sectionNum, playerName, playerItem.dataset.playerTime);
         }
     }
 }
+
+// モーダル外タップで閉じる
+document.getElementById('playerModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closePlayerModal();
+    }
+});
 </script>
 {% endblock %}
