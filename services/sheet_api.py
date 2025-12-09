@@ -201,68 +201,88 @@ def get_player_by_id(player_id):
             return player
     return None
 
-def add_player(name, group, best_5000m='', target_time='', grade='', school='', height='', weight='', message='', photo_url=''):
-    """選手を追加"""
+def add_player(name_sei, name_mei, affiliation='', category='', status='現役', grade='', birth_date='',
+               pb_1500m='', pb_3000m='', pb_5000m='', pb_10000m='', pb_half='', pb_full='',
+               comment='', registration_number=''):
+    """選手を追加（仕様書準拠）"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('Players')
-        headers = worksheet.row_values(1)
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='Players', rows=100, cols=12)
-        headers = ['id', 'name', 'group', 'best_5000m', 'target_time', 'active', 'grade', 'school', 'height', 'weight', 'message', 'photo_url']
-        worksheet.append_row(headers)
-
-    # ヘッダーに新しいカラムがなければ追加
-    required_headers = ['id', 'name', 'group', 'best_5000m', 'target_time', 'active', 'grade', 'school', 'height', 'weight', 'message', 'photo_url']
-    if len(headers) < len(required_headers):
-        worksheet.update('A1:L1', [required_headers])
+        worksheet = sh.add_worksheet(title='Players', rows=500, cols=20)
+        worksheet.append_row(PLAYER_EXPECTED_HEADERS)
+        worksheet.append_row(['システムID', '登録番号', '姓', '名', '生年月日', '学年', '所属', '区分', '状態', '出場回数',
+                              'PB 1500m', 'PB 3000m', 'PB 5000m', 'PB 10000m', 'PB ハーフ', 'PB フル',
+                              '備考', '削除フラグ', '作成日時', '更新日時'])
 
     # 新しいIDを生成
     all_values = worksheet.get_all_values()
-    new_id = len(all_values)
+    new_id = f"P{len(all_values):03d}"
 
-    worksheet.append_row([new_id, name, group, best_5000m, target_time, 'TRUE', grade, school, height, weight, message, photo_url])
-    clear_cache()  # キャッシュクリア
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # カラム順: id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, race_count,
+    #          pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, is_deleted, created_at, updated_at
+    worksheet.append_row([
+        new_id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, 0,
+        pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full,
+        comment, 'FALSE', now, now
+    ])
+    clear_cache()
     return new_id
 
-def update_player(player_id, name, group, best_5000m='', target_time='', active='TRUE', grade='', school='', height='', weight='', message='', photo_url=''):
-    """選手を更新"""
+def update_player(player_id, name_sei, name_mei, affiliation='', category='', status='現役', grade='', birth_date='',
+                  pb_1500m='', pb_3000m='', pb_5000m='', pb_10000m='', pb_half='', pb_full='',
+                  comment='', registration_number='', is_deleted='FALSE'):
+    """選手を更新（仕様書準拠）"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('Players')
     except gspread.exceptions.WorksheetNotFound:
         return False
 
-    # IDで行を検索
+    # IDで行を検索（2行目は論理名なのでスキップ）
     all_values = worksheet.get_all_values()
     for i, row in enumerate(all_values):
-        if i == 0:  # ヘッダーをスキップ
+        if i < 2:  # ヘッダー行と論理名行をスキップ
             continue
         if str(row[0]) == str(player_id):
-            # 行を更新
+            # race_countとcreated_atを保持
+            race_count = row[9] if len(row) > 9 else 0
+            created_at = row[18] if len(row) > 18 else ''
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
             row_num = i + 1
-            worksheet.update(f'A{row_num}:L{row_num}', [[player_id, name, group, best_5000m, target_time, active, grade, school, height, weight, message, photo_url]])
-            clear_cache()  # キャッシュクリア
+            worksheet.update(f'A{row_num}:T{row_num}', [[
+                player_id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, race_count,
+                pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full,
+                comment, is_deleted, created_at, now
+            ]])
+            clear_cache()
             return True
     return False
 
 def delete_player(player_id):
-    """選手を削除（実際には非アクティブに）"""
+    """選手を削除（論理削除 - is_deletedをTRUEに設定）"""
     player = get_player_by_id(player_id)
     if player:
         return update_player(
             player_id,
-            player.get('name', ''),
+            player.get('name_sei', ''),
+            player.get('name_mei', ''),
             player.get('group', ''),
-            player.get('best_5000m', ''),
-            player.get('target_time', ''),
-            'FALSE',
+            player.get('category', ''),
+            player.get('status', ''),
             player.get('grade', ''),
-            player.get('school', ''),
-            player.get('height', ''),
-            player.get('weight', ''),
+            player.get('birth_date', ''),
+            player.get('pb_1500m', ''),
+            player.get('pb_3000m', ''),
+            player.get('pb_5000m', ''),
+            player.get('pb_10000m', ''),
+            player.get('pb_half', ''),
+            player.get('pb_full', ''),
             player.get('message', ''),
-            player.get('photo_url', '')
+            player.get('registration_number', ''),
+            is_deleted='TRUE'
         )
     return False
 

@@ -16,28 +16,28 @@ def index():
     """選手一覧画面"""
     try:
         players = sheet_api.get_all_players()
-        groups = list(set(p.get('group', '') for p in players if p.get('group')))
+        affiliations = list(set(p.get('affiliation', '') for p in players if p.get('affiliation')))
 
         # ソートパラメータ
         sort_by = request.args.get('sort', 'name')
         if sort_by == 'name':
             players = sorted(players, key=lambda x: x.get('name', ''))
-        elif sort_by == 'group':
-            players = sorted(players, key=lambda x: x.get('group', ''))
-        elif sort_by == 'best_5000m':
-            players = sorted(players, key=lambda x: x.get('best_5000m', '') or 'ZZZ')
+        elif sort_by == 'affiliation':
+            players = sorted(players, key=lambda x: x.get('affiliation', ''))
+        elif sort_by == 'pb_5000m':
+            players = sorted(players, key=lambda x: x.get('pb_5000m', '') or 'ZZZ')
 
         # 表示モード
         view_mode = request.args.get('view', 'card')
 
         return render_template('index.html',
                                players=players,
-                               groups=sorted(groups),
+                               affiliations=sorted(affiliations),
                                sort_by=sort_by,
                                view_mode=view_mode)
     except Exception as e:
         flash(f'データの取得に失敗しました: {str(e)}', 'danger')
-        return render_template('index.html', players=[], groups=[], sort_by='name', view_mode='card')
+        return render_template('index.html', players=[], affiliations=[], sort_by='name', view_mode='card')
 
 # ============ 選手詳細 ============
 
@@ -70,24 +70,38 @@ def player_add():
     """選手追加画面"""
     if request.method == 'POST':
         try:
-            name = request.form.get('name')
-            group = request.form.get('group')
-            best_5000m = request.form.get('best_5000m', '')
-            target_time = request.form.get('target_time', '')
+            name_sei = request.form.get('name_sei')
+            name_mei = request.form.get('name_mei')
+            registration_number = request.form.get('registration_number', '')
+            affiliation = request.form.get('affiliation', '')
+            category = request.form.get('category', '')
+            status = request.form.get('status', '現役')
             grade = request.form.get('grade', '')
-            school = request.form.get('school', '')
-            height = request.form.get('height', '')
-            weight = request.form.get('weight', '')
-            message = request.form.get('message', '')
-            photo_url = request.form.get('photo_url', '')
+            birth_date = request.form.get('birth_date', '')
+            pb_1500m = request.form.get('pb_1500m', '')
+            pb_3000m = request.form.get('pb_3000m', '')
+            pb_5000m = request.form.get('pb_5000m', '')
+            pb_10000m = request.form.get('pb_10000m', '')
+            pb_half = request.form.get('pb_half', '')
+            pb_full = request.form.get('pb_full', '')
+            comment = request.form.get('comment', '')
 
-            sheet_api.add_player(name, group, best_5000m, target_time, grade, school, height, weight, message, photo_url)
-            flash(f'{name}さんを登録しました', 'success')
+            sheet_api.add_player(name_sei, name_mei, affiliation, category, status, grade, birth_date,
+                                pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, registration_number)
+            flash(f'{name_sei} {name_mei}さんを登録しました', 'success')
             return redirect(url_for('index'))
         except Exception as e:
             flash(f'登録に失敗しました: {str(e)}', 'danger')
 
-    return render_template('player_add.html')
+    category_list = sheet_api.get_master_choices('category_list')
+    status_list = sheet_api.get_master_choices('status_list')
+    grade_list = sheet_api.get_master_choices('grade_list')
+    affiliation_list = sheet_api.get_master_choices('affiliation_list')
+    return render_template('player_add.html',
+                           category_list=category_list,
+                           status_list=status_list,
+                           grade_list=grade_list,
+                           affiliation_list=affiliation_list)
 
 # ============ 選手編集 ============
 
@@ -101,25 +115,40 @@ def player_edit(player_id):
 
     if request.method == 'POST':
         try:
-            name = request.form.get('name')
-            group = request.form.get('group')
-            best_5000m = request.form.get('best_5000m', '')
-            target_time = request.form.get('target_time', '')
-            active = request.form.get('active', 'TRUE')
+            name_sei = request.form.get('name_sei')
+            name_mei = request.form.get('name_mei')
+            registration_number = request.form.get('registration_number', '')
+            affiliation = request.form.get('affiliation', '')
+            category = request.form.get('category', '')
+            status = request.form.get('status', '現役')
             grade = request.form.get('grade', '')
-            school = request.form.get('school', '')
-            height = request.form.get('height', '')
-            weight = request.form.get('weight', '')
-            message = request.form.get('message', '')
-            photo_url = request.form.get('photo_url', '')
+            birth_date = request.form.get('birth_date', '')
+            pb_1500m = request.form.get('pb_1500m', '')
+            pb_3000m = request.form.get('pb_3000m', '')
+            pb_5000m = request.form.get('pb_5000m', '')
+            pb_10000m = request.form.get('pb_10000m', '')
+            pb_half = request.form.get('pb_half', '')
+            pb_full = request.form.get('pb_full', '')
+            comment = request.form.get('comment', '')
+            is_deleted = '1' if request.form.get('is_deleted') else ''
 
-            sheet_api.update_player(player_id, name, group, best_5000m, target_time, active, grade, school, height, weight, message, photo_url)
-            flash(f'{name}さんの情報を更新しました', 'success')
+            sheet_api.update_player(player_id, name_sei, name_mei, affiliation, category, status, grade, birth_date,
+                                   pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, registration_number, is_deleted)
+            flash(f'{name_sei} {name_mei}さんの情報を更新しました', 'success')
             return redirect(url_for('player_detail', player_id=player_id))
         except Exception as e:
             flash(f'更新に失敗しました: {str(e)}', 'danger')
 
-    return render_template('player_edit.html', player=player)
+    category_list = sheet_api.get_master_choices('category_list')
+    status_list = sheet_api.get_master_choices('status_list')
+    grade_list = sheet_api.get_master_choices('grade_list')
+    affiliation_list = sheet_api.get_master_choices('affiliation_list')
+    return render_template('player_edit.html',
+                           player=player,
+                           category_list=category_list,
+                           status_list=status_list,
+                           grade_list=grade_list,
+                           affiliation_list=affiliation_list)
 
 # ============ 記録登録 ============
 
@@ -255,21 +284,28 @@ def export_players():
 
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(['ID', '氏名', '所属', '5000m PB', '目標タイム', 'アクティブ', '学年', '出身校', '身長', '体重', '意気込み'])
+        writer.writerow(['ID', '登録番号', '姓', '名', '氏名', '生年月日', '学年', '所属', 'カテゴリ', 'ステータス',
+                        '1500m PB', '3000m PB', '5000m PB', '10000m PB', 'ハーフPB', 'フルPB', 'コメント'])
 
         for p in players:
             writer.writerow([
                 p.get('id', ''),
+                p.get('registration_number', ''),
+                p.get('name_sei', ''),
+                p.get('name_mei', ''),
                 p.get('name', ''),
-                p.get('group', ''),
-                p.get('best_5000m', ''),
-                p.get('target_time', ''),
-                p.get('active', ''),
+                p.get('birth_date', ''),
                 p.get('grade', ''),
-                p.get('school', ''),
-                p.get('height', ''),
-                p.get('weight', ''),
-                p.get('message', '')
+                p.get('affiliation', ''),
+                p.get('category', ''),
+                p.get('status', ''),
+                p.get('pb_1500m', ''),
+                p.get('pb_3000m', ''),
+                p.get('pb_5000m', ''),
+                p.get('pb_10000m', ''),
+                p.get('pb_half', ''),
+                p.get('pb_full', ''),
+                p.get('comment', '')
             ])
 
         output.seek(0)

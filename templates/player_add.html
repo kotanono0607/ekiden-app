@@ -3,157 +3,113 @@
 {% block title %}選手追加 - 駅伝アプリ{% endblock %}
 
 {% block content %}
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">選手一覧</a></li>
-        <li class="breadcrumb-item active">選手追加</li>
-    </ol>
-</nav>
+<div class="mb-4">
+    <a href="/" class="text-decoration-none"><i class="bi bi-arrow-left"></i> 選手一覧に戻る</a>
+</div>
 
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-person-plus text-primary"></i> 選手追加</h5>
+<h2 class="mb-4"><i class="bi bi-person-plus-fill text-primary"></i> 選手追加</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form action="/player/add" method="POST">
+            <h5 class="mb-3">基本情報</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">登録番号</label>
+                    <input type="text" class="form-control" name="registration_number" placeholder="陸連登録番号等">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">姓 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name_sei" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">名 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name_mei" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">生年月日</label>
+                    <input type="date" class="form-control" name="birth_date">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">学年</label>
+                    <select class="form-select" name="grade">
+                        <option value="">選択</option>
+                        {% for code, name in grade_list %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">所属</label>
+                    <select class="form-select" name="affiliation">
+                        <option value="">選択</option>
+                        {% for code, name in affiliation_list %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">区分</label>
+                    <select class="form-select" name="category">
+                        <option value="">選択</option>
+                        {% for code, name in category_list %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">状態</label>
+                    <select class="form-select" name="status">
+                        {% for code, name in status_list %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            <div class="card-body">
-                <form action="/player/add" method="POST">
-                    <div class="row">
-                        <!-- 基本情報 -->
-                        <div class="col-12">
-                            <h6 class="text-muted mb-3"><i class="bi bi-person"></i> 基本情報</h6>
-                        </div>
 
-                        <!-- 氏名 -->
-                        <div class="col-md-6 mb-3">
-                            <label for="name" class="form-label">氏名 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" required
-                                   placeholder="例: 山田 太郎">
-                        </div>
-
-                        <!-- 所属 -->
-                        <div class="col-md-6 mb-3">
-                            <label for="group" class="form-label">所属 <span class="text-danger">*</span></label>
-                            <select class="form-select" id="group" name="group" required>
-                                <option value="">所属を選択してください</option>
-                                <option value="Aチーム">Aチーム</option>
-                                <option value="Bチーム">Bチーム</option>
-                                <option value="中学生">中学生</option>
-                                <option value="マネージャー">マネージャー</option>
-                            </select>
-                        </div>
-
-                        <!-- 学年 -->
-                        <div class="col-md-6 mb-3">
-                            <label for="grade" class="form-label">学年</label>
-                            <select class="form-select" id="grade" name="grade">
-                                <option value="">選択してください</option>
-                                <option value="1年">1年</option>
-                                <option value="2年">2年</option>
-                                <option value="3年">3年</option>
-                                <option value="4年">4年</option>
-                                <option value="OB/OG">OB/OG</option>
-                            </select>
-                        </div>
-
-                        <!-- 出身校 -->
-                        <div class="col-md-6 mb-3">
-                            <label for="school" class="form-label">出身校</label>
-                            <input type="text" class="form-control" id="school" name="school"
-                                   placeholder="例: ○○高校">
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- 身体情報 -->
-                        <div class="col-12">
-                            <h6 class="text-muted mb-3"><i class="bi bi-heart-pulse"></i> 身体情報</h6>
-                        </div>
-
-                        <!-- 身長 -->
-                        <div class="col-md-6 mb-3">
-                            <label for="height" class="form-label">身長</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="height" name="height"
-                                       placeholder="例: 172" min="100" max="220">
-                                <span class="input-group-text">cm</span>
-                            </div>
-                        </div>
-
-                        <!-- 体重 -->
-                        <div class="col-md-6 mb-3">
-                            <label for="weight" class="form-label">体重</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="weight" name="weight"
-                                       placeholder="例: 56" min="30" max="150">
-                                <span class="input-group-text">kg</span>
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- 記録情報 -->
-                        <div class="col-12">
-                            <h6 class="text-muted mb-3"><i class="bi bi-stopwatch"></i> 記録情報</h6>
-                        </div>
-
-                        <!-- 5000m自己ベスト -->
-                        <div class="col-md-6 mb-3">
-                            <label for="best_5000m" class="form-label">5000m自己ベスト</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="best_5000m" name="best_5000m"
-                                       placeholder="例: 15:30" pattern="[0-9]{1,2}:[0-9]{2}">
-                                <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                            </div>
-                            <div class="form-text">MM:SS 形式で入力</div>
-                        </div>
-
-                        <!-- 目標タイム -->
-                        <div class="col-md-6 mb-3">
-                            <label for="target_time" class="form-label">目標タイム</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="target_time" name="target_time"
-                                       placeholder="例: 14:50" pattern="[0-9]{1,2}:[0-9]{2}">
-                                <span class="input-group-text"><i class="bi bi-bullseye"></i></span>
-                            </div>
-                            <div class="form-text">今シーズンの目標</div>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- その他 -->
-                        <div class="col-12">
-                            <h6 class="text-muted mb-3"><i class="bi bi-chat-quote"></i> その他</h6>
-                        </div>
-
-                        <!-- 写真URL -->
-                        <div class="col-12 mb-3">
-                            <label for="photo_url" class="form-label">プロフィール写真URL</label>
-                            <input type="url" class="form-control" id="photo_url" name="photo_url"
-                                   placeholder="https://example.com/photo.jpg">
-                            <div class="form-text">Google DriveやImgurなどの画像URLを入力</div>
-                        </div>
-
-                        <!-- 意気込み -->
-                        <div class="col-12 mb-4">
-                            <label for="message" class="form-label">意気込み</label>
-                            <textarea class="form-control" id="message" name="message" rows="3"
-                                      placeholder="チームへの意気込みや目標など"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- 送信ボタン -->
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-check-circle"></i> 登録する
-                        </button>
-                        <a href="/" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> 戻る
-                        </a>
-                    </div>
-                </form>
+            <h5 class="mb-3">自己ベスト (PB)</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-2">
+                    <label class="form-label">1500m</label>
+                    <input type="text" class="form-control" name="pb_1500m" placeholder="MM:SS">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">3000m</label>
+                    <input type="text" class="form-control" name="pb_3000m" placeholder="MM:SS">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">5000m</label>
+                    <input type="text" class="form-control" name="pb_5000m" placeholder="MM:SS">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">10000m</label>
+                    <input type="text" class="form-control" name="pb_10000m" placeholder="MM:SS">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">ハーフ</label>
+                    <input type="text" class="form-control" name="pb_half" placeholder="HH:MM:SS">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">フル</label>
+                    <input type="text" class="form-control" name="pb_full" placeholder="HH:MM:SS">
+                </div>
             </div>
-        </div>
+
+            <h5 class="mb-3">その他</h5>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">備考・一言</label>
+                    <textarea class="form-control" name="comment" rows="2"></textarea>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> 登録
+                </button>
+                <a href="/" class="btn btn-outline-secondary">キャンセル</a>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
