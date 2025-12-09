@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player.name }} - 出欠履歴 - 南陽東置賜{% endblock %}
+
+{% block extra_css %}
+<style>
+    .player-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+    .player-name {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .attendance-rate {
+        display: inline-block;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        font-size: 14px;
+    }
+    .rate-value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+    .attendance-list {
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .attendance-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .attendance-item:last-child {
+        border-bottom: none;
+    }
+    .attendance-date {
+        font-size: 14px;
+        color: var(--text-color);
+    }
+    .attendance-status {
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 16px;
+    }
+    .attendance-status.present { background: #d1fae5; color: #065f46; }
+    .attendance-status.absent { background: #fee2e2; color: #991b1b; }
+    .attendance-status.late { background: #fef3c7; color: #92400e; }
+    [data-theme="dark"] .attendance-status.present { background: #065f46; color: #d1fae5; }
+    [data-theme="dark"] .attendance-status.absent { background: #991b1b; color: #fee2e2; }
+    [data-theme="dark"] .attendance-status.late { background: #92400e; color: #fef3c7; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{{ url_for('player_detail', player_id=player.id) }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> 選手詳細
+    </a>
+</div>
+
+<div class="player-header">
+    <div class="player-name">{{ player.name }}</div>
+    {% if attendance_rate is not none %}
+    <div class="attendance-rate">
+        出席率 <span class="rate-value">{{ attendance_rate }}%</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="attendance-list">
+    {% for att in attendance|sort(attribute='date', reverse=true) %}
+    <div class="attendance-item">
+        <div>
+            <div class="attendance-date">{{ att.date }}</div>
+            {% if att.memo %}
+            <small class="text-muted">{{ att.memo }}</small>
+            {% endif %}
+        </div>
+        <span class="attendance-status {% if att.status == '出席' %}present{% elif att.status == '欠席' %}absent{% else %}late{% endif %}">
+            {{ att.status }}
+        </span>
+    </div>
+    {% else %}
+    <div class="text-center py-4 text-muted">
+        出欠データがありません
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

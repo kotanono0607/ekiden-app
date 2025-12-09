@@ -846,3 +846,343 @@ def delete_race_order(order_id):
             clear_cache()
             return True
     return False
+
+# ============ Events (カレンダー予定) ============
+
+EVENTS_EXPECTED_HEADERS = [
+    'event_id', 'date', 'event_type', 'title', 'start_time', 'end_time',
+    'location', 'memo', 'created_at', 'updated_at'
+]
+
+def get_all_events():
+    """全イベントを取得（キャッシュ付き）"""
+    cached = _get_cache('all_events')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Events')
+    except gspread.exceptions.WorksheetNotFound:
+        return []
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for i, row in enumerate(all_values[2:]):
+        record = dict(zip(headers, row))
+        record['row_index'] = i + 3
+        records.append(record)
+
+    _set_cache('all_events', records)
+    return records
+
+def get_events_by_month(year, month):
+    """指定月のイベントを取得"""
+    events = get_all_events()
+    month_prefix = f"{year}-{month:02d}"
+    return [e for e in events if e.get('date', '').startswith(month_prefix)]
+
+def get_event_by_id(event_id):
+    """IDでイベントを取得"""
+    events = get_all_events()
+    for event in events:
+        if str(event.get('event_id')) == str(event_id):
+            return event
+    return None
+
+def add_event(date, event_type, title, start_time='', end_time='', location='', memo=''):
+    """イベントを追加"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Events')
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = sh.add_worksheet(title='Events', rows=500, cols=10)
+        worksheet.append_row(EVENTS_EXPECTED_HEADERS)
+        worksheet.append_row(['予定ID', '日付', '種別', 'タイトル', '開始時刻', '終了時刻', '場所', 'メモ', '作成日時', '更新日時'])
+
+    all_values = worksheet.get_all_values()
+    new_id = f"EVT{len(all_values):03d}"
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    worksheet.append_row([
+        new_id, date, event_type, title, start_time, end_time,
+        location, memo, now, now
+    ])
+    clear_cache()
+    return new_id
+
+def update_event(event_id, date, event_type, title, start_time='', end_time='', location='', memo=''):
+    """イベントを更新"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Events')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(event_id):
+            created_at = row[8] if len(row) > 8 else ''
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            worksheet.update(f'A{i+1}:J{i+1}', [[
+                event_id, date, event_type, title, start_time, end_time,
+                location, memo, created_at, now
+            ]])
+            clear_cache()
+            return True
+    return False
+
+def delete_event(event_id):
+    """イベントを削除"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Events')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(event_id):
+            worksheet.delete_rows(i + 1)
+            clear_cache()
+            return True
+    return False
+
+# ============ PracticeLogs (練習日誌) ============
+
+PRACTICE_LOGS_EXPECTED_HEADERS = [
+    'log_id', 'date', 'title', 'content', 'weather', 'temperature',
+    'participants', 'memo', 'created_at', 'updated_at'
+]
+
+def get_all_practice_logs():
+    """全練習日誌を取得（キャッシュ付き）"""
+    cached = _get_cache('all_practice_logs')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('PracticeLogs')
+    except gspread.exceptions.WorksheetNotFound:
+        return []
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for i, row in enumerate(all_values[2:]):
+        record = dict(zip(headers, row))
+        record['row_index'] = i + 3
+        records.append(record)
+
+    # 日付の新しい順にソート
+    records = sorted(records, key=lambda x: x.get('date', ''), reverse=True)
+    _set_cache('all_practice_logs', records)
+    return records
+
+def get_practice_log_by_id(log_id):
+    """IDで練習日誌を取得"""
+    logs = get_all_practice_logs()
+    for log in logs:
+        if str(log.get('log_id')) == str(log_id):
+            return log
+    return None
+
+def get_practice_log_by_date(date):
+    """日付で練習日誌を取得"""
+    logs = get_all_practice_logs()
+    for log in logs:
+        if log.get('date') == date:
+            return log
+    return None
+
+def add_practice_log(date, title, content='', weather='', temperature='', participants='', memo=''):
+    """練習日誌を追加"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('PracticeLogs')
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = sh.add_worksheet(title='PracticeLogs', rows=500, cols=10)
+        worksheet.append_row(PRACTICE_LOGS_EXPECTED_HEADERS)
+        worksheet.append_row(['日誌ID', '日付', 'タイトル', '内容', '天候', '気温', '参加人数', 'メモ', '作成日時', '更新日時'])
+
+    all_values = worksheet.get_all_values()
+    new_id = f"LOG{len(all_values):03d}"
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    worksheet.append_row([
+        new_id, date, title, content, weather, temperature,
+        participants, memo, now, now
+    ])
+    clear_cache()
+    return new_id
+
+def update_practice_log(log_id, date, title, content='', weather='', temperature='', participants='', memo=''):
+    """練習日誌を更新"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('PracticeLogs')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(log_id):
+            created_at = row[8] if len(row) > 8 else ''
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            worksheet.update(f'A{i+1}:J{i+1}', [[
+                log_id, date, title, content, weather, temperature,
+                participants, memo, created_at, now
+            ]])
+            clear_cache()
+            return True
+    return False
+
+def delete_practice_log(log_id):
+    """練習日誌を削除"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('PracticeLogs')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(log_id):
+            worksheet.delete_rows(i + 1)
+            clear_cache()
+            return True
+    return False
+
+# ============ Attendance (出欠) ============
+
+ATTENDANCE_EXPECTED_HEADERS = [
+    'attendance_id', 'date', 'player_id', 'status', 'memo', 'created_at'
+]
+
+def get_all_attendance():
+    """全出欠データを取得（キャッシュ付き）"""
+    cached = _get_cache('all_attendance')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Attendance')
+    except gspread.exceptions.WorksheetNotFound:
+        return []
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for i, row in enumerate(all_values[2:]):
+        record = dict(zip(headers, row))
+        record['row_index'] = i + 3
+        records.append(record)
+
+    _set_cache('all_attendance', records)
+    return records
+
+def get_attendance_by_date(date):
+    """日付で出欠を取得"""
+    attendance = get_all_attendance()
+    return [a for a in attendance if a.get('date') == date]
+
+def get_attendance_by_player(player_id):
+    """選手IDで出欠を取得"""
+    attendance = get_all_attendance()
+    return [a for a in attendance if str(a.get('player_id')) == str(player_id)]
+
+def get_player_attendance_rate(player_id):
+    """選手の出席率を計算"""
+    attendance = get_attendance_by_player(player_id)
+    if not attendance:
+        return None
+    total = len(attendance)
+    present = len([a for a in attendance if a.get('status') == '出席'])
+    return round(present / total * 100, 1) if total > 0 else 0
+
+def add_attendance(date, player_id, status, memo=''):
+    """出欠を追加"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Attendance')
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = sh.add_worksheet(title='Attendance', rows=1000, cols=6)
+        worksheet.append_row(ATTENDANCE_EXPECTED_HEADERS)
+        worksheet.append_row(['出欠ID', '日付', '選手ID', '出欠', '備考', '作成日時'])
+
+    all_values = worksheet.get_all_values()
+    new_id = f"ATT{len(all_values):03d}"
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    worksheet.append_row([new_id, date, player_id, status, memo, now])
+    clear_cache()
+    return new_id
+
+def add_attendance_bulk(date, attendance_list):
+    """出欠を一括追加 (attendance_list: [{player_id, status, memo}, ...])"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Attendance')
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = sh.add_worksheet(title='Attendance', rows=1000, cols=6)
+        worksheet.append_row(ATTENDANCE_EXPECTED_HEADERS)
+        worksheet.append_row(['出欠ID', '日付', '選手ID', '出欠', '備考', '作成日時'])
+
+    all_values = worksheet.get_all_values()
+    base_id = len(all_values)
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    rows = []
+    for i, att in enumerate(attendance_list):
+        new_id = f"ATT{base_id + i:03d}"
+        rows.append([new_id, date, att['player_id'], att['status'], att.get('memo', ''), now])
+
+    if rows:
+        worksheet.append_rows(rows)
+        clear_cache()
+
+def update_attendance_by_date(date, attendance_list):
+    """指定日付の出欠を更新（既存データを削除して新規追加）"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Attendance')
+    except gspread.exceptions.WorksheetNotFound:
+        add_attendance_bulk(date, attendance_list)
+        return
+
+    # 既存の該当日付のデータを削除
+    all_values = worksheet.get_all_values()
+    rows_to_delete = []
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if len(row) > 1 and row[1] == date:
+            rows_to_delete.append(i + 1)
+
+    # 後ろから削除（インデックスがずれないように）
+    for row_num in reversed(rows_to_delete):
+        worksheet.delete_rows(row_num)
+
+    clear_cache()
+    # 新しいデータを追加
+    add_attendance_bulk(date, attendance_list)

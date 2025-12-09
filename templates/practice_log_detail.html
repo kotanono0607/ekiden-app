@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}{{ log.title }} - 練習日誌 - 南陽東置賜{% endblock %}
+
+{% block extra_css %}
+<style>
+    .log-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+    }
+    .log-date {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 4px;
+    }
+    .log-title {
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .info-item {
+        background: var(--card-bg);
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    .info-icon {
+        font-size: 20px;
+        color: #667eea;
+        margin-bottom: 4px;
+    }
+    .info-label {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+    .info-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+    .content-section {
+        background: var(--card-bg);
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+    }
+    .content-section h6 {
+        color: var(--text-muted);
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    .content-text {
+        white-space: pre-wrap;
+        color: var(--text-color);
+    }
+    .attendance-section {
+        background: var(--card-bg);
+        padding: 16px;
+        border-radius: 12px;
+    }
+    .attendance-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .attendance-item:last-child {
+        border-bottom: none;
+    }
+    .attendance-status {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+    .attendance-status.present { background: #d1fae5; color: #065f46; }
+    .attendance-status.absent { background: #fee2e2; color: #991b1b; }
+    .attendance-status.late { background: #fef3c7; color: #92400e; }
+    [data-theme="dark"] .attendance-status.present { background: #065f46; color: #d1fae5; }
+    [data-theme="dark"] .attendance-status.absent { background: #991b1b; color: #fee2e2; }
+    [data-theme="dark"] .attendance-status.late { background: #92400e; color: #fef3c7; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{{ url_for('practice_logs') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> 一覧
+    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('attendance', date=log.date) }}" class="btn btn-info btn-sm">
+            <i class="bi bi-person-check"></i> 出欠
+        </a>
+        <a href="{{ url_for('practice_log_edit', log_id=log.log_id) }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-pencil"></i> 編集
+        </a>
+    </div>
+</div>
+
+<div class="log-header">
+    <div class="log-date">{{ log.date }}</div>
+    <div class="log-title">{{ log.title }}</div>
+</div>
+
+<div class="info-grid">
+    <div class="info-item">
+        <div class="info-icon"><i class="bi bi-cloud-sun"></i></div>
+        <div class="info-label">天候</div>
+        <div class="info-value">{{ log.weather or '-' }}</div>
+    </div>
+    <div class="info-item">
+        <div class="info-icon"><i class="bi bi-thermometer-half"></i></div>
+        <div class="info-label">気温</div>
+        <div class="info-value">{{ log.temperature + '℃' if log.temperature else '-' }}</div>
+    </div>
+    <div class="info-item">
+        <div class="info-icon"><i class="bi bi-people"></i></div>
+        <div class="info-label">参加</div>
+        <div class="info-value">{{ log.participants + '名' if log.participants else '-' }}</div>
+    </div>
+</div>
+
+{% if log.content %}
+<div class="content-section">
+    <h6><i class="bi bi-card-text"></i> 練習内容</h6>
+    <div class="content-text">{{ log.content }}</div>
+</div>
+{% endif %}
+
+{% if log.memo %}
+<div class="content-section">
+    <h6><i class="bi bi-sticky"></i> メモ</h6>
+    <div class="content-text">{{ log.memo }}</div>
+</div>
+{% endif %}
+
+{% if attendance %}
+<div class="attendance-section">
+    <h6 class="mb-3"><i class="bi bi-person-check"></i> 出欠状況</h6>
+    {% for att in attendance %}
+    {% set player = player_dict.get(att.player_id) %}
+    <div class="attendance-item">
+        <span>{{ player.name if player else att.player_id }}</span>
+        <span class="attendance-status {% if att.status == '出席' %}present{% elif att.status == '欠席' %}absent{% else %}late{% endif %}">
+            {{ att.status }}
+        </span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}カレンダー - 南陽東置賜{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .calendar-nav .btn {
+        padding: 8px 12px;
+    }
+    .calendar-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .calendar-day-header {
+        background: var(--card-bg);
+        padding: 8px 4px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+    .calendar-day-header:first-child {
+        color: #ef4444;
+    }
+    .calendar-day-header:last-child {
+        color: #3b82f6;
+    }
+    .calendar-day {
+        background: var(--card-bg);
+        min-height: 80px;
+        padding: 4px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .calendar-day:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+    .calendar-day.empty {
+        background: var(--bg-color);
+        cursor: default;
+    }
+    .calendar-day.today {
+        background: rgba(102, 126, 234, 0.1);
+    }
+    .day-number {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 4px;
+    }
+    .calendar-day:nth-child(7n+1) .day-number {
+        color: #ef4444;
+    }
+    .calendar-day:nth-child(7n) .day-number {
+        color: #3b82f6;
+    }
+    .day-events {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .day-event {
+        font-size: 10px;
+        padding: 2px 4px;
+        border-radius: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: white;
+    }
+    .day-event.practice { background: #10b981; }
+    .day-event.race { background: #ef4444; }
+    .day-event.camp { background: #f59e0b; }
+    .day-event.rest { background: #6b7280; }
+    .day-event.other { background: #8b5cf6; }
+    .day-log {
+        font-size: 10px;
+        padding: 2px 4px;
+        border-radius: 3px;
+        background: #3b82f6;
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .day-actions {
+        display: none;
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+    }
+    .calendar-day:hover .day-actions {
+        display: flex;
+        gap: 4px;
+    }
+    .calendar-day {
+        position: relative;
+    }
+    .action-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .quick-actions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .quick-actions .btn {
+        font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+        .calendar-day {
+            min-height: 60px;
+            padding: 2px;
+        }
+        .day-number {
+            font-size: 12px;
+        }
+        .day-event, .day-log {
+            font-size: 8px;
+            padding: 1px 2px;
+        }
+        .day-actions {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-header">
+    <h5><i class="bi bi-calendar3 text-primary"></i> カレンダー</h5>
+    <div class="calendar-nav">
+        <a href="{{ url_for('calendar_view', year=prev_year, month=prev_month) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="calendar-title">{{ year }}年{{ month }}月</span>
+        <a href="{{ url_for('calendar_view', year=next_year, month=next_month) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+</div>
+
+<div class="quick-actions">
+    <a href="{{ url_for('event_add') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> 予定追加
+    </a>
+    <a href="{{ url_for('practice_log_add') }}" class="btn btn-success btn-sm">
+        <i class="bi bi-journal-plus"></i> 練習日誌
+    </a>
+    <a href="{{ url_for('attendance') }}" class="btn btn-info btn-sm">
+        <i class="bi bi-person-check"></i> 出欠入力
+    </a>
+    <a href="{{ url_for('practice_logs') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-journal-text"></i> 日誌一覧
+    </a>
+</div>
+
+<div class="calendar-grid">
+    <div class="calendar-day-header">日</div>
+    <div class="calendar-day-header">月</div>
+    <div class="calendar-day-header">火</div>
+    <div class="calendar-day-header">水</div>
+    <div class="calendar-day-header">木</div>
+    <div class="calendar-day-header">金</div>
+    <div class="calendar-day-header">土</div>
+
+    {% for week in month_days %}
+        {% for day in week %}
+            {% if day == 0 %}
+                <div class="calendar-day empty"></div>
+            {% else %}
+                {% set date_str = '%04d-%02d-%02d'|format(year, month, day) %}
+                {% set is_today = date_str == today %}
+                {% set day_events = events_by_date.get(date_str, []) %}
+                {% set day_log = logs_by_date.get(date_str) %}
+                <div class="calendar-day {% if is_today %}today{% endif %}" onclick="openDayMenu('{{ date_str }}')">
+                    <div class="day-number">{{ day }}</div>
+                    <div class="day-events">
+                        {% for event in day_events[:3] %}
+                            <div class="day-event {{ event.event_type|lower if event.event_type else 'other' }}" title="{{ event.title }}">
+                                {{ event.title }}
+                            </div>
+                        {% endfor %}
+                        {% if day_events|length > 3 %}
+                            <div class="day-event other">+{{ day_events|length - 3 }}件</div>
+                        {% endif %}
+                        {% if day_log %}
+                            <div class="day-log" title="練習日誌: {{ day_log.title }}">
+                                <i class="bi bi-journal"></i> {{ day_log.title }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<!-- Day Menu Modal -->
+<div class="modal fade" id="dayMenuModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dayMenuDate"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="dayMenuEvents"></div>
+                <hr>
+                <div class="d-grid gap-2">
+                    <a id="addEventBtn" href="#" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> 予定を追加
+                    </a>
+                    <a id="addLogBtn" href="#" class="btn btn-success">
+                        <i class="bi bi-journal-plus"></i> 練習日誌を作成
+                    </a>
+                    <a id="attendanceBtn" href="#" class="btn btn-info">
+                        <i class="bi bi-person-check"></i> 出欠を入力
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const eventsData = {{ events_by_date|tojson|safe }};
+const logsData = {{ logs_by_date|tojson|safe }};
+
+function openDayMenu(dateStr) {
+    const modal = new bootstrap.Modal(document.getElementById('dayMenuModal'));
+    const date = new Date(dateStr);
+    const dateLabel = `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日`;
+
+    document.getElementById('dayMenuDate').textContent = dateLabel;
+    document.getElementById('addEventBtn').href = `/event/add?date=${dateStr}`;
+    document.getElementById('addLogBtn').href = `/practice_log/add?date=${dateStr}`;
+    document.getElementById('attendanceBtn').href = `/attendance?date=${dateStr}`;
+
+    // Events list
+    const eventsDiv = document.getElementById('dayMenuEvents');
+    const events = eventsData[dateStr] || [];
+    const log = logsData[dateStr];
+
+    let html = '';
+    if (events.length > 0) {
+        html += '<h6>予定</h6><ul class="list-group mb-3">';
+        events.forEach(e => {
+            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${e.title}</span>
+                <a href="/event/${e.event_id}/edit" class="btn btn-sm btn-outline-secondary">編集</a>
+            </li>`;
+        });
+        html += '</ul>';
+    }
+    if (log) {
+        html += `<h6>練習日誌</h6>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="card-title">${log.title}</h6>
+                    <a href="/practice_log/${log.log_id}" class="btn btn-sm btn-outline-primary">詳細</a>
+                </div>
+            </div>`;
+    }
+    if (!events.length && !log) {
+        html = '<p class="text-muted text-center">この日の予定はありません</p>';
+    }
+    eventsDiv.innerHTML = html;
+
+    modal.show();
+}
+</script>
+{% endblock %}

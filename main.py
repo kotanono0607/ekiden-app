@@ -2,7 +2,8 @@ import os
 import io
 import csv
 import json
-from datetime import datetime
+import calendar
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from services import sheet_api
 
@@ -573,6 +574,309 @@ def master_delete():
     except Exception as e:
         flash(f'削除に失敗しました: {str(e)}', 'danger')
     return redirect(url_for('masters'))
+
+# ============ カレンダー ============
+
+@app.route("/calendar")
+def calendar_view():
+    """カレンダー画面"""
+    try:
+        # 年月パラメータ取得（デフォルトは今月）
+        today = datetime.now()
+        year = int(request.args.get('year', today.year))
+        month = int(request.args.get('month', today.month))
+
+        # カレンダーデータ作成
+        cal = calendar.Calendar(firstweekday=6)  # 日曜始まり
+        month_days = cal.monthdayscalendar(year, month)
+
+        # イベント取得
+        events = sheet_api.get_events_by_month(year, month)
+        # 練習日誌取得
+        practice_logs = sheet_api.get_all_practice_logs()
+        logs_by_date = {log.get('date'): log for log in practice_logs}
+
+        # 日付ごとのイベントをマップ
+        events_by_date = {}
+        for event in events:
+            date = event.get('date', '')
+            if date not in events_by_date:
+                events_by_date[date] = []
+            events_by_date[date].append(event)
+
+        # 前月・次月
+        prev_month = month - 1
+        prev_year = year
+        if prev_month < 1:
+            prev_month = 12
+            prev_year -= 1
+
+        next_month = month + 1
+        next_year = year
+        if next_month > 12:
+            next_month = 1
+            next_year += 1
+
+        event_types = sheet_api.get_master_choices('event_type_list')
+
+        return render_template('calendar.html',
+                               year=year,
+                               month=month,
+                               month_days=month_days,
+                               events_by_date=events_by_date,
+                               logs_by_date=logs_by_date,
+                               prev_year=prev_year,
+                               prev_month=prev_month,
+                               next_year=next_year,
+                               next_month=next_month,
+                               today=today.strftime('%Y-%m-%d'),
+                               event_types=event_types)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return render_template('calendar.html',
+                               year=datetime.now().year,
+                               month=datetime.now().month,
+                               month_days=[],
+                               events_by_date={},
+                               logs_by_date={},
+                               prev_year=datetime.now().year,
+                               prev_month=datetime.now().month,
+                               next_year=datetime.now().year,
+                               next_month=datetime.now().month,
+                               today=datetime.now().strftime('%Y-%m-%d'),
+                               event_types=[])
+
+@app.route("/event/add", methods=['GET', 'POST'])
+def event_add():
+    """イベント追加画面"""
+    if request.method == 'POST':
+        try:
+            date = request.form.get('date')
+            event_type = request.form.get('event_type')
+            title = request.form.get('title')
+            start_time = request.form.get('start_time', '')
+            end_time = request.form.get('end_time', '')
+            location = request.form.get('location', '')
+            memo = request.form.get('memo', '')
+
+            sheet_api.add_event(date, event_type, title, start_time, end_time, location, memo)
+            flash('予定を追加しました', 'success')
+            return redirect(url_for('calendar_view'))
+        except Exception as e:
+            flash(f'登録に失敗しました: {str(e)}', 'danger')
+
+    event_types = sheet_api.get_master_choices('event_type_list')
+    date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    return render_template('event_add.html', event_types=event_types, date=date)
+
+@app.route("/event/<event_id>/edit", methods=['GET', 'POST'])
+def event_edit(event_id):
+    """イベント編集画面"""
+    event = sheet_api.get_event_by_id(event_id)
+    if not event:
+        flash('予定が見つかりません', 'warning')
+        return redirect(url_for('calendar_view'))
+
+    if request.method == 'POST':
+        try:
+            date = request.form.get('date')
+            event_type = request.form.get('event_type')
+            title = request.form.get('title')
+            start_time = request.form.get('start_time', '')
+            end_time = request.form.get('end_time', '')
+            location = request.form.get('location', '')
+            memo = request.form.get('memo', '')
+
+            sheet_api.update_event(event_id, date, event_type, title, start_time, end_time, location, memo)
+            flash('予定を更新しました', 'success')
+            return redirect(url_for('calendar_view'))
+        except Exception as e:
+            flash(f'更新に失敗しました: {str(e)}', 'danger')
+
+    event_types = sheet_api.get_master_choices('event_type_list')
+    return render_template('event_edit.html', event=event, event_types=event_types)
+
+@app.route("/event/<event_id>/delete", methods=['POST'])
+def event_delete(event_id):
+    """イベントを削除"""
+    try:
+        sheet_api.delete_event(event_id)
+        flash('予定を削除しました', 'success')
+    except Exception as e:
+        flash(f'削除に失敗しました: {str(e)}', 'danger')
+    return redirect(url_for('calendar_view'))
+
+# ============ 練習日誌 ============
+
+@app.route("/practice_logs")
+def practice_logs():
+    """練習日誌一覧画面"""
+    try:
+        logs = sheet_api.get_all_practice_logs()
+        return render_template('practice_logs.html', logs=logs)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return render_template('practice_logs.html', logs=[])
+
+@app.route("/practice_log/add", methods=['GET', 'POST'])
+def practice_log_add():
+    """練習日誌追加画面"""
+    if request.method == 'POST':
+        try:
+            date = request.form.get('date')
+            title = request.form.get('title')
+            content = request.form.get('content', '')
+            weather = request.form.get('weather', '')
+            temperature = request.form.get('temperature', '')
+            participants = request.form.get('participants', '')
+            memo = request.form.get('memo', '')
+
+            log_id = sheet_api.add_practice_log(date, title, content, weather, temperature, participants, memo)
+            flash('練習日誌を追加しました', 'success')
+            return redirect(url_for('practice_log_detail', log_id=log_id))
+        except Exception as e:
+            flash(f'登録に失敗しました: {str(e)}', 'danger')
+
+    weather_list = sheet_api.get_master_choices('weather_list')
+    date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    return render_template('practice_log_add.html', weather_list=weather_list, date=date)
+
+@app.route("/practice_log/<log_id>")
+def practice_log_detail(log_id):
+    """練習日誌詳細画面"""
+    try:
+        log = sheet_api.get_practice_log_by_id(log_id)
+        if not log:
+            flash('練習日誌が見つかりません', 'warning')
+            return redirect(url_for('practice_logs'))
+
+        # その日の出欠データ取得
+        attendance = sheet_api.get_attendance_by_date(log.get('date', ''))
+        players = sheet_api.get_all_players()
+        player_dict = {str(p.get('id')): p for p in players}
+
+        return render_template('practice_log_detail.html',
+                               log=log,
+                               attendance=attendance,
+                               player_dict=player_dict)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return redirect(url_for('practice_logs'))
+
+@app.route("/practice_log/<log_id>/edit", methods=['GET', 'POST'])
+def practice_log_edit(log_id):
+    """練習日誌編集画面"""
+    log = sheet_api.get_practice_log_by_id(log_id)
+    if not log:
+        flash('練習日誌が見つかりません', 'warning')
+        return redirect(url_for('practice_logs'))
+
+    if request.method == 'POST':
+        try:
+            date = request.form.get('date')
+            title = request.form.get('title')
+            content = request.form.get('content', '')
+            weather = request.form.get('weather', '')
+            temperature = request.form.get('temperature', '')
+            participants = request.form.get('participants', '')
+            memo = request.form.get('memo', '')
+
+            sheet_api.update_practice_log(log_id, date, title, content, weather, temperature, participants, memo)
+            flash('練習日誌を更新しました', 'success')
+            return redirect(url_for('practice_log_detail', log_id=log_id))
+        except Exception as e:
+            flash(f'更新に失敗しました: {str(e)}', 'danger')
+
+    weather_list = sheet_api.get_master_choices('weather_list')
+    return render_template('practice_log_edit.html', log=log, weather_list=weather_list)
+
+@app.route("/practice_log/<log_id>/delete", methods=['POST'])
+def practice_log_delete(log_id):
+    """練習日誌を削除"""
+    try:
+        sheet_api.delete_practice_log(log_id)
+        flash('練習日誌を削除しました', 'success')
+    except Exception as e:
+        flash(f'削除に失敗しました: {str(e)}', 'danger')
+    return redirect(url_for('practice_logs'))
+
+# ============ 出欠管理 ============
+
+@app.route("/attendance")
+def attendance():
+    """出欠管理画面"""
+    try:
+        date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+        players = sheet_api.get_all_players()
+        attendance_data = sheet_api.get_attendance_by_date(date)
+
+        # 選手ごとの出欠をマップ
+        attendance_by_player = {str(a.get('player_id')): a for a in attendance_data}
+
+        # 出欠ステータス選択肢
+        status_list = sheet_api.get_master_choices('attendance_status_list')
+        if not status_list:
+            status_list = [('出席', '出席'), ('欠席', '欠席'), ('遅刻', '遅刻'), ('早退', '早退')]
+
+        return render_template('attendance.html',
+                               date=date,
+                               players=players,
+                               attendance_by_player=attendance_by_player,
+                               status_list=status_list)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return render_template('attendance.html',
+                               date=datetime.now().strftime('%Y-%m-%d'),
+                               players=[],
+                               attendance_by_player={},
+                               status_list=[])
+
+@app.route("/attendance/save", methods=['POST'])
+def attendance_save():
+    """出欠を保存"""
+    try:
+        date = request.form.get('date')
+        players = sheet_api.get_all_players()
+
+        attendance_list = []
+        for player in players:
+            player_id = str(player.get('id'))
+            status = request.form.get(f'status_{player_id}', '')
+            memo = request.form.get(f'memo_{player_id}', '')
+
+            if status:  # ステータスが設定されている場合のみ追加
+                attendance_list.append({
+                    'player_id': player_id,
+                    'status': status,
+                    'memo': memo
+                })
+
+        sheet_api.update_attendance_by_date(date, attendance_list)
+        flash('出欠を保存しました', 'success')
+    except Exception as e:
+        flash(f'保存に失敗しました: {str(e)}', 'danger')
+
+    return redirect(url_for('attendance', date=request.form.get('date')))
+
+@app.route("/attendance/player/<player_id>")
+def attendance_player(player_id):
+    """選手別出欠履歴"""
+    try:
+        player = sheet_api.get_player_by_id(player_id)
+        if not player:
+            flash('選手が見つかりません', 'warning')
+            return redirect(url_for('index'))
+
+        attendance_data = sheet_api.get_attendance_by_player(player_id)
+        attendance_rate = sheet_api.get_player_attendance_rate(player_id)
+
+        return render_template('attendance_player.html',
+                               player=player,
+                               attendance=attendance_data,
+                               attendance_rate=attendance_rate)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return redirect(url_for('index'))
 
 # ============ メイン ============
 

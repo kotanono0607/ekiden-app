@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}練習日誌編集 - 南陽東置賜{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5><i class="bi bi-journal-text text-primary"></i> 練習日誌編集</h5>
+    <a href="{{ url_for('practice_log_detail', log_id=log.log_id) }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> 戻る
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">日付 <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" name="date" value="{{ log.date }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">タイトル <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="title" value="{{ log.title }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">練習内容</label>
+                <textarea class="form-control" name="content" rows="5">{{ log.content }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-6">
+                    <div class="mb-3">
+                        <label class="form-label">天候</label>
+                        <select class="form-select" name="weather">
+                            <option value="">選択</option>
+                            {% for code, name in weather_list %}
+                            <option value="{{ code }}" {% if log.weather == code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                            {% if not weather_list %}
+                            <option value="晴れ" {% if log.weather == '晴れ' %}selected{% endif %}>晴れ</option>
+                            <option value="曇り" {% if log.weather == '曇り' %}selected{% endif %}>曇り</option>
+                            <option value="雨" {% if log.weather == '雨' %}selected{% endif %}>雨</option>
+                            <option value="雪" {% if log.weather == '雪' %}selected{% endif %}>雪</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="mb-3">
+                        <label class="form-label">気温 (℃)</label>
+                        <input type="number" class="form-control" name="temperature" value="{{ log.temperature }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">参加人数</label>
+                <input type="number" class="form-control" name="participants" value="{{ log.participants }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">メモ</label>
+                <textarea class="form-control" name="memo" rows="2">{{ log.memo }}</textarea>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> 更新
+                </button>
+            </div>
+        </form>
+
+        <hr>
+        <form method="POST" action="{{ url_for('practice_log_delete', log_id=log.log_id) }}" onsubmit="return confirm('この練習日誌を削除しますか？')">
+            <div class="d-grid">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> 削除
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
