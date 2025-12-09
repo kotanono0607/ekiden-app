@@ -35,24 +35,28 @@ def clear_cache():
 
 PLAYER_COLUMN_MAPPING = {
     'affiliation': 'group',
-    'category': 'grade',
+    'category': 'category',
     'comment': 'message',
+    'status': 'status',
 }
 
 RECORD_COLUMN_MAPPING = {
     'section': 'event',
-    'race_name': 'race_name',
+    'race_id': 'race_id',
 }
 
-# スプレッドシートの期待するヘッダー（重複対策）
+# スプレッドシートの期待するヘッダー（仕様書準拠）
 PLAYER_EXPECTED_HEADERS = [
-    'id', 'registration_number', 'name', 'affiliation', 'category',
-    'target_1500m', 'target_3000m', 'target_5000m', 'target_10000m',
-    'target_half', 'target_full', 'comment', 'is_deleted', 'created_at', 'updated_at'
+    'id', 'registration_number', 'name_sei', 'name_mei', 'birth_date',
+    'grade', 'affiliation', 'category', 'status', 'race_count',
+    'pb_1500m', 'pb_3000m', 'pb_5000m', 'pb_10000m', 'pb_half', 'pb_full',
+    'comment', 'is_deleted', 'created_at', 'updated_at'
 ]
 
 RECORD_EXPECTED_HEADERS = [
-    'record_id', 'player_id', 'race_name', 'date', 'section', 'time', 'memo', 'created_at', 'updated_at'
+    'record_id', 'player_id', 'race_id', 'date', 'section',
+    'distance_km', 'time', 'time_sec', 'is_pb', 'is_section_record',
+    'split_times_json', 'rank_in_section', 'memo', 'created_at', 'updated_at'
 ]
 
 def normalize_player(player):
@@ -61,6 +65,10 @@ def normalize_player(player):
     for key, value in player.items():
         new_key = PLAYER_COLUMN_MAPPING.get(key, key)
         normalized[new_key] = value
+    # name_sei + name_mei を結合して name を生成
+    name_sei = normalized.get('name_sei', '')
+    name_mei = normalized.get('name_mei', '')
+    normalized['name'] = f"{name_sei} {name_mei}".strip()
     return normalized
 
 def normalize_players(players):
@@ -106,7 +114,18 @@ def get_all_players():
     except gspread.exceptions.WorksheetNotFound:
         return []
 
-    records = worksheet.get_all_records(expected_headers=PLAYER_EXPECTED_HEADERS)
+    # 仕様: 1行目=物理名, 2行目=論理名, 3行目以降=データ
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]  # 1行目: 物理名
+    # 2行目(論理名)はスキップ、3行目以降がデータ
+    records = []
+    for row in all_values[2:]:
+        record = dict(zip(headers, row))
+        records.append(record)
+
     # カラム名を正規化
     records = normalize_players(records)
     # is_deletedがTRUEでない選手のみフィルタ
@@ -125,7 +144,18 @@ def get_all_players_including_inactive():
         worksheet = sh.worksheet('Players')
     except gspread.exceptions.WorksheetNotFound:
         return []
-    records = worksheet.get_all_records(expected_headers=PLAYER_EXPECTED_HEADERS)
+
+    # 仕様: 1行目=物理名, 2行目=論理名, 3行目以降=データ
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for row in all_values[2:]:
+        record = dict(zip(headers, row))
+        records.append(record)
+
     # カラム名を正規化
     result = normalize_players(records)
     _set_cache('all_players_inactive', result)
@@ -139,10 +169,15 @@ def get_player_by_id(player_id):
     except gspread.exceptions.WorksheetNotFound:
         return None
 
-    records = worksheet.get_all_records(expected_headers=PLAYER_EXPECTED_HEADERS)
-    # カラム名を正規化
-    records = normalize_players(records)
-    for player in records:
+    # 仕様: 1行目=物理名, 2行目=論理名, 3行目以降=データ
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return None
+
+    headers = all_values[0]
+    for row in all_values[2:]:
+        record = dict(zip(headers, row))
+        player = normalize_player(record)
         if str(player.get('id')) == str(player_id):
             return player
     return None
@@ -226,12 +261,21 @@ def get_all_records():
     except gspread.exceptions.WorksheetNotFound:
         return []
 
-    records = worksheet.get_all_records(expected_headers=RECORD_EXPECTED_HEADERS)
+    # 仕様: 1行目=物理名, 2行目=論理名, 3行目以降=データ
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 3:
+        return []
+
+    headers = all_values[0]
+    records = []
+    for i, row in enumerate(all_values[2:]):
+        record = dict(zip(headers, row))
+        # 行番号を追加（編集・削除用）- データは3行目(1-indexed)から
+        record['row_index'] = i + 3
+        records.append(record)
+
     # カラム名を正規化
     records = normalize_records(records)
-    # 行番号を追加（編集・削除用）
-    for i, record in enumerate(records):
-        record['row_index'] = i + 2  # ヘッダー行 + 0-indexed
     _set_cache('all_records', records)
     return records
 
@@ -240,31 +284,32 @@ def get_records_by_player(player_id):
     records = get_all_records()
     return [r for r in records if str(r.get('player_id')) == str(player_id)]
 
-def add_record(player_id, event, time, memo='', date=None, race_name=''):
+def add_record(player_id, event, time, memo='', date=None, race_id='', distance_km='', time_sec='', is_pb=False, is_section_record=False):
     """記録を追加"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('Records')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='Records', rows=1000, cols=9)
-        worksheet.append_row(['record_id', 'player_id', 'race_name', 'date', 'section', 'time', 'memo', 'created_at', 'updated_at'])
+        worksheet = sh.add_worksheet(title='Records', rows=1000, cols=15)
+        worksheet.append_row(RECORD_EXPECTED_HEADERS)
 
     if date is None:
-        date = datetime.now().strftime('%Y/%m/%d')
-    else:
-        # YYYY-MM-DD形式をYYYY/MM/DDに変換
-        date = date.replace('-', '/')
+        date = datetime.now().strftime('%Y-%m-%d')
 
     # 新しいrecord_idを生成
     all_values = worksheet.get_all_values()
-    new_record_id = len(all_values)
+    new_record_id = f"R{len(all_values):03d}"
 
-    now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
-    # カラム順: record_id, player_id, race_name, date, section, time, memo, created_at, updated_at
-    worksheet.append_row([new_record_id, player_id, race_name, date, event, time, memo, now, now])
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # カラム順: record_id, player_id, race_id, date, section, distance_km, time, time_sec, is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at
+    worksheet.append_row([
+        new_record_id, player_id, race_id, date, event,
+        distance_km, time, time_sec, is_pb, is_section_record,
+        '', '', memo, now, now
+    ])
     clear_cache()  # キャッシュクリア
 
-def update_record(row_index, date, player_id, event, time, memo='', race_name=''):
+def update_record(row_index, date, player_id, event, time, memo='', race_id='', distance_km='', time_sec='', is_pb=False, is_section_record=False):
     """記録を更新"""
     sh = get_spreadsheet()
     try:
@@ -272,15 +317,20 @@ def update_record(row_index, date, player_id, event, time, memo='', race_name=''
     except gspread.exceptions.WorksheetNotFound:
         return False
 
-    # 既存の行データを取得（record_idとcreated_atを保持するため）
+    # 既存の行データを取得（record_id, split_times_json, rank_in_section, created_atを保持するため）
     existing_row = worksheet.row_values(row_index)
     record_id = existing_row[0] if len(existing_row) > 0 else ''
-    created_at = existing_row[7] if len(existing_row) > 7 else ''
+    split_times_json = existing_row[10] if len(existing_row) > 10 else ''
+    rank_in_section = existing_row[11] if len(existing_row) > 11 else ''
+    created_at = existing_row[13] if len(existing_row) > 13 else ''
 
-    date = date.replace('-', '/')
-    now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
-    # カラム順: record_id, player_id, race_name, date, section, time, memo, created_at, updated_at
-    worksheet.update(f'A{row_index}:I{row_index}', [[record_id, player_id, race_name, date, event, time, memo, created_at, now]])
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # カラム順: record_id, player_id, race_id, date, section, distance_km, time, time_sec, is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at
+    worksheet.update(f'A{row_index}:O{row_index}', [[
+        record_id, player_id, race_id, date, event,
+        distance_km, time, time_sec, is_pb, is_section_record,
+        split_times_json, rank_in_section, memo, created_at, now
+    ]])
     clear_cache()  # キャッシュクリア
     return True
 
@@ -305,16 +355,20 @@ def get_record_by_row(row_index):
         return None
 
     row = worksheet.row_values(row_index)
-    # カラム順: record_id, player_id, race_name, date, section, time, memo, created_at, updated_at
-    if len(row) >= 6:
+    # カラム順: record_id, player_id, race_id, date, section, distance_km, time, time_sec, is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at
+    if len(row) >= 7:
         return {
             'record_id': row[0],
             'player_id': row[1],
-            'race_name': row[2],
+            'race_id': row[2],
             'date': row[3],
             'event': row[4],  # section → event
-            'time': row[5],
-            'memo': row[6] if len(row) > 6 else '',
+            'distance_km': row[5] if len(row) > 5 else '',
+            'time': row[6] if len(row) > 6 else '',
+            'time_sec': row[7] if len(row) > 7 else '',
+            'is_pb': row[8] if len(row) > 8 else '',
+            'is_section_record': row[9] if len(row) > 9 else '',
+            'memo': row[12] if len(row) > 12 else '',
             'row_index': row_index
         }
     return None
