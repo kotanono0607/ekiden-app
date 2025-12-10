@@ -923,6 +923,21 @@ def api_team_sections():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route("/api/team_section_all_editions")
+def api_team_section_all_editions():
+    """チーム区間全大会一覧APIエンドポイント"""
+    team = request.args.get('team', '南陽東置賜')
+    leg = request.args.get('leg', '第１区遊佐～酒田')
+
+    try:
+        data = sheet_api.get_team_section_all_editions(team, leg)
+        if isinstance(data, dict) and 'error' in data:
+            return jsonify({'error': data['error']}), 400
+        return jsonify({'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # ============ メイン ============
 
 if __name__ == "__main__":

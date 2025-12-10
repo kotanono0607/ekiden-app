@@ -190,7 +190,10 @@
         <i class="bi bi-speedometer2 me-1"></i>ペース分析
     </div>
     <div class="analysis-tab" data-tab="team">
-        <i class="bi bi-people me-1"></i>チーム別区間一覧
+        <i class="bi bi-people me-1"></i>チーム別区間
+    </div>
+    <div class="analysis-tab" data-tab="section">
+        <i class="bi bi-clock-history me-1"></i>区間記録推移
     </div>
 </div>
 
@@ -302,6 +305,59 @@
         </table>
     </div>
 </div>
+
+<!-- チーム区間記録推移タブ -->
+<div id="sectionTab" class="tab-content">
+    <div class="filter-card">
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label for="sectionTeamSelect">チーム名</label>
+                <select id="sectionTeamSelect" class="form-select">
+                    {% for team in teams %}
+                    <option value="{{ team }}">{{ team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="sectionLegSelect">区間</label>
+                <select id="sectionLegSelect" class="form-select">
+                    {% for leg in legs %}
+                    <option value="{{ leg }}">{{ leg.replace('～', ' ～ ') }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="sectionLoading" class="loading" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="mt-2">データを読み込み中...</div>
+    </div>
+
+    <div id="sectionError" class="error-message" style="display: none;"></div>
+
+    <div id="sectionResults" class="results-table table-responsive" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>回数</th>
+                    <th>名前</th>
+                    <th>生年</th>
+                    <th>所属</th>
+                    <th>順位</th>
+                    <th>時間</th>
+                    <th>距離</th>
+                    <th>気温</th>
+                    <th>平均タイム</th>
+                </tr>
+            </thead>
+            <tbody id="sectionResultsBody">
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -311,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabs = document.querySelectorAll('.analysis-tab');
     const paceTab = document.getElementById('paceTab');
     const teamTab = document.getElementById('teamTab');
+    const sectionTab = document.getElementById('sectionTab');
 
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
@@ -318,13 +375,18 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('active');
 
             const tabName = this.getAttribute('data-tab');
+            paceTab.classList.remove('active');
+            teamTab.classList.remove('active');
+            sectionTab.classList.remove('active');
+
             if (tabName === 'pace') {
                 paceTab.classList.add('active');
-                teamTab.classList.remove('active');
-            } else {
-                paceTab.classList.remove('active');
+            } else if (tabName === 'team') {
                 teamTab.classList.add('active');
                 fetchTeamData();
+            } else if (tabName === 'section') {
+                sectionTab.classList.add('active');
+                fetchSectionData();
             }
         });
     });
@@ -506,6 +568,87 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         teamResults.style.display = 'block';
+    }
+
+    // ========== チーム区間記録推移 ==========
+    const sectionTeamSelect = document.getElementById('sectionTeamSelect');
+    const sectionLegSelect = document.getElementById('sectionLegSelect');
+    const sectionLoading = document.getElementById('sectionLoading');
+    const sectionError = document.getElementById('sectionError');
+    const sectionResults = document.getElementById('sectionResults');
+    const sectionResultsBody = document.getElementById('sectionResultsBody');
+
+    sectionTeamSelect.addEventListener('change', fetchSectionData);
+    sectionLegSelect.addEventListener('change', fetchSectionData);
+
+    function fetchSectionData() {
+        const team = sectionTeamSelect.value;
+        const leg = sectionLegSelect.value;
+
+        sectionLoading.style.display = 'block';
+        sectionError.style.display = 'none';
+        sectionResults.style.display = 'none';
+
+        fetch(`/api/team_section_all_editions?team=${encodeURIComponent(team)}&leg=${encodeURIComponent(leg)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showSectionError(data.error);
+                } else {
+                    showSectionResults(data.data);
+                }
+            })
+            .catch(error => {
+                showSectionError('データの取得に失敗しました: ' + error.message);
+            });
+    }
+
+    function showSectionError(message) {
+        sectionLoading.style.display = 'none';
+        sectionError.style.display = 'block';
+        sectionError.textContent = message;
+        sectionResults.style.display = 'none';
+    }
+
+    function showSectionResults(data) {
+        sectionLoading.style.display = 'none';
+        sectionError.style.display = 'none';
+
+        if (!data || data.length === 0) {
+            showSectionError('該当するデータがありません');
+            return;
+        }
+
+        // 最速タイムを探す
+        let fastestAvgTimeSeconds = Infinity;
+        let fastestIndex = -1;
+        data.forEach((item, index) => {
+            const seconds = convertTimeToSeconds(item.avg_time);
+            if (seconds > 0 && seconds < fastestAvgTimeSeconds) {
+                fastestAvgTimeSeconds = seconds;
+                fastestIndex = index;
+            }
+        });
+
+        // テーブル生成
+        sectionResultsBody.innerHTML = '';
+        data.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>第${item.edition}回</td>
+                <td>${item.name}</td>
+                <td>${item.year_of_birth}</td>
+                <td>${item.affiliation}</td>
+                <td>${item.rank}</td>
+                <td>${item.time}</td>
+                <td>${item.distance}</td>
+                <td class="${getTemperatureClass(item.temperature)}">${item.temperature}</td>
+                <td class="${index === fastestIndex ? 'fastest-time' : ''}">${item.avg_time}</td>
+            `;
+            sectionResultsBody.appendChild(tr);
+        });
+
+        sectionResults.style.display = 'block';
     }
 
     // ========== ユーティリティ関数 ==========

@@ -1523,3 +1523,70 @@ def get_team_edition_sections(team_name, edition):
             break
 
     return results
+
+
+def get_team_section_all_editions(team_name, leg):
+    """チーム区間全大会一覧を取得（距離・気温・平均タイム付き）"""
+    individual_header, individual_data = _get_ekiden_individual_data()
+    if individual_header is None:
+        return {'error': '個人シートが見つかりません'}
+
+    distance_header, distance_data = _get_ekiden_distance_data()
+    if distance_header is None:
+        distance_header, distance_data = [], []
+
+    temp_header, temp_data = _get_ekiden_temperature_data()
+    if temp_header is None:
+        temp_header, temp_data = [], []
+
+    # 区間のインデックスを取得
+    try:
+        leg_index = individual_header.index(leg)
+    except ValueError:
+        return {'error': f'区間が見つかりません: {leg}'}
+
+    results = []
+
+    for row in individual_data:
+        if len(row) < 2:
+            continue
+
+        # チーム名でフィルタリング
+        if row[0] != team_name:
+            continue
+
+        cell = row[leg_index] if leg_index < len(row) else ''
+        if not cell:
+            continue
+
+        parts = cell.split('_')
+        if len(parts) < 6:
+            continue
+
+        edition = row[1]
+
+        # 距離と気温を取得
+        distance = _get_value_for_edition(distance_data, distance_header, leg, edition)
+        temperature = _get_value_for_edition(temp_data, temp_header, leg, edition)
+
+        # 平均タイムを計算
+        time_str = parts[5]
+        avg_time = _calculate_avg_time(time_str, distance) if distance != 'N/A' else 'N/A'
+
+        results.append({
+            'edition': edition,
+            'section': leg,
+            'name': parts[0],
+            'year_of_birth': parts[1],
+            'affiliation': parts[3],
+            'rank': parts[4],
+            'time': time_str,
+            'distance': distance,
+            'temperature': temperature,
+            'avg_time': avg_time
+        })
+
+    if not results:
+        return {'error': '該当データがありません'}
+
+    return results
