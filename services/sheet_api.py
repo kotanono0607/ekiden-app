@@ -1228,3 +1228,238 @@ def update_attendance_by_date(date, attendance_list):
     clear_cache()
     # 新しいデータを追加
     add_attendance_bulk(date, attendance_list)
+
+
+# ============ 県縦断駅伝ペース分析 ============
+
+def get_ekiden_legs():
+    """区間リストを取得"""
+    return [
+        '第１区遊佐～酒田',
+        '第２区酒田～黒森',
+        '第３区黒森～湯野浜',
+        '第４区湯野浜～大山',
+        '第５区大山～鶴岡',
+        '第６区鶴岡～藤島',
+        '第７区藤島～狩川',
+        '第８区狩川～古口',
+        '第９区古口～升形',
+        '第１０区升形～鮭川',
+        '第１１区鮭川～新庄',
+        '第１２区新庄～舟形',
+        '第１３区舟形～尾花沢',
+        '第１４区尾花沢～村山',
+        '第１５区村山～東根',
+        '第１６区東根～天童',
+        '第１７区天童～寒河江',
+        '第１８区寒河江～大江',
+        '第１９区大江～朝日',
+        '第２０区朝日～白鷹',
+        '第２１区白鷹～長井',
+        '第２２区長井～川西',
+        '第２３区川西～米沢',
+        '第２４区米沢～上郷',
+        '第２５区上郷～亀岡',
+        '第２６区亀岡～高畠',
+        '第２７区高畠～南陽',
+        '第２８区南陽～上山',
+        '第２９区上山～山形',
+    ]
+
+
+def _get_ekiden_individual_data():
+    """個人シートからデータを取得（キャッシュ付き）"""
+    cached = _get_cache('ekiden_individual')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('個人')
+    except gspread.exceptions.WorksheetNotFound:
+        return None, None
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 2:
+        return None, None
+
+    header = all_values[0]
+    data = all_values[1:]
+
+    result = (header, data)
+    _set_cache('ekiden_individual', result)
+    return result
+
+
+def _get_ekiden_distance_data():
+    """区間距離シートからデータを取得（キャッシュ付き）"""
+    cached = _get_cache('ekiden_distance')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('区間距離')
+    except gspread.exceptions.WorksheetNotFound:
+        return None, None
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 2:
+        return None, None
+
+    header = all_values[0]
+    data = all_values[1:]
+
+    result = (header, data)
+    _set_cache('ekiden_distance', result)
+    return result
+
+
+def _get_ekiden_temperature_data():
+    """区間気温シートからデータを取得（キャッシュ付き）"""
+    cached = _get_cache('ekiden_temperature')
+    if cached is not None:
+        return cached
+
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('区間気温')
+    except gspread.exceptions.WorksheetNotFound:
+        return None, None
+
+    all_values = worksheet.get_all_values()
+    if len(all_values) < 2:
+        return None, None
+
+    header = all_values[0]
+    data = all_values[1:]
+
+    result = (header, data)
+    _set_cache('ekiden_temperature', result)
+    return result
+
+
+def _get_value_for_edition(data, header, leg, edition):
+    """指定された大会回数と区間に対応する値を取得"""
+    try:
+        leg_index = header.index(leg)
+    except ValueError:
+        return 'N/A'
+
+    for row in data:
+        if len(row) > 0 and str(row[0]) == str(edition):
+            if leg_index < len(row):
+                return row[leg_index]
+    return 'N/A'
+
+
+def _convert_time_to_seconds(time_str):
+    """時間（hh:mm:ssまたはmm:ss）を秒に変換"""
+    if not time_str:
+        return 0
+
+    parts = time_str.split(':')
+    try:
+        if len(parts) == 3:
+            return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+        elif len(parts) == 2:
+            return int(parts[0]) * 60 + float(parts[1])
+    except (ValueError, TypeError):
+        return 0
+    return 0
+
+
+def _calculate_avg_time(time_str, distance):
+    """平均ペース（分:秒/km）を計算"""
+    total_seconds = _convert_time_to_seconds(time_str)
+
+    try:
+        distance_float = float(distance)
+        if distance_float <= 0:
+            return 'N/A'
+    except (ValueError, TypeError):
+        return 'N/A'
+
+    avg_time_per_km = total_seconds / distance_float
+
+    avg_minutes = int(avg_time_per_km // 60)
+    avg_seconds = avg_time_per_km % 60
+
+    # 秒が60に近い場合、分を繰り上げ
+    if avg_seconds >= 59.95:
+        avg_minutes += 1
+        avg_seconds = 0.0
+
+    # 小数点第1位まで表示
+    avg_seconds_str = f"{avg_seconds:.1f}"
+    if avg_seconds < 10:
+        avg_seconds_str = '0' + avg_seconds_str
+
+    return f"{avg_minutes}:{avg_seconds_str}"
+
+
+def filter_ekiden_pace_data(leg, position):
+    """県縦断駅伝のペースデータをフィルタリングして取得"""
+    individual_header, individual_data = _get_ekiden_individual_data()
+    if individual_header is None:
+        return {'error': '個人シートが見つかりません'}
+
+    distance_header, distance_data = _get_ekiden_distance_data()
+    if distance_header is None:
+        distance_header, distance_data = [], []
+
+    temp_header, temp_data = _get_ekiden_temperature_data()
+    if temp_header is None:
+        temp_header, temp_data = [], []
+
+    # 区間のインデックスを取得
+    try:
+        leg_index = individual_header.index(leg)
+    except ValueError:
+        return {'error': f'指定された区間が見つかりません: {leg}'}
+
+    results = []
+    for row in individual_data:
+        if leg_index >= len(row):
+            continue
+
+        cell_value = row[leg_index]
+        if not cell_value:
+            continue
+
+        # データは「名前_年齢_アルファベット名_所属_順位_タイム」形式
+        details = cell_value.split('_')
+        if len(details) < 6:
+            continue
+
+        rank = details[4]
+        if str(rank) != str(position):
+            continue
+
+        # チーム名と大会回数を取得
+        team = row[0] if len(row) > 0 else ''
+        edition = row[1] if len(row) > 1 else ''
+
+        # 距離と気温を取得
+        distance = _get_value_for_edition(distance_data, distance_header, leg, edition)
+        temperature = _get_value_for_edition(temp_data, temp_header, leg, edition)
+
+        # 平均ペースを計算
+        time_str = details[5]
+        avg_time = _calculate_avg_time(time_str, distance)
+
+        results.append({
+            'team': team,
+            'edition': edition,
+            'name': details[0],
+            'year_of_birth': details[1],
+            'name_alphabet': details[2],
+            'affiliation': details[3],
+            'rank': rank,
+            'time': time_str,
+            'distance': distance,
+            'temperature': temperature,
+            'avg_time': avg_time
+        })
+
+    return results

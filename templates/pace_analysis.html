@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}ペース分析 - 県縦断駅伝{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    .analysis-header h1 {
+        font-size: 1.5rem;
+        margin: 0;
+    }
+    .filter-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .filter-card label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        display: block;
+    }
+    .filter-card select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+    }
+    .avg-pace-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        font-size: 1.1rem;
+        text-align: center;
+    }
+    .results-table {
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .results-table table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+    .results-table th {
+        background: var(--border-color);
+        padding: 10px 8px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+    .results-table td {
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .results-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* チーム別背景色 */
+    .team-南陽東置賜 { background-color: #FFB6C1; color: #333; }
+    .team-北村山 { background-color: #FFD700; color: #333; }
+    .team-天童東村山 { background-color: #90EE90; color: #333; }
+    .team-新庄最上 { background-color: #ADD8E6; color: #333; }
+    .team-山形 { background-color: #FFA07A; color: #333; }
+    .team-酒田飽海 { background-color: #20B2AA; color: #333; }
+    .team-鶴岡田川 { background-color: #778899; color: white; }
+    .team-米沢 { background-color: #FFFFE0; color: #333; }
+    .team-寒河江西村山 { background-color: #DB7093; color: white; }
+    .team-長井西置賜 { background-color: #FF6347; color: white; }
+    .team-上山 { background-color: #40E0D0; color: #333; }
+
+    .fastest-time {
+        background-color: #ffdd1a !important;
+        font-weight: bold;
+    }
+
+    /* 気温背景色 */
+    .temp-very-cold { background-color: #1E90FF; color: white; }
+    .temp-cold { background-color: #00BFFF; color: white; }
+    .temp-cool { background-color: #b3ecff; color: #333; }
+    .temp-warm { background-color: #ffd4cc; color: #333; }
+    .temp-hot { background-color: #ff9380; color: #333; }
+    .temp-very-hot { background-color: #FF4500; color: white; }
+    .temp-extreme { background-color: #B22222; color: white; }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-muted);
+    }
+    .loading .spinner-border {
+        width: 2rem;
+        height: 2rem;
+    }
+    .error-message {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 16px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    [data-theme="dark"] .error-message {
+        background: rgba(220, 38, 38, 0.2);
+    }
+
+    /* レスポンシブテーブル */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 768px) {
+        .results-table {
+            font-size: 0.75rem;
+        }
+        .results-table th,
+        .results-table td {
+            padding: 8px 4px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analysis-header">
+    <h1><i class="bi bi-graph-up me-2"></i>県縦断駅伝ペース分析</h1>
+</div>
+
+<div class="filter-card">
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <label for="legSelect">区間</label>
+            <select id="legSelect" class="form-select">
+                {% for leg in legs %}
+                <option value="{{ leg }}">{{ leg.replace('～', ' ～ ') }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-6">
+            <label for="positionSelect">順位</label>
+            <select id="positionSelect" class="form-select">
+                {% for pos in positions %}
+                <option value="{{ pos }}">{{ pos }}位</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<div id="avgPaceInfo" class="avg-pace-info" style="display: none;">
+    対象順位の区間 1km平均ペース: <span id="avgPaceValue">-</span> /km
+</div>
+
+<div id="loadingIndicator" class="loading">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="mt-2">データを読み込み中...</div>
+</div>
+
+<div id="errorMessage" class="error-message" style="display: none;"></div>
+
+<div id="resultsContainer" class="results-table table-responsive" style="display: none;">
+    <table>
+        <thead>
+            <tr>
+                <th>チーム</th>
+                <th>回数</th>
+                <th>名前</th>
+                <th>年齢</th>
+                <th>所属</th>
+                <th>順位</th>
+                <th>時間</th>
+                <th>距離</th>
+                <th>気温</th>
+                <th>平均タイム</th>
+            </tr>
+        </thead>
+        <tbody id="resultsBody">
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const legSelect = document.getElementById('legSelect');
+    const positionSelect = document.getElementById('positionSelect');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const resultsBody = document.getElementById('resultsBody');
+    const avgPaceInfo = document.getElementById('avgPaceInfo');
+    const avgPaceValue = document.getElementById('avgPaceValue');
+
+    // イベントリスナー
+    legSelect.addEventListener('change', fetchData);
+    positionSelect.addEventListener('change', fetchData);
+
+    // 初回データ取得
+    fetchData();
+
+    function fetchData() {
+        const leg = legSelect.value;
+        const position = positionSelect.value;
+
+        showLoading();
+
+        fetch(`/api/pace_analysis?leg=${encodeURIComponent(leg)}&position=${encodeURIComponent(position)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showResults(data.data);
+                }
+            })
+            .catch(error => {
+                showError('データの取得に失敗しました: ' + error.message);
+            });
+    }
+
+    function showLoading() {
+        loadingIndicator.style.display = 'block';
+        errorMessage.style.display = 'none';
+        resultsContainer.style.display = 'none';
+        avgPaceInfo.style.display = 'none';
+    }
+
+    function showError(message) {
+        loadingIndicator.style.display = 'none';
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = message;
+        resultsContainer.style.display = 'none';
+        avgPaceInfo.style.display = 'none';
+    }
+
+    function showResults(data) {
+        loadingIndicator.style.display = 'none';
+        errorMessage.style.display = 'none';
+
+        if (!data || data.length === 0) {
+            showError('該当するデータがありません');
+            return;
+        }
+
+        // 最速タイムを探す
+        let fastestAvgTimeSeconds = Infinity;
+        let fastestIndex = -1;
+        data.forEach((item, index) => {
+            const seconds = convertTimeToSeconds(item.avg_time);
+            if (seconds > 0 && seconds < fastestAvgTimeSeconds) {
+                fastestAvgTimeSeconds = seconds;
+                fastestIndex = index;
+            }
+        });
+
+        // 平均ペース計算
+        let totalSeconds = 0;
+        let validCount = 0;
+        data.forEach(item => {
+            const seconds = convertTimeToSeconds(item.avg_time);
+            if (seconds > 0) {
+                totalSeconds += seconds;
+                validCount++;
+            }
+        });
+
+        if (validCount > 0) {
+            const avgSeconds = totalSeconds / validCount;
+            const avgMinutes = Math.floor(avgSeconds / 60);
+            const avgSecs = Math.round(avgSeconds % 60);
+            avgPaceValue.textContent = avgMinutes + ':' + (avgSecs < 10 ? '0' : '') + avgSecs;
+            avgPaceInfo.style.display = 'block';
+        } else {
+            avgPaceInfo.style.display = 'none';
+        }
+
+        // テーブル生成
+        resultsBody.innerHTML = '';
+        data.forEach((item, index) => {
+            const tr = document.createElement('tr');
+
+            // チーム
+            const teamClass = 'team-' + item.team.replace(/\s+/g, '');
+            const tdTeam = document.createElement('td');
+            tdTeam.className = teamClass;
+            tdTeam.textContent = item.team;
+            tr.appendChild(tdTeam);
+
+            // 回数
+            const tdEdition = document.createElement('td');
+            tdEdition.textContent = item.edition;
+            tr.appendChild(tdEdition);
+
+            // 名前
+            const tdName = document.createElement('td');
+            tdName.textContent = item.name;
+            tr.appendChild(tdName);
+
+            // 年齢
+            const tdAge = document.createElement('td');
+            tdAge.textContent = item.year_of_birth;
+            tr.appendChild(tdAge);
+
+            // 所属
+            const tdAffiliation = document.createElement('td');
+            tdAffiliation.textContent = item.affiliation;
+            tr.appendChild(tdAffiliation);
+
+            // 順位
+            const tdRank = document.createElement('td');
+            tdRank.textContent = item.rank;
+            tr.appendChild(tdRank);
+
+            // 時間
+            const tdTime = document.createElement('td');
+            tdTime.textContent = item.time;
+            tr.appendChild(tdTime);
+
+            // 距離
+            const tdDistance = document.createElement('td');
+            tdDistance.textContent = item.distance;
+            tr.appendChild(tdDistance);
+
+            // 気温
+            const tdTemp = document.createElement('td');
+            tdTemp.textContent = item.temperature;
+            tdTemp.className = getTemperatureClass(item.temperature);
+            tr.appendChild(tdTemp);
+
+            // 平均タイム
+            const tdAvgTime = document.createElement('td');
+            tdAvgTime.textContent = item.avg_time;
+            if (index === fastestIndex) {
+                tdAvgTime.className = 'fastest-time';
+            }
+            tr.appendChild(tdAvgTime);
+
+            resultsBody.appendChild(tr);
+        });
+
+        resultsContainer.style.display = 'block';
+    }
+
+    function convertTimeToSeconds(timeStr) {
+        if (!timeStr || timeStr === 'N/A') return 0;
+        const parts = timeStr.split(':').map(Number);
+        if (parts.length === 3) {
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        } else if (parts.length === 2) {
+            return parts[0] * 60 + parts[1];
+        }
+        return 0;
+    }
+
+    function getTemperatureClass(temp) {
+        const t = parseFloat(temp);
+        if (isNaN(t)) return '';
+        if (t <= 5) return 'temp-very-cold';
+        if (t <= 10) return 'temp-cold';
+        if (t <= 15) return 'temp-cool';
+        if (t <= 20) return 'temp-warm';
+        if (t <= 25) return 'temp-hot';
+        if (t <= 30) return 'temp-very-hot';
+        return 'temp-extreme';
+    }
+});
+</script>
+{% endblock %}

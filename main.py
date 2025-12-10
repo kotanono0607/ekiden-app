@@ -877,6 +877,31 @@ def attendance_player(player_id):
         flash(f'エラーが発生しました: {str(e)}', 'danger')
         return redirect(url_for('index'))
 
+# ============ ペース分析 ============
+
+@app.route("/pace_analysis")
+def pace_analysis():
+    """県縦断駅伝ペース分析画面"""
+    legs = sheet_api.get_ekiden_legs()
+    positions = list(range(1, 12))  # 1〜11位
+    return render_template('pace_analysis.html', legs=legs, positions=positions)
+
+
+@app.route("/api/pace_analysis")
+def api_pace_analysis():
+    """ペース分析APIエンドポイント"""
+    leg = request.args.get('leg', '第１区遊佐～酒田')
+    position = request.args.get('position', '1')
+
+    try:
+        data = sheet_api.filter_ekiden_pace_data(leg, position)
+        if isinstance(data, dict) and 'error' in data:
+            return jsonify({'error': data['error']}), 400
+        return jsonify({'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # ============ メイン ============
 
 if __name__ == "__main__":
