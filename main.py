@@ -884,7 +884,13 @@ def pace_analysis():
     """県縦断駅伝ペース分析画面"""
     legs = sheet_api.get_ekiden_legs()
     positions = list(range(1, 12))  # 1〜11位
-    return render_template('pace_analysis.html', legs=legs, positions=positions)
+    teams = sheet_api.get_ekiden_teams()
+    editions = sheet_api.get_ekiden_editions()
+    return render_template('pace_analysis.html',
+                           legs=legs,
+                           positions=positions,
+                           teams=teams,
+                           editions=editions)
 
 
 @app.route("/api/pace_analysis")
@@ -895,6 +901,21 @@ def api_pace_analysis():
 
     try:
         data = sheet_api.filter_ekiden_pace_data(leg, position)
+        if isinstance(data, dict) and 'error' in data:
+            return jsonify({'error': data['error']}), 400
+        return jsonify({'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route("/api/team_sections")
+def api_team_sections():
+    """チーム大会別区間一覧APIエンドポイント"""
+    team = request.args.get('team', '南陽東置賜')
+    edition = request.args.get('edition', '60')
+
+    try:
+        data = sheet_api.get_team_edition_sections(team, edition)
         if isinstance(data, dict) and 'error' in data:
             return jsonify({'error': data['error']}), 400
         return jsonify({'data': data})

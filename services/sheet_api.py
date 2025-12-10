@@ -1463,3 +1463,63 @@ def filter_ekiden_pace_data(leg, position):
         })
 
     return results
+
+
+def get_ekiden_teams():
+    """チーム一覧を取得"""
+    return [
+        '南陽東置賜',
+        '北村山',
+        '天童東村山',
+        '新庄最上',
+        '山形',
+        '酒田飽海',
+        '鶴岡田川',
+        '米沢',
+        '寒河江西村山',
+        '長井西置賜',
+        '上山',
+    ]
+
+
+def get_ekiden_editions():
+    """大会回数一覧を取得"""
+    return list(range(60, 69))  # 60〜68
+
+
+def get_team_edition_sections(team_name, edition):
+    """チーム大会別区間一覧を取得"""
+    individual_header, individual_data = _get_ekiden_individual_data()
+    if individual_header is None:
+        return {'error': '個人シートが見つかりません'}
+
+    results = []
+
+    # 該当チーム・回数の行を検索
+    for row in individual_data:
+        if len(row) < 2:
+            continue
+
+        if row[0] == team_name and str(row[1]) == str(edition):
+            # 3列目以降の各区間データを処理
+            for j in range(2, len(row)):
+                cell = row[j]
+                if not cell:
+                    continue
+
+                parts = cell.split('_')
+                if len(parts) < 6:
+                    continue
+
+                results.append({
+                    'section': individual_header[j] if j < len(individual_header) else '',
+                    'name': parts[0],
+                    'year_of_birth': parts[1],
+                    'name_alphabet': parts[2],
+                    'affiliation': parts[3],
+                    'rank': parts[4],
+                    'time': parts[5]
+                })
+            break
+
+    return results

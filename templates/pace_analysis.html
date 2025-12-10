@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}ペース分析 - 県縦断駅伝{% endblock %}
+{% block title %}分析 - 県縦断駅伝{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -15,6 +15,38 @@
         font-size: 1.5rem;
         margin: 0;
     }
+
+    /* タブナビゲーション */
+    .analysis-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .analysis-tab {
+        flex: 1;
+        padding: 12px 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .analysis-tab:hover {
+        background: var(--border-color);
+    }
+    .analysis-tab.active {
+        background: var(--primary-gradient);
+        border-color: transparent;
+        color: white;
+    }
+
     .filter-card {
         background: var(--card-bg);
         border-radius: 12px;
@@ -128,6 +160,13 @@
         -webkit-overflow-scrolling: touch;
     }
 
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+
     @media (max-width: 768px) {
         .results-table {
             font-size: 0.75rem;
@@ -142,125 +181,206 @@
 
 {% block content %}
 <div class="analysis-header">
-    <h1><i class="bi bi-graph-up me-2"></i>県縦断駅伝ペース分析</h1>
+    <h1><i class="bi bi-graph-up me-2"></i>県縦断駅伝分析</h1>
 </div>
 
-<div class="filter-card">
-    <div class="row g-3">
-        <div class="col-12 col-md-6">
-            <label for="legSelect">区間</label>
-            <select id="legSelect" class="form-select">
-                {% for leg in legs %}
-                <option value="{{ leg }}">{{ leg.replace('～', ' ～ ') }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-12 col-md-6">
-            <label for="positionSelect">順位</label>
-            <select id="positionSelect" class="form-select">
-                {% for pos in positions %}
-                <option value="{{ pos }}">{{ pos }}位</option>
-                {% endfor %}
-            </select>
-        </div>
+<!-- タブナビゲーション -->
+<div class="analysis-tabs">
+    <div class="analysis-tab active" data-tab="pace">
+        <i class="bi bi-speedometer2 me-1"></i>ペース分析
+    </div>
+    <div class="analysis-tab" data-tab="team">
+        <i class="bi bi-people me-1"></i>チーム別区間一覧
     </div>
 </div>
 
-<div id="avgPaceInfo" class="avg-pace-info" style="display: none;">
-    対象順位の区間 1km平均ペース: <span id="avgPaceValue">-</span> /km
-</div>
-
-<div id="loadingIndicator" class="loading">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+<!-- ペース分析タブ -->
+<div id="paceTab" class="tab-content active">
+    <div class="filter-card">
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label for="legSelect">区間</label>
+                <select id="legSelect" class="form-select">
+                    {% for leg in legs %}
+                    <option value="{{ leg }}">{{ leg.replace('～', ' ～ ') }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="positionSelect">順位</label>
+                <select id="positionSelect" class="form-select">
+                    {% for pos in positions %}
+                    <option value="{{ pos }}">{{ pos }}位</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
     </div>
-    <div class="mt-2">データを読み込み中...</div>
+
+    <div id="avgPaceInfo" class="avg-pace-info" style="display: none;">
+        対象順位の区間 1km平均ペース: <span id="avgPaceValue">-</span> /km
+    </div>
+
+    <div id="paceLoading" class="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="mt-2">データを読み込み中...</div>
+    </div>
+
+    <div id="paceError" class="error-message" style="display: none;"></div>
+
+    <div id="paceResults" class="results-table table-responsive" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>チーム</th>
+                    <th>回数</th>
+                    <th>名前</th>
+                    <th>年齢</th>
+                    <th>所属</th>
+                    <th>順位</th>
+                    <th>時間</th>
+                    <th>距離</th>
+                    <th>気温</th>
+                    <th>平均タイム</th>
+                </tr>
+            </thead>
+            <tbody id="paceResultsBody">
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div id="errorMessage" class="error-message" style="display: none;"></div>
+<!-- チーム別区間一覧タブ -->
+<div id="teamTab" class="tab-content">
+    <div class="filter-card">
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label for="teamSelect">チーム名</label>
+                <select id="teamSelect" class="form-select">
+                    {% for team in teams %}
+                    <option value="{{ team }}">{{ team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="editionSelect">大会回数</label>
+                <select id="editionSelect" class="form-select">
+                    {% for edition in editions %}
+                    <option value="{{ edition }}">第{{ edition }}回</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
 
-<div id="resultsContainer" class="results-table table-responsive" style="display: none;">
-    <table>
-        <thead>
-            <tr>
-                <th>チーム</th>
-                <th>回数</th>
-                <th>名前</th>
-                <th>年齢</th>
-                <th>所属</th>
-                <th>順位</th>
-                <th>時間</th>
-                <th>距離</th>
-                <th>気温</th>
-                <th>平均タイム</th>
-            </tr>
-        </thead>
-        <tbody id="resultsBody">
-        </tbody>
-    </table>
+    <div id="teamLoading" class="loading" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="mt-2">データを読み込み中...</div>
+    </div>
+
+    <div id="teamError" class="error-message" style="display: none;"></div>
+
+    <div id="teamResults" class="results-table table-responsive" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>区間</th>
+                    <th>名前</th>
+                    <th>生年</th>
+                    <th>アルファベット</th>
+                    <th>所属</th>
+                    <th>順位</th>
+                    <th>時間</th>
+                </tr>
+            </thead>
+            <tbody id="teamResultsBody">
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // タブ切り替え
+    const tabs = document.querySelectorAll('.analysis-tab');
+    const paceTab = document.getElementById('paceTab');
+    const teamTab = document.getElementById('teamTab');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const tabName = this.getAttribute('data-tab');
+            if (tabName === 'pace') {
+                paceTab.classList.add('active');
+                teamTab.classList.remove('active');
+            } else {
+                paceTab.classList.remove('active');
+                teamTab.classList.add('active');
+                fetchTeamData();
+            }
+        });
+    });
+
+    // ========== ペース分析 ==========
     const legSelect = document.getElementById('legSelect');
     const positionSelect = document.getElementById('positionSelect');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const errorMessage = document.getElementById('errorMessage');
-    const resultsContainer = document.getElementById('resultsContainer');
-    const resultsBody = document.getElementById('resultsBody');
+    const paceLoading = document.getElementById('paceLoading');
+    const paceError = document.getElementById('paceError');
+    const paceResults = document.getElementById('paceResults');
+    const paceResultsBody = document.getElementById('paceResultsBody');
     const avgPaceInfo = document.getElementById('avgPaceInfo');
     const avgPaceValue = document.getElementById('avgPaceValue');
 
-    // イベントリスナー
-    legSelect.addEventListener('change', fetchData);
-    positionSelect.addEventListener('change', fetchData);
+    legSelect.addEventListener('change', fetchPaceData);
+    positionSelect.addEventListener('change', fetchPaceData);
 
-    // 初回データ取得
-    fetchData();
+    fetchPaceData();
 
-    function fetchData() {
+    function fetchPaceData() {
         const leg = legSelect.value;
         const position = positionSelect.value;
 
-        showLoading();
+        paceLoading.style.display = 'block';
+        paceError.style.display = 'none';
+        paceResults.style.display = 'none';
+        avgPaceInfo.style.display = 'none';
 
         fetch(`/api/pace_analysis?leg=${encodeURIComponent(leg)}&position=${encodeURIComponent(position)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    showError(data.error);
+                    showPaceError(data.error);
                 } else {
-                    showResults(data.data);
+                    showPaceResults(data.data);
                 }
             })
             .catch(error => {
-                showError('データの取得に失敗しました: ' + error.message);
+                showPaceError('データの取得に失敗しました: ' + error.message);
             });
     }
 
-    function showLoading() {
-        loadingIndicator.style.display = 'block';
-        errorMessage.style.display = 'none';
-        resultsContainer.style.display = 'none';
+    function showPaceError(message) {
+        paceLoading.style.display = 'none';
+        paceError.style.display = 'block';
+        paceError.textContent = message;
+        paceResults.style.display = 'none';
         avgPaceInfo.style.display = 'none';
     }
 
-    function showError(message) {
-        loadingIndicator.style.display = 'none';
-        errorMessage.style.display = 'block';
-        errorMessage.textContent = message;
-        resultsContainer.style.display = 'none';
-        avgPaceInfo.style.display = 'none';
-    }
-
-    function showResults(data) {
-        loadingIndicator.style.display = 'none';
-        errorMessage.style.display = 'none';
+    function showPaceResults(data) {
+        paceLoading.style.display = 'none';
+        paceError.style.display = 'none';
 
         if (!data || data.length === 0) {
-            showError('該当するデータがありません');
+            showPaceError('該当するデータがありません');
             return;
         }
 
@@ -297,72 +417,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // テーブル生成
-        resultsBody.innerHTML = '';
+        paceResultsBody.innerHTML = '';
         data.forEach((item, index) => {
             const tr = document.createElement('tr');
 
-            // チーム
             const teamClass = 'team-' + item.team.replace(/\s+/g, '');
-            const tdTeam = document.createElement('td');
-            tdTeam.className = teamClass;
-            tdTeam.textContent = item.team;
-            tr.appendChild(tdTeam);
-
-            // 回数
-            const tdEdition = document.createElement('td');
-            tdEdition.textContent = item.edition;
-            tr.appendChild(tdEdition);
-
-            // 名前
-            const tdName = document.createElement('td');
-            tdName.textContent = item.name;
-            tr.appendChild(tdName);
-
-            // 年齢
-            const tdAge = document.createElement('td');
-            tdAge.textContent = item.year_of_birth;
-            tr.appendChild(tdAge);
-
-            // 所属
-            const tdAffiliation = document.createElement('td');
-            tdAffiliation.textContent = item.affiliation;
-            tr.appendChild(tdAffiliation);
-
-            // 順位
-            const tdRank = document.createElement('td');
-            tdRank.textContent = item.rank;
-            tr.appendChild(tdRank);
-
-            // 時間
-            const tdTime = document.createElement('td');
-            tdTime.textContent = item.time;
-            tr.appendChild(tdTime);
-
-            // 距離
-            const tdDistance = document.createElement('td');
-            tdDistance.textContent = item.distance;
-            tr.appendChild(tdDistance);
-
-            // 気温
-            const tdTemp = document.createElement('td');
-            tdTemp.textContent = item.temperature;
-            tdTemp.className = getTemperatureClass(item.temperature);
-            tr.appendChild(tdTemp);
-
-            // 平均タイム
-            const tdAvgTime = document.createElement('td');
-            tdAvgTime.textContent = item.avg_time;
-            if (index === fastestIndex) {
-                tdAvgTime.className = 'fastest-time';
-            }
-            tr.appendChild(tdAvgTime);
-
-            resultsBody.appendChild(tr);
+            tr.innerHTML = `
+                <td class="${teamClass}">${item.team}</td>
+                <td>${item.edition}</td>
+                <td>${item.name}</td>
+                <td>${item.year_of_birth}</td>
+                <td>${item.affiliation}</td>
+                <td>${item.rank}</td>
+                <td>${item.time}</td>
+                <td>${item.distance}</td>
+                <td class="${getTemperatureClass(item.temperature)}">${item.temperature}</td>
+                <td class="${index === fastestIndex ? 'fastest-time' : ''}">${item.avg_time}</td>
+            `;
+            paceResultsBody.appendChild(tr);
         });
 
-        resultsContainer.style.display = 'block';
+        paceResults.style.display = 'block';
     }
 
+    // ========== チーム別区間一覧 ==========
+    const teamSelect = document.getElementById('teamSelect');
+    const editionSelect = document.getElementById('editionSelect');
+    const teamLoading = document.getElementById('teamLoading');
+    const teamError = document.getElementById('teamError');
+    const teamResults = document.getElementById('teamResults');
+    const teamResultsBody = document.getElementById('teamResultsBody');
+
+    teamSelect.addEventListener('change', fetchTeamData);
+    editionSelect.addEventListener('change', fetchTeamData);
+
+    function fetchTeamData() {
+        const team = teamSelect.value;
+        const edition = editionSelect.value;
+
+        teamLoading.style.display = 'block';
+        teamError.style.display = 'none';
+        teamResults.style.display = 'none';
+
+        fetch(`/api/team_sections?team=${encodeURIComponent(team)}&edition=${encodeURIComponent(edition)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showTeamError(data.error);
+                } else {
+                    showTeamResults(data.data);
+                }
+            })
+            .catch(error => {
+                showTeamError('データの取得に失敗しました: ' + error.message);
+            });
+    }
+
+    function showTeamError(message) {
+        teamLoading.style.display = 'none';
+        teamError.style.display = 'block';
+        teamError.textContent = message;
+        teamResults.style.display = 'none';
+    }
+
+    function showTeamResults(data) {
+        teamLoading.style.display = 'none';
+        teamError.style.display = 'none';
+
+        if (!data || data.length === 0) {
+            showTeamError('該当するデータがありません');
+            return;
+        }
+
+        // テーブル生成
+        teamResultsBody.innerHTML = '';
+        data.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.section}</td>
+                <td>${item.name}</td>
+                <td>${item.year_of_birth}</td>
+                <td>${item.name_alphabet}</td>
+                <td>${item.affiliation}</td>
+                <td>${item.rank}</td>
+                <td>${item.time}</td>
+            `;
+            teamResultsBody.appendChild(tr);
+        });
+
+        teamResults.style.display = 'block';
+    }
+
+    // ========== ユーティリティ関数 ==========
     function convertTimeToSeconds(timeStr) {
         if (!timeStr || timeStr === 'N/A') return 0;
         const parts = timeStr.split(':').map(Number);
