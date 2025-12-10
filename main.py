@@ -904,6 +904,11 @@ def attendance_player(player_id):
 
 # ============ ペース分析 ============
 
+@app.route("/analysis")
+def analysis_menu():
+    """分析メニュー画面"""
+    return render_template('analysis_menu.html')
+
 @app.route("/pace_analysis")
 def pace_analysis():
     """県縦断駅伝ペース分析画面"""

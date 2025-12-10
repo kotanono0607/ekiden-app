@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}分析メニュー{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 20px 16px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .analysis-header h1 {
+        font-size: 1.3rem;
+        margin: 0 0 4px 0;
+    }
+    .analysis-header p {
+        font-size: 0.85rem;
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .menu-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .menu-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 20px 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.2s;
+        border: 1px solid var(--border-color);
+    }
+    .menu-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        border-color: #74b9ff;
+    }
+    .menu-card:active {
+        transform: translateY(0);
+    }
+
+    .menu-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    .menu-icon.pace {
+        background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+        color: white;
+    }
+    .menu-icon.stats {
+        background: linear-gradient(135deg, #81ecec 0%, #74b9ff 100%);
+        color: white;
+    }
+    .menu-icon.compare {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        color: #856404;
+    }
+
+    .menu-content {
+        flex: 1;
+        min-width: 0;
+    }
+    .menu-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 4px;
+    }
+    .menu-desc {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+
+    .menu-arrow {
+        color: var(--text-muted);
+        font-size: 1.2rem;
+    }
+
+    .coming-soon {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    .coming-soon .menu-title::after {
+        content: " (準備中)";
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        font-weight: normal;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analysis-header">
+    <h1><i class="bi bi-graph-up"></i> 分析</h1>
+    <p>データを分析して戦略を立てましょう</p>
+</div>
+
+<div class="menu-grid">
+    <a href="/pace_analysis" class="menu-card">
+        <div class="menu-icon pace">
+            <i class="bi bi-speedometer2"></i>
+        </div>
+        <div class="menu-content">
+            <div class="menu-title">県縦断駅伝ペース分析</div>
+            <div class="menu-desc">区間ごとのペースを分析し、各チームの戦略を把握</div>
+        </div>
+        <div class="menu-arrow">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+    </a>
+
+    <div class="menu-card coming-soon">
+        <div class="menu-icon stats">
+            <i class="bi bi-bar-chart-line"></i>
+        </div>
+        <div class="menu-content">
+            <div class="menu-title">選手成績統計</div>
+            <div class="menu-desc">選手の成績推移やベスト記録を分析</div>
+        </div>
+        <div class="menu-arrow">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+    </div>
+
+    <div class="menu-card coming-soon">
+        <div class="menu-icon compare">
+            <i class="bi bi-people"></i>
+        </div>
+        <div class="menu-content">
+            <div class="menu-title">チーム比較</div>
+            <div class="menu-desc">チーム間の戦力を比較分析</div>
+        </div>
+        <div class="menu-arrow">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+    </div>
+</div>
+{% endblock %}
