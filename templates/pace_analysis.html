@@ -7,36 +7,40 @@
     .analysis-header {
         background: var(--primary-gradient);
         color: white;
-        padding: 20px;
+        padding: 16px;
         border-radius: 12px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
     .analysis-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         margin: 0;
     }
 
     /* タブナビゲーション */
     .analysis-tabs {
         display: flex;
-        gap: 8px;
-        margin-bottom: 16px;
+        gap: 6px;
+        margin-bottom: 12px;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
     .analysis-tab {
         flex: 1;
-        padding: 12px 16px;
+        padding: 10px 8px;
         background: var(--card-bg);
         border: 1px solid var(--border-color);
         border-radius: 8px;
         text-align: center;
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         font-weight: 500;
         color: var(--text-muted);
         transition: all 0.2s;
         white-space: nowrap;
+        min-width: 0;
+    }
+    .analysis-tab i {
+        display: none;
     }
     .analysis-tab:hover {
         background: var(--border-color);
@@ -50,61 +54,104 @@
     .filter-card {
         background: var(--card-bg);
         border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 16px;
+        padding: 12px;
+        margin-bottom: 12px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
     .filter-card label {
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         color: var(--text-muted);
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         display: block;
     }
     .filter-card select {
         width: 100%;
-        padding: 10px 12px;
+        padding: 8px 10px;
         border: 1px solid var(--border-color);
         border-radius: 8px;
-        font-size: 1rem;
+        font-size: 0.9rem;
         background-color: var(--input-bg);
         color: var(--text-color);
     }
     .avg-pace-info {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 16px;
+        padding: 12px;
         border-radius: 12px;
-        margin-bottom: 16px;
-        font-size: 1.1rem;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
         text-align: center;
     }
-    .results-table {
+
+    /* カードリスト（モバイル用） */
+    .result-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .result-card {
         background: var(--card-bg);
-        border-radius: 12px;
-        overflow: hidden;
+        border-radius: 10px;
+        padding: 12px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        border-left: 4px solid #667eea;
     }
-    .results-table table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.85rem;
+    .result-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
     }
-    .results-table th {
-        background: var(--border-color);
-        padding: 10px 8px;
-        text-align: left;
+    .result-card-team {
         font-weight: 600;
+        font-size: 0.85rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+    .result-card-edition {
         font-size: 0.75rem;
         color: var(--text-muted);
-        white-space: nowrap;
     }
-    .results-table td {
-        padding: 10px 8px;
-        border-bottom: 1px solid var(--border-color);
+    .result-card-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
     }
-    .results-table tr:last-child td {
-        border-bottom: none;
+    .result-card-name {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    .result-card-time {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    .result-card-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    .result-card-details span {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+    .result-card-avg {
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #f0f0f0;
+    }
+    [data-theme="dark"] .result-card-avg {
+        background: #333;
+    }
+    .result-card.fastest .result-card-avg {
+        background: #ffdd1a;
+        color: #333;
     }
 
     /* チーム別背景色 */
@@ -120,11 +167,6 @@
     .team-長井西置賜 { background-color: #FF6347; color: white; }
     .team-上山 { background-color: #40E0D0; color: #333; }
 
-    .fastest-time {
-        background-color: #ffdd1a !important;
-        font-weight: bold;
-    }
-
     /* 気温背景色 */
     .temp-very-cold { background-color: #1E90FF; color: white; }
     .temp-cold { background-color: #00BFFF; color: white; }
@@ -136,28 +178,23 @@
 
     .loading {
         text-align: center;
-        padding: 40px;
+        padding: 30px;
         color: var(--text-muted);
     }
     .loading .spinner-border {
-        width: 2rem;
-        height: 2rem;
+        width: 1.5rem;
+        height: 1.5rem;
     }
     .error-message {
         background: #fee2e2;
         color: #dc2626;
-        padding: 16px;
+        padding: 12px;
         border-radius: 8px;
         text-align: center;
+        font-size: 0.9rem;
     }
     [data-theme="dark"] .error-message {
         background: rgba(220, 38, 38, 0.2);
-    }
-
-    /* レスポンシブテーブル */
-    .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
     }
 
     .tab-content {
@@ -167,13 +204,14 @@
         display: block;
     }
 
-    @media (max-width: 768px) {
-        .results-table {
-            font-size: 0.75rem;
+    /* デスクトップ用タブアイコン表示 */
+    @media (min-width: 768px) {
+        .analysis-tab i {
+            display: inline;
         }
-        .results-table th,
-        .results-table td {
-            padding: 8px 4px;
+        .analysis-tab {
+            font-size: 0.9rem;
+            padding: 12px 16px;
         }
     }
 </style>
@@ -233,26 +271,7 @@
 
     <div id="paceError" class="error-message" style="display: none;"></div>
 
-    <div id="paceResults" class="results-table table-responsive" style="display: none;">
-        <table>
-            <thead>
-                <tr>
-                    <th>チーム</th>
-                    <th>回数</th>
-                    <th>名前</th>
-                    <th>年齢</th>
-                    <th>所属</th>
-                    <th>順位</th>
-                    <th>時間</th>
-                    <th>距離</th>
-                    <th>気温</th>
-                    <th>平均タイム</th>
-                </tr>
-            </thead>
-            <tbody id="paceResultsBody">
-            </tbody>
-        </table>
-    </div>
+    <div id="paceResults" class="result-cards" style="display: none;"></div>
 </div>
 
 <!-- チーム別区間一覧タブ -->
@@ -287,23 +306,7 @@
 
     <div id="teamError" class="error-message" style="display: none;"></div>
 
-    <div id="teamResults" class="results-table table-responsive" style="display: none;">
-        <table>
-            <thead>
-                <tr>
-                    <th>区間</th>
-                    <th>名前</th>
-                    <th>生年</th>
-                    <th>アルファベット</th>
-                    <th>所属</th>
-                    <th>順位</th>
-                    <th>時間</th>
-                </tr>
-            </thead>
-            <tbody id="teamResultsBody">
-            </tbody>
-        </table>
-    </div>
+    <div id="teamResults" class="result-cards" style="display: none;"></div>
 </div>
 
 <!-- チーム区間記録推移タブ -->
@@ -338,25 +341,7 @@
 
     <div id="sectionError" class="error-message" style="display: none;"></div>
 
-    <div id="sectionResults" class="results-table table-responsive" style="display: none;">
-        <table>
-            <thead>
-                <tr>
-                    <th>回数</th>
-                    <th>名前</th>
-                    <th>生年</th>
-                    <th>所属</th>
-                    <th>順位</th>
-                    <th>時間</th>
-                    <th>距離</th>
-                    <th>気温</th>
-                    <th>平均タイム</th>
-                </tr>
-            </thead>
-            <tbody id="sectionResultsBody">
-            </tbody>
-        </table>
-    </div>
+    <div id="sectionResults" class="result-cards" style="display: none;"></div>
 </div>
 {% endblock %}
 
@@ -397,7 +382,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const paceLoading = document.getElementById('paceLoading');
     const paceError = document.getElementById('paceError');
     const paceResults = document.getElementById('paceResults');
-    const paceResultsBody = document.getElementById('paceResultsBody');
     const avgPaceInfo = document.getElementById('avgPaceInfo');
     const avgPaceValue = document.getElementById('avgPaceValue');
 
@@ -478,28 +462,35 @@ document.addEventListener('DOMContentLoaded', function() {
             avgPaceInfo.style.display = 'none';
         }
 
-        // テーブル生成
-        paceResultsBody.innerHTML = '';
+        // カード生成
+        paceResults.innerHTML = '';
         data.forEach((item, index) => {
-            const tr = document.createElement('tr');
-
+            const card = document.createElement('div');
             const teamClass = 'team-' + item.team.replace(/\s+/g, '');
-            tr.innerHTML = `
-                <td class="${teamClass}">${item.team}</td>
-                <td>${item.edition}</td>
-                <td>${item.name}</td>
-                <td>${item.year_of_birth}</td>
-                <td>${item.affiliation}</td>
-                <td>${item.rank}</td>
-                <td>${item.time}</td>
-                <td>${item.distance}</td>
-                <td class="${getTemperatureClass(item.temperature)}">${item.temperature}</td>
-                <td class="${index === fastestIndex ? 'fastest-time' : ''}">${item.avg_time}</td>
+            const isFastest = index === fastestIndex;
+            card.className = 'result-card' + (isFastest ? ' fastest' : '');
+            card.innerHTML = `
+                <div class="result-card-header">
+                    <span class="result-card-team ${teamClass}">${item.team}</span>
+                    <span class="result-card-edition">第${item.edition}回</span>
+                </div>
+                <div class="result-card-main">
+                    <span class="result-card-name">${item.name}</span>
+                    <span class="result-card-time">${item.time}</span>
+                </div>
+                <div class="result-card-details">
+                    <span>${item.year_of_birth}生</span>
+                    <span>${item.affiliation}</span>
+                    <span>${item.rank}位</span>
+                    <span>${item.distance}km</span>
+                    <span class="${getTemperatureClass(item.temperature)}" style="padding:1px 4px;border-radius:3px;">${item.temperature}℃</span>
+                    <span class="result-card-avg">${item.avg_time}/km</span>
+                </div>
             `;
-            paceResultsBody.appendChild(tr);
+            paceResults.appendChild(card);
         });
 
-        paceResults.style.display = 'block';
+        paceResults.style.display = 'flex';
     }
 
     // ========== チーム別区間一覧 ==========
@@ -508,7 +499,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const teamLoading = document.getElementById('teamLoading');
     const teamError = document.getElementById('teamError');
     const teamResults = document.getElementById('teamResults');
-    const teamResultsBody = document.getElementById('teamResultsBody');
 
     teamSelect.addEventListener('change', fetchTeamData);
     editionSelect.addEventListener('change', fetchTeamData);
@@ -551,23 +541,33 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // テーブル生成
-        teamResultsBody.innerHTML = '';
+        // カード生成
+        teamResults.innerHTML = '';
         data.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${item.section}</td>
-                <td>${item.name}</td>
-                <td>${item.year_of_birth}</td>
-                <td>${item.name_alphabet}</td>
-                <td>${item.affiliation}</td>
-                <td>${item.rank}</td>
-                <td>${item.time}</td>
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            // 区間番号を抽出して色分け
+            const sectionNum = item.section.match(/第(\d+)区/);
+            const sectionColor = sectionNum ? `hsl(${(parseInt(sectionNum[1]) * 12) % 360}, 60%, 50%)` : '#667eea';
+            card.style.borderLeftColor = sectionColor;
+            card.innerHTML = `
+                <div class="result-card-header">
+                    <span class="result-card-edition" style="font-size:0.85rem;color:var(--text-color);font-weight:600;">${item.section}</span>
+                    <span class="result-card-edition">${item.rank}位</span>
+                </div>
+                <div class="result-card-main">
+                    <span class="result-card-name">${item.name}</span>
+                    <span class="result-card-time">${item.time}</span>
+                </div>
+                <div class="result-card-details">
+                    <span>${item.year_of_birth}生</span>
+                    <span>${item.affiliation}</span>
+                </div>
             `;
-            teamResultsBody.appendChild(tr);
+            teamResults.appendChild(card);
         });
 
-        teamResults.style.display = 'block';
+        teamResults.style.display = 'flex';
     }
 
     // ========== チーム区間記録推移 ==========
@@ -576,7 +576,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const sectionLoading = document.getElementById('sectionLoading');
     const sectionError = document.getElementById('sectionError');
     const sectionResults = document.getElementById('sectionResults');
-    const sectionResultsBody = document.getElementById('sectionResultsBody');
 
     sectionTeamSelect.addEventListener('change', fetchSectionData);
     sectionLegSelect.addEventListener('change', fetchSectionData);
@@ -630,25 +629,33 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // テーブル生成
-        sectionResultsBody.innerHTML = '';
+        // カード生成
+        sectionResults.innerHTML = '';
         data.forEach((item, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>第${item.edition}回</td>
-                <td>${item.name}</td>
-                <td>${item.year_of_birth}</td>
-                <td>${item.affiliation}</td>
-                <td>${item.rank}</td>
-                <td>${item.time}</td>
-                <td>${item.distance}</td>
-                <td class="${getTemperatureClass(item.temperature)}">${item.temperature}</td>
-                <td class="${index === fastestIndex ? 'fastest-time' : ''}">${item.avg_time}</td>
+            const card = document.createElement('div');
+            const isFastest = index === fastestIndex;
+            card.className = 'result-card' + (isFastest ? ' fastest' : '');
+            card.innerHTML = `
+                <div class="result-card-header">
+                    <span class="result-card-edition" style="font-size:0.9rem;color:var(--text-color);font-weight:600;">第${item.edition}回</span>
+                    <span class="result-card-edition">${item.rank}位</span>
+                </div>
+                <div class="result-card-main">
+                    <span class="result-card-name">${item.name}</span>
+                    <span class="result-card-time">${item.time}</span>
+                </div>
+                <div class="result-card-details">
+                    <span>${item.year_of_birth}生</span>
+                    <span>${item.affiliation}</span>
+                    <span>${item.distance}km</span>
+                    <span class="${getTemperatureClass(item.temperature)}" style="padding:1px 4px;border-radius:3px;">${item.temperature}℃</span>
+                    <span class="result-card-avg">${item.avg_time}/km</span>
+                </div>
             `;
-            sectionResultsBody.appendChild(tr);
+            sectionResults.appendChild(card);
         });
 
-        sectionResults.style.display = 'block';
+        sectionResults.style.display = 'flex';
     }
 
     // ========== ユーティリティ関数 ==========
