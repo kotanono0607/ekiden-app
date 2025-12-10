@@ -563,13 +563,13 @@
             すべて<span class="badge">{{ records|length }}</span>
         </div>
         <div class="record-tab" data-type="駅伝">
-            🏃 駅伝<span class="badge">{{ records|selectattr('race_type', 'equalto', '駅伝')|list|length }}</span>
+            駅伝<span class="badge">{{ records|selectattr('race_type', 'equalto', '駅伝')|list|length }}</span>
         </div>
         <div class="record-tab" data-type="トラック">
-            🏟️ トラック<span class="badge">{{ records|selectattr('race_type', 'equalto', 'トラック')|list|length }}</span>
+            トラック<span class="badge">{{ records|selectattr('race_type', 'equalto', 'トラック')|list|length }}</span>
         </div>
         <div class="record-tab" data-type="ロード">
-            🛣️ ロード<span class="badge">{{ records|selectattr('race_type', 'equalto', 'ロード')|list|length }}</span>
+            ロード<span class="badge">{{ records|selectattr('race_type', 'equalto', 'ロード')|list|length }}</span>
         </div>
     </div>
 

@@ -98,13 +98,13 @@
     /* タイプ別フィルター */
     .filter-tabs {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         margin-bottom: 16px;
         overflow-x: auto;
         padding-bottom: 4px;
     }
     .filter-tab {
-        padding: 6px 12px;
+        padding: 6px 10px;
         border-radius: 16px;
         font-size: 12px;
         font-weight: 600;
@@ -141,13 +141,13 @@
         すべて<span class="count">({{ races|length }})</span>
     </button>
     <button class="filter-tab" data-filter="駅伝">
-        🏃 駅伝<span class="count">({{ races|selectattr('race_type', 'equalto', '駅伝')|list|length }})</span>
+        駅伝<span class="count">({{ races|selectattr('race_type', 'equalto', '駅伝')|list|length }})</span>
     </button>
     <button class="filter-tab" data-filter="トラック">
-        🏟️ トラック<span class="count">({{ races|selectattr('race_type', 'equalto', 'トラック')|list|length }})</span>
+        トラック<span class="count">({{ races|selectattr('race_type', 'equalto', 'トラック')|list|length }})</span>
     </button>
     <button class="filter-tab" data-filter="ロード">
-        🛣️ ロード<span class="count">({{ races|selectattr('race_type', 'equalto', 'ロード')|list|length }})</span>
+        ロード<span class="count">({{ races|selectattr('race_type', 'equalto', 'ロード')|list|length }})</span>
     </button>
 </div>
 
