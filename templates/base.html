@@ -539,10 +539,61 @@
                 margin-top: auto;
             }
         }
+
+        /* Page Loading Overlay */
+        .page-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .page-loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        [data-theme="dark"] .page-loading-overlay {
+            background: rgba(15, 23, 42, 0.9);
+        }
+        .page-loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: pageLoadSpin 0.8s linear infinite;
+        }
+        [data-theme="dark"] .page-loading-spinner {
+            border-color: #334155;
+            border-top-color: #818cf8;
+        }
+        .page-loading-text {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        @keyframes pageLoadSpin {
+            to { transform: rotate(360deg); }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Page Loading Overlay -->
+    <div class="page-loading-overlay" id="pageLoadingOverlay">
+        <div class="page-loading-spinner"></div>
+        <div class="page-loading-text">読み込み中...</div>
+    </div>
+
     <!-- Top Navigation -->
     <nav class="top-navbar">
         <div class="container">
@@ -738,6 +789,45 @@
 
         // Initialize theme on page load
         initTheme();
+
+        // Page Loading Overlay
+        (function() {
+            const overlay = document.getElementById('pageLoadingOverlay');
+            if (!overlay) return;
+
+            // Show loading on page navigation
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (link && link.href && !link.href.startsWith('javascript:') &&
+                    !link.href.startsWith('#') && !link.target &&
+                    !link.hasAttribute('download') &&
+                    link.hostname === window.location.hostname) {
+                    // Don't show for same page links
+                    if (link.pathname === window.location.pathname && link.search === window.location.search) {
+                        return;
+                    }
+                    overlay.classList.add('show');
+                }
+            });
+
+            // Show loading on form submit
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (form.tagName === 'FORM' && !form.hasAttribute('data-no-loading')) {
+                    overlay.classList.add('show');
+                }
+            });
+
+            // Hide loading when page is fully loaded (for back/forward navigation)
+            window.addEventListener('pageshow', function(e) {
+                overlay.classList.remove('show');
+            });
+
+            // Hide on initial load
+            window.addEventListener('load', function() {
+                overlay.classList.remove('show');
+            });
+        })();
 
         // Service Worker Registration
         if ('serviceWorker' in navigator) {

@@ -11,13 +11,18 @@ SPREADSHEET_ID = '1emj5sW_saJpydDTva7mH5pi00YA2QIloCi_rKx_cbdU'
 # APIレート制限対策（60リクエスト/分）
 
 _cache = {}
-CACHE_TTL = 30  # キャッシュ有効期間（秒）
+CACHE_TTL = 120  # 通常キャッシュ有効期間（秒）- 2分
+CACHE_TTL_LONG = 600  # 長期キャッシュ有効期間（秒）- 10分（駅伝データ等）
+
+# 長期キャッシュ対象のキー
+LONG_CACHE_KEYS = {'ekiden_individual', 'ekiden_distance', 'ekiden_temperature'}
 
 def _get_cache(key):
     """キャッシュからデータを取得"""
     if key in _cache:
         data, timestamp = _cache[key]
-        if time.time() - timestamp < CACHE_TTL:
+        ttl = CACHE_TTL_LONG if key in LONG_CACHE_KEYS else CACHE_TTL
+        if time.time() - timestamp < ttl:
             return data
     return None
 
