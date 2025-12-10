@@ -364,6 +364,30 @@ def races():
         flash(f'エラーが発生しました: {str(e)}', 'danger')
         return render_template('races.html', races=[])
 
+@app.route("/race/detail/<path:race_name>")
+def race_detail(race_name):
+    """大会詳細画面（Recordsから取得）"""
+    try:
+        race_list = sheet_api.get_races_from_records()
+        race = None
+        for r in race_list:
+            if r['race_name'] == race_name:
+                race = r
+                break
+
+        if not race:
+            flash('大会が見つかりません', 'warning')
+            return redirect(url_for('races'))
+
+        # 選手情報を取得
+        players = sheet_api.get_all_players()
+        player_dict = {str(p.get('id')): p for p in players}
+
+        return render_template('race_detail.html', race=race, player_dict=player_dict)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return redirect(url_for('races'))
+
 @app.route("/race/add", methods=['GET', 'POST'])
 def race_add():
     """大会追加画面"""

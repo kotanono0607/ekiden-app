@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}{{ race.race_name }} - 南陽東置賜{% endblock %}
+
+{% block extra_css %}
+<style>
+    .race-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 24px 16px;
+        margin: -1rem -12px 0 -12px;
+        text-align: center;
+    }
+    .race-header h1 {
+        font-size: 1.4rem;
+        margin: 0 0 8px 0;
+        font-weight: 700;
+    }
+    .race-meta-header {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .race-meta-header i {
+        margin-right: 4px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 16px 0;
+    }
+    .stats-item {
+        background: var(--card-bg);
+        padding: 16px 12px;
+        text-align: center;
+    }
+    .stats-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+    .stats-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+    .stats-value .unit {
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--text-muted);
+    }
+
+    .section-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        margin: 16px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .section-header {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .record-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.15s;
+    }
+    .record-item:hover {
+        background: rgba(0,0,0,0.02);
+    }
+    [data-theme="dark"] .record-item:hover {
+        background: rgba(255,255,255,0.03);
+    }
+    .record-item:last-child {
+        border-bottom: none;
+    }
+    .record-rank {
+        width: 32px;
+        height: 32px;
+        background: var(--bg-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--text-muted);
+        flex-shrink: 0;
+    }
+    .record-rank.top1 {
+        background: linear-gradient(135deg, #ffd700, #ffb700);
+        color: #333;
+    }
+    .record-rank.top2 {
+        background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+        color: #333;
+    }
+    .record-rank.top3 {
+        background: linear-gradient(135deg, #cd7f32, #b87333);
+        color: white;
+    }
+    .record-info {
+        flex: 1;
+        margin-left: 12px;
+        min-width: 0;
+    }
+    .record-player {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text-color);
+    }
+    .record-player a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .record-player a:hover {
+        color: var(--primary-color);
+    }
+    .record-detail {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+    .record-time {
+        font-size: 16px;
+        font-weight: 700;
+        color: #3182ce;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        flex-shrink: 0;
+    }
+
+    .type-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+    .type-badge.ekiden {
+        background: #ED8936;
+        color: white;
+    }
+    .type-badge.track {
+        background: #3182CE;
+        color: white;
+    }
+    .type-badge.road {
+        background: #38A169;
+        color: white;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 32px 16px;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/races" class="back-link">
+    <i class="bi bi-chevron-left"></i> レース一覧
+</a>
+
+<!-- ヘッダー -->
+<div class="race-header">
+    <h1>{{ race.race_name }}</h1>
+    <div class="race-meta-header">
+        <span><i class="bi bi-calendar3"></i>{{ race.date }}</span>
+        {% if race.race_type %}
+        <span>
+            {% if race.race_type == '駅伝' %}
+            <span class="type-badge ekiden">駅伝</span>
+            {% elif race.race_type == 'トラック' %}
+            <span class="type-badge track">トラック</span>
+            {% elif race.race_type == 'ロード' %}
+            <span class="type-badge road">ロード</span>
+            {% endif %}
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 統計 -->
+<div class="stats-grid">
+    <div class="stats-item">
+        <div class="stats-label">出場選手</div>
+        <div class="stats-value">{{ race.player_count }}<span class="unit">名</span></div>
+    </div>
+    <div class="stats-item">
+        <div class="stats-label">記録数</div>
+        <div class="stats-value">{{ race.record_count }}<span class="unit">件</span></div>
+    </div>
+</div>
+
+<!-- 記録一覧 -->
+<div class="section-card">
+    <div class="section-header">
+        <i class="bi bi-list-ol text-primary"></i> 記録一覧
+    </div>
+    {% if race.records %}
+    {% for record in race.records|sort(attribute='time') %}
+    <div class="record-item">
+        <div class="record-rank {% if loop.index == 1 %}top1{% elif loop.index == 2 %}top2{% elif loop.index == 3 %}top3{% endif %}">
+            {{ loop.index }}
+        </div>
+        <div class="record-info">
+            <div class="record-player">
+                {% set player_id = record.player_id|string %}
+                {% set player = player_dict.get(player_id) %}
+                {% if player %}
+                <a href="/player/{{ player.id }}">{{ player.name }}</a>
+                {% elif record.player_name %}
+                {{ record.player_name }}
+                {% else %}
+                -
+                {% endif %}
+            </div>
+            <div class="record-detail">
+                {% if record.event %}{{ record.event }}{% endif %}
+                {% if record.section %}{{ record.section }}{% endif %}
+                {% if player and player.affiliation %} / {{ player.affiliation }}{% endif %}
+                {% if record.memo %} / {{ record.memo }}{% endif %}
+            </div>
+        </div>
+        <div class="record-time">{{ record.time }}</div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-inbox" style="font-size: 32px;"></i>
+        <p class="mb-0 mt-2">記録がありません</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
