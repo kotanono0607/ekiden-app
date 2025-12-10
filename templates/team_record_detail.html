@@ -230,7 +230,16 @@
                 </div>
                 <div class="order-meta">
                     {{ order.section_name or (order.section_no ~ '区') }}
-                    {% if order.distance_m %} ({{ (order.distance_m|float / 1000)|round(2) }}km){% endif %}
+                    {% if order.distance_m %}
+                        {% set dist = order.distance_m|string|replace(' ', '') %}
+                        {% if 'km' in dist %}
+                            ({{ dist }})
+                        {% elif 'm' in dist %}
+                            ({{ (dist|replace('m', '')|float / 1000)|round(2) }}km)
+                        {% else %}
+                            ({{ (dist|float / 1000)|round(2) }}km)
+                        {% endif %}
+                    {% endif %}
                     {% if player and player.affiliation %} / {{ player.affiliation }}{% endif %}
                     {% if order.memo %} / {{ order.memo }}{% endif %}
                 </div>
