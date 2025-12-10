@@ -509,8 +509,9 @@ def race_order_add(team_record_id):
         player_id = request.form.get('player_id')
         record_id = request.form.get('record_id', '')
         memo = request.form.get('memo', '')
+        distance_m = request.form.get('distance_m', '')
 
-        sheet_api.add_race_order(team_record_id, section_no, section_name, player_id, record_id, memo)
+        sheet_api.add_race_order(team_record_id, section_no, section_name, player_id, record_id, memo, distance_m)
         flash('区間オーダーを追加しました', 'success')
     except Exception as e:
         flash(f'追加に失敗しました: {str(e)}', 'danger')

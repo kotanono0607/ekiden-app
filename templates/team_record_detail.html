@@ -230,6 +230,7 @@
                 </div>
                 <div class="order-meta">
                     {{ order.section_name or (order.section_no ~ '区') }}
+                    {% if order.distance_m %} ({{ (order.distance_m|float / 1000)|round(2) }}km){% endif %}
                     {% if player and player.affiliation %} / {{ player.affiliation }}{% endif %}
                     {% if order.memo %} / {{ order.memo }}{% endif %}
                 </div>
@@ -258,9 +259,13 @@
                         <label class="form-label">区間No</label>
                         <input type="number" class="form-control" name="section_no" placeholder="1" min="1" required>
                     </div>
-                    <div class="col-8">
+                    <div class="col-4">
                         <label class="form-label">区間名</label>
                         <input type="text" class="form-control" name="section_name" placeholder="例: 1区">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">距離(m)</label>
+                        <input type="number" class="form-control" name="distance_m" placeholder="3000" min="0">
                     </div>
                     <div class="col-12">
                         <label class="form-label">選手</label>

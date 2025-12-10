@@ -75,7 +75,7 @@ TEAM_RECORDS_EXPECTED_HEADERS = [
 
 RACE_ORDERS_EXPECTED_HEADERS = [
     'order_id', 'team_record_id', 'section_no', 'section_name',
-    'player_id', 'record_id', 'memo'
+    'player_id', 'record_id', 'memo', 'distance_m'
 ]
 
 MASTERS_EXPECTED_HEADERS = [
@@ -837,21 +837,21 @@ def get_race_orders_by_team_record(team_record_id):
 
     return sorted(records, key=lambda x: int(x.get('section_no', 0) or 0))
 
-def add_race_order(team_record_id, section_no, section_name, player_id, record_id='', memo=''):
+def add_race_order(team_record_id, section_no, section_name, player_id, record_id='', memo='', distance_m=''):
     """大会オーダーを追加"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('RaceOrders')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='RaceOrders', rows=500, cols=7)
+        worksheet = sh.add_worksheet(title='RaceOrders', rows=500, cols=8)
         worksheet.append_row(RACE_ORDERS_EXPECTED_HEADERS)
-        worksheet.append_row(['オーダーID', 'チーム記録ID', '区間番号', '区間名', '選手ID', '記録ID', 'メモ'])
+        worksheet.append_row(['オーダーID', 'チーム記録ID', '区間番号', '区間名', '選手ID', '記録ID', 'メモ', '距離(m)'])
 
     all_values = worksheet.get_all_values()
     new_id = f"ORD{len(all_values):03d}"
 
     worksheet.append_row([
-        new_id, team_record_id, section_no, section_name, player_id, record_id, memo
+        new_id, team_record_id, section_no, section_name, player_id, record_id, memo, distance_m
     ])
     clear_cache()
     return new_id
