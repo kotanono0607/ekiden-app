@@ -8,9 +8,54 @@
     .profile-header {
         text-align: center;
         padding: 20px 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #6B3A3A 0%, #8B4513 100%);
         color: white;
         margin: -1rem -12px 0 -12px;
+    }
+
+    /* フローティング記録追加ボタン */
+    .fab-add-record {
+        position: fixed;
+        bottom: 80px;
+        right: 16px;
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #6B3A3A 0%, #8B4513 100%);
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(107, 58, 58, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        z-index: 100;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .fab-add-record:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(107, 58, 58, 0.5);
+    }
+    .fab-add-record:active {
+        transform: scale(0.95);
+    }
+    .fab-add-record i {
+        font-size: 24px;
+    }
+    .fab-label {
+        position: absolute;
+        right: 64px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+    .fab-add-record:hover .fab-label {
+        opacity: 1;
     }
     .profile-avatar {
         width: 80px;
@@ -653,6 +698,12 @@
     </div>
     {% endif %}
 </div>
+
+<!-- フローティング記録追加ボタン -->
+<a href="/record/add?player_id={{ player.id }}" class="fab-add-record" title="記録を追加">
+    <span class="fab-label">記録追加</span>
+    <i class="bi bi-plus-lg"></i>
+</a>
 
 <!-- アクションボタン -->
 <div class="action-buttons">
