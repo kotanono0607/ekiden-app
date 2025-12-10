@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#6B3A3A">
+    <meta name="theme-color" content="#74b9ff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="/static/manifest.json">
@@ -15,8 +15,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #6B3A3A 0%, #8B4513 100%);
-            --primary-color: #6B3A3A;
+            --primary-gradient: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+            --primary-color: #74b9ff;
+            --primary-dark: #5a9fd4;
+            --accent-color: #a29bfe;
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
             /* Light theme (default) */
             --bg-color: #f5f7fa;
@@ -198,10 +200,10 @@
         }
         .bottom-nav-item:hover,
         .bottom-nav-item.active {
-            color: #6B3A3A;
+            color: #5a9fd4;
         }
         .bottom-nav-item.active {
-            background: rgba(107, 58, 58, 0.1);
+            background: rgba(116, 185, 255, 0.15);
         }
 
         /* Mobile Menu Overlay */
@@ -280,7 +282,7 @@
             font-size: 18px;
             width: 24px;
             text-align: center;
-            color: #6B3A3A;
+            color: #74b9ff;
         }
         .mobile-menu-divider {
             height: 1px;
@@ -402,7 +404,7 @@
             width: 18px;
             height: 18px;
             border: 2px solid #e2e8f0;
-            border-top-color: #6B3A3A;
+            border-top-color: #74b9ff;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -455,7 +457,7 @@
             color: var(--text-color);
         }
         [data-theme="dark"] .mobile-menu-item i {
-            color: #C8A2C8;
+            color: #a29bfe;
         }
         [data-theme="dark"] .mobile-menu-divider {
             background: var(--border-color);
@@ -469,7 +471,7 @@
         [data-theme="dark"] .form-control:focus,
         [data-theme="dark"] .form-select:focus {
             background-color: var(--input-bg);
-            border-color: #6B3A3A;
+            border-color: #74b9ff;
             color: var(--text-color);
         }
         [data-theme="dark"] .input-group-text {
@@ -522,7 +524,7 @@
             font-size: 18px;
             width: 24px;
             text-align: center;
-            color: #6B3A3A;
+            color: #74b9ff;
         }
         [data-theme="dark"] .theme-toggle i {
             color: #fbbf24;
@@ -549,7 +551,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         [data-theme="dark"] .theme-toggle-switch {
-            background: #6B3A3A;
+            background: #74b9ff;
         }
         [data-theme="dark"] .theme-toggle-switch::after {
             transform: translateX(20px);
@@ -596,13 +598,13 @@
             width: 40px;
             height: 40px;
             border: 3px solid #e2e8f0;
-            border-top-color: #6B3A3A;
+            border-top-color: #74b9ff;
             border-radius: 50%;
             animation: pageLoadSpin 0.8s linear infinite;
         }
         [data-theme="dark"] .page-loading-spinner {
             border-color: #334155;
-            border-top-color: #8B4513;
+            border-top-color: #a29bfe;
         }
         .page-loading-text {
             margin-top: 12px;
@@ -791,7 +793,7 @@
             // Update meta theme-color for mobile browsers
             const metaTheme = document.querySelector('meta[name="theme-color"]');
             if (metaTheme) {
-                metaTheme.setAttribute('content', theme === 'dark' ? '#1e293b' : '#6B3A3A');
+                metaTheme.setAttribute('content', theme === 'dark' ? '#1e293b' : '#74b9ff');
             }
         }
 
