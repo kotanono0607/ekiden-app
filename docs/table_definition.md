@@ -61,6 +61,9 @@
 | 13 | memo | メモ | String | | |
 | 14 | created_at | 作成日時 | Datetime | ○ | |
 | 15 | updated_at | 更新日時 | Datetime | ○ | |
+| 16 | player_name | 選手氏名 | String | | CSV参照。Players.name_sei + name_mei |
+| 17 | race_name | 大会名 | String | | CSV参照。Races.race_name |
+| 18 | race_type | 大会タイプ | String | | CSV参照。Races.type |
 
 ---
 
@@ -254,4 +257,5 @@
 
 | 日付 | 更新内容 |
 |------|----------|
+| 2024-12-10 | RecordsテーブルにCSV参照カラム（player_name, race_name, race_type）を追加。 |
 | 2024-12-09 | カレンダー、練習日誌、出欠機能を追加。Events, PracticeLogs, Attendanceシートを追加。 |
