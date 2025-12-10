@@ -143,16 +143,17 @@
     .record-item {
         display: flex;
         align-items: center;
-        padding: 12px 0;
+        padding: 10px 0;
         border-bottom: 1px solid var(--border-color);
+        gap: 8px;
     }
     .record-item:last-child {
         border-bottom: none;
     }
     .record-date {
-        font-size: 12px;
+        font-size: 10px;
         color: var(--text-muted);
-        width: 80px;
+        width: 58px;
         flex-shrink: 0;
     }
     .record-event {
@@ -162,18 +163,50 @@
         border-radius: 4px;
         font-size: 11px;
         font-weight: 600;
-        margin-right: 10px;
+        white-space: nowrap;
     }
     .record-time {
-        font-size: 15px;
+        font-size: 13px;
         font-weight: 600;
         font-family: 'SF Mono', 'Consolas', monospace;
         color: var(--text-color);
-        flex: 1;
+        width: 55px;
+        flex-shrink: 0;
+        text-align: right;
     }
     .record-edit {
         color: var(--text-muted);
-        padding: 4px 8px;
+        padding: 4px;
+        flex-shrink: 0;
+    }
+    .record-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow: hidden;
+    }
+    .record-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: nowrap;
+        overflow: hidden;
+    }
+    .record-rank {
+        font-size: 10px;
+        color: #E53E3E;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .record-memo {
+        font-size: 10px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100px;
     }
 
     .action-buttons {
@@ -481,29 +514,24 @@
 
     <!-- すべての記録 -->
     <div class="record-panel active" data-panel="all">
-        <div class="section-body" style="padding: 8px 16px;">
+        <div class="section-body" style="padding: 8px 12px;">
             {% for record in records %}
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center;">
-                        {% if record.race_type == '駅伝' %}
-                        <span class="type-badge ekiden">駅伝</span>
-                        {% elif record.race_type == 'トラック' %}
-                        <span class="type-badge track">トラック</span>
-                        {% elif record.race_type == 'ロード' %}
-                        <span class="type-badge road">ロード</span>
-                        {% endif %}
-                        <span class="record-event" style="margin-right: 0;">{{ record.event or record.section or '-' }}</span>
-                    </div>
-                    {% if record.race_name %}
-                    <div class="record-race-name">{{ record.race_name }}</div>
+                <div class="record-main">
+                    {% if record.race_type == '駅伝' %}
+                    <span class="type-badge ekiden">駅伝</span>
+                    {% elif record.race_type == 'トラック' %}
+                    <span class="type-badge track">トラック</span>
+                    {% elif record.race_type == 'ロード' %}
+                    <span class="type-badge road">ロード</span>
                     {% endif %}
+                    <span class="record-event">{{ record.event or record.section or '-' }}</span>
+                    {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
+                    {% if record.memo %}<span class="record-memo">{{ record.memo }}</span>{% endif %}
                 </div>
                 <div class="record-time">{{ record.time }}</div>
-                <a href="/record/{{ record.row_index }}/edit" class="record-edit">
-                    <i class="bi bi-pencil"></i>
-                </a>
+                <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
         </div>
@@ -511,29 +539,21 @@
 
     <!-- 駅伝記録 -->
     <div class="record-panel" data-panel="駅伝">
-        <div class="section-body" style="padding: 8px 16px;">
+        <div class="section-body" style="padding: 8px 12px;">
             {% set ekiden_records = records|selectattr('race_type', 'equalto', '駅伝')|list %}
             {% if ekiden_records %}
             {% for record in ekiden_records %}
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center;">
-                        {% if record.section %}
-                        <span class="record-section">{{ record.section }}</span>
-                        {% endif %}
-                        {% if record.distance_m %}
-                        <span style="font-size: 11px; color: var(--text-muted);">（{{ (record.distance_m|float / 1000)|round(1) }}km）</span>
-                        {% endif %}
-                    </div>
-                    {% if record.race_name %}
-                    <div class="record-race-name">{{ record.race_name }}</div>
-                    {% endif %}
+                <div class="record-main">
+                    {% if record.section %}<span class="record-section">{{ record.section }}</span>{% endif %}
+                    {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
+                    {% if record.rank_in_section %}<span class="record-rank">区間{{ record.rank_in_section }}位</span>{% endif %}
+                    {% if record.race_name %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.race_name }}</span>{% endif %}
+                    {% if record.memo %}<span class="record-memo">{{ record.memo }}</span>{% endif %}
                 </div>
                 <div class="record-time">{{ record.time }}</div>
-                <a href="/record/{{ record.row_index }}/edit" class="record-edit">
-                    <i class="bi bi-pencil"></i>
-                </a>
+                <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
             {% else %}
@@ -546,24 +566,20 @@
 
     <!-- トラック記録 -->
     <div class="record-panel" data-panel="トラック">
-        <div class="section-body" style="padding: 8px 16px;">
+        <div class="section-body" style="padding: 8px 12px;">
             {% set track_records = records|selectattr('race_type', 'equalto', 'トラック')|list %}
             {% if track_records %}
             {% for record in track_records %}
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
-                <div style="flex: 1;">
-                    <div>
-                        <span class="record-event" style="margin-right: 0;">{{ record.event or '-' }}</span>
-                    </div>
-                    {% if record.race_name %}
-                    <div class="record-race-name">{{ record.race_name }}</div>
-                    {% endif %}
+                <div class="record-main">
+                    <span class="record-event">{{ record.event or '-' }}</span>
+                    {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
+                    {% if record.race_name %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.race_name }}</span>{% endif %}
+                    {% if record.memo %}<span class="record-memo">{{ record.memo }}</span>{% endif %}
                 </div>
                 <div class="record-time">{{ record.time }}</div>
-                <a href="/record/{{ record.row_index }}/edit" class="record-edit">
-                    <i class="bi bi-pencil"></i>
-                </a>
+                <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
             {% else %}
@@ -576,27 +592,21 @@
 
     <!-- ロード記録 -->
     <div class="record-panel" data-panel="ロード">
-        <div class="section-body" style="padding: 8px 16px;">
+        <div class="section-body" style="padding: 8px 12px;">
             {% set road_records = records|selectattr('race_type', 'equalto', 'ロード')|list %}
             {% if road_records %}
             {% for record in road_records %}
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
-                <div style="flex: 1;">
-                    <div>
-                        <span class="record-event" style="margin-right: 0;">{{ record.event or '-' }}</span>
-                        {% if record.distance_m %}
-                        <span style="font-size: 11px; color: var(--text-muted);">（{{ (record.distance_m|float / 1000)|round(1) }}km）</span>
-                        {% endif %}
-                    </div>
-                    {% if record.race_name %}
-                    <div class="record-race-name">{{ record.race_name }}</div>
-                    {% endif %}
+                <div class="record-main">
+                    <span class="record-event">{{ record.event or '-' }}</span>
+                    {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
+                    {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
+                    {% if record.race_name %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.race_name }}</span>{% endif %}
+                    {% if record.memo %}<span class="record-memo">{{ record.memo }}</span>{% endif %}
                 </div>
                 <div class="record-time">{{ record.time }}</div>
-                <a href="/record/{{ record.row_index }}/edit" class="record-edit">
-                    <i class="bi bi-pencil"></i>
-                </a>
+                <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
             {% else %}
