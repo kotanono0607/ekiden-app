@@ -598,6 +598,48 @@ def get_all_races():
     _set_cache('all_races', records)
     return records
 
+def get_races_from_records():
+    """Recordsテーブルから大会別に集計したデータを取得"""
+    records = get_all_records()
+
+    # race_nameでグルーピング
+    race_dict = {}
+    for record in records:
+        race_name = record.get('race_name', '').strip()
+        if not race_name:
+            continue
+
+        if race_name not in race_dict:
+            race_dict[race_name] = {
+                'race_name': race_name,
+                'race_type': record.get('race_type', ''),
+                'date': record.get('date', ''),
+                'records': [],
+                'player_names': set()
+            }
+
+        race_dict[race_name]['records'].append(record)
+        player_name = record.get('player_name', '')
+        if player_name:
+            race_dict[race_name]['player_names'].add(player_name)
+
+    # リストに変換し、日付でソート（新しい順）
+    races = []
+    for race_name, data in race_dict.items():
+        races.append({
+            'race_name': race_name,
+            'race_type': data['race_type'],
+            'date': data['date'],
+            'record_count': len(data['records']),
+            'player_count': len(data['player_names']),
+            'player_names': list(data['player_names']),
+            'records': data['records']
+        })
+
+    # 日付で降順ソート
+    races.sort(key=lambda x: x['date'], reverse=True)
+    return races
+
 def get_race_by_id(race_id):
     """IDで大会を取得"""
     races = get_all_races()

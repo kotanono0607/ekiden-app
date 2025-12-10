@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}大会一覧 - 駅伝アプリ{% endblock %}
+{% block title %}レース一覧 - 南陽東置賜{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -29,62 +29,55 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
     .race-name {
         font-weight: 600;
         font-size: 15px;
         color: var(--text-color);
     }
-    .race-short {
-        font-size: 12px;
-        color: var(--text-muted);
-    }
     .race-badges {
         display: flex;
         gap: 4px;
+        flex-shrink: 0;
+    }
+    .type-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+    .type-badge.ekiden {
+        background: #ED8936;
+        color: white;
+    }
+    .type-badge.track {
+        background: #3182CE;
+        color: white;
+    }
+    .type-badge.road {
+        background: #38A169;
+        color: white;
     }
     .race-meta {
         display: flex;
         gap: 12px;
-        font-size: 13px;
+        font-size: 12px;
         color: var(--text-muted);
-        flex-wrap: wrap;
+        margin-bottom: 8px;
     }
     .race-meta i {
         margin-right: 4px;
     }
-    .race-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid var(--border-color);
+    .race-players {
+        font-size: 11px;
+        color: var(--text-muted);
+        line-height: 1.5;
     }
-    .race-actions .btn {
-        flex: 1;
-        font-size: 13px;
-        padding: 6px 12px;
-    }
-    .fab-button {
-        position: fixed;
-        bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-        right: 20px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        text-decoration: none;
-        z-index: 1000;
-    }
-    .fab-button:hover {
-        color: white;
+    .race-players-label {
+        font-weight: 600;
+        margin-right: 4px;
     }
     .empty-state {
         text-align: center;
@@ -96,83 +89,127 @@
         margin-bottom: 12px;
         display: block;
     }
-    @media (min-width: 768px) {
-        .fab-button {
-            display: none;
-        }
+    .race-count {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-left: 8px;
+    }
+
+    /* タイプ別フィルター */
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+    .filter-tab {
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 600;
+        background: var(--bg-color);
+        color: var(--text-muted);
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+    .filter-tab:hover {
+        background: var(--border-color);
+    }
+    .filter-tab.active {
+        background: #3182ce;
+        color: white;
+    }
+    .filter-tab .count {
+        margin-left: 4px;
+        opacity: 0.8;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h5><i class="bi bi-trophy-fill text-warning"></i> 大会一覧</h5>
-    <a href="/race/add" class="btn btn-primary btn-sm d-none d-md-inline-block">
-        <i class="bi bi-plus-circle"></i> 大会追加
-    </a>
+    <h5><i class="bi bi-trophy-fill text-warning"></i> レース一覧</h5>
+    <span class="race-count">{{ races|length }}件</span>
+</div>
+
+<!-- フィルタータブ -->
+<div class="filter-tabs">
+    <button class="filter-tab active" data-filter="all">
+        すべて<span class="count">({{ races|length }})</span>
+    </button>
+    <button class="filter-tab" data-filter="駅伝">
+        🏃 駅伝<span class="count">({{ races|selectattr('race_type', 'equalto', '駅伝')|list|length }})</span>
+    </button>
+    <button class="filter-tab" data-filter="トラック">
+        🏟️ トラック<span class="count">({{ races|selectattr('race_type', 'equalto', 'トラック')|list|length }})</span>
+    </button>
+    <button class="filter-tab" data-filter="ロード">
+        🛣️ ロード<span class="count">({{ races|selectattr('race_type', 'equalto', 'ロード')|list|length }})</span>
+    </button>
 </div>
 
 <div class="card">
     {% for race in races %}
-    <div class="race-card">
+    <div class="race-card" data-type="{{ race.race_type }}">
         <div class="race-header">
-            <div>
-                <div class="race-name">{{ race.race_name }}</div>
-                {% if race.short_name %}
-                <div class="race-short">{{ race.short_name }}</div>
-                {% endif %}
-            </div>
+            <div class="race-name">{{ race.race_name }}</div>
             <div class="race-badges">
-                {% if race.type == 'ekiden' %}
-                <span class="badge bg-danger">駅伝</span>
-                {% elif race.type == 'track' %}
-                <span class="badge bg-primary">トラック</span>
-                {% elif race.type == 'road' %}
-                <span class="badge bg-success">ロード</span>
-                {% elif race.type %}
-                <span class="badge bg-secondary">{{ race.type }}</span>
-                {% endif %}
-                {% if race.importance == 'A' %}
-                <span class="badge bg-danger">A</span>
-                {% elif race.importance == 'B' %}
-                <span class="badge bg-warning text-dark">B</span>
-                {% elif race.importance == 'C' %}
-                <span class="badge bg-info">C</span>
+                {% if race.race_type == '駅伝' %}
+                <span class="type-badge ekiden">駅伝</span>
+                {% elif race.race_type == 'トラック' %}
+                <span class="type-badge track">トラック</span>
+                {% elif race.race_type == 'ロード' %}
+                <span class="type-badge road">ロード</span>
+                {% elif race.race_type %}
+                <span class="type-badge" style="background: #718096; color: white;">{{ race.race_type }}</span>
                 {% endif %}
             </div>
         </div>
         <div class="race-meta">
             <span><i class="bi bi-calendar3"></i>{{ race.date }}</span>
-            {% if race.location %}
-            <span><i class="bi bi-geo-alt"></i>{{ race.location }}</span>
-            {% endif %}
-            {% if race.section_count %}
-            <span><i class="bi bi-signpost-split"></i>{{ race.section_count }}区間</span>
-            {% endif %}
+            <span><i class="bi bi-people"></i>{{ race.player_count }}名出場</span>
+            <span><i class="bi bi-list-ol"></i>{{ race.record_count }}件</span>
         </div>
-        <div class="race-actions">
-            <a href="/race/{{ race.race_id }}/edit" class="btn btn-outline-secondary">
-                <i class="bi bi-pencil"></i> 編集
-            </a>
-            <form action="/race/{{ race.race_id }}/delete" method="POST" style="flex:1;" onsubmit="return confirm('削除しますか？');">
-                <button type="submit" class="btn btn-outline-danger w-100">
-                    <i class="bi bi-trash"></i> 削除
-                </button>
-            </form>
+        {% if race.player_names %}
+        <div class="race-players">
+            <span class="race-players-label">出場:</span>
+            {{ race.player_names|join(', ') }}
         </div>
+        {% endif %}
     </div>
     {% else %}
     <div class="empty-state">
         <i class="bi bi-trophy"></i>
-        <p class="mb-0">大会が登録されていません</p>
-        <a href="/race/add" class="btn btn-primary btn-sm mt-3">
-            <i class="bi bi-plus-circle"></i> 大会を追加
-        </a>
+        <p class="mb-0">レース記録がありません</p>
+        <p class="text-muted mt-2" style="font-size: 13px;">選手の記録を追加すると、ここに表示されます</p>
     </div>
     {% endfor %}
 </div>
+{% endblock %}
 
-<a href="/race/add" class="fab-button d-md-none">
-    <i class="bi bi-plus-lg"></i>
-</a>
+{% block extra_js %}
+<script>
+// フィルター機能
+document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const filter = this.dataset.filter;
+
+        // タブのアクティブ状態を切り替え
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+
+        // カードのフィルタリング
+        document.querySelectorAll('.race-card').forEach(card => {
+            if (filter === 'all' || card.dataset.type === filter) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -356,14 +356,13 @@ def export_records():
 
 @app.route("/races")
 def races():
-    """大会一覧画面"""
+    """大会一覧画面（Recordsから集計）"""
     try:
-        race_list = sheet_api.get_all_races()
-        race_types = sheet_api.get_master_choices('race_type_list')
-        return render_template('races.html', races=race_list, race_types=race_types)
+        race_list = sheet_api.get_races_from_records()
+        return render_template('races.html', races=race_list)
     except Exception as e:
         flash(f'エラーが発生しました: {str(e)}', 'danger')
-        return render_template('races.html', races=[], race_types=[])
+        return render_template('races.html', races=[])
 
 @app.route("/race/add", methods=['GET', 'POST'])
 def race_add():
