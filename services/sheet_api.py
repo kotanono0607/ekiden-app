@@ -607,6 +607,10 @@ def get_races_from_records():
     """Recordsテーブルから大会別に集計したデータを取得"""
     records = get_all_records()
 
+    # 選手IDから名前を引くための辞書を作成
+    players = get_all_players()
+    player_dict = {str(p.get('id')): p.get('name', '') for p in players}
+
     # race_nameでグルーピング
     race_dict = {}
     for record in records:
@@ -624,7 +628,11 @@ def get_races_from_records():
             }
 
         race_dict[race_name]['records'].append(record)
+        # player_nameがなければplayer_idから取得
         player_name = record.get('player_name', '')
+        if not player_name:
+            player_id = str(record.get('player_id', ''))
+            player_name = player_dict.get(player_id, '')
         if player_name:
             race_dict[race_name]['player_names'].add(player_name)
 
