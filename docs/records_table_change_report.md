@@ -14,6 +14,7 @@ Recordsテーブルに対して、以下の変更を実施しました。
 |------|--------|--------|
 | カラム数 | 15 | 19 |
 | 種目/区間 | 1カラム（section） | 2カラム（event, section） |
+| 距離単位 | distance_km（キロメートル） | distance_m（メートル） |
 
 ---
 
@@ -46,6 +47,27 @@ Recordsテーブルに対して、以下の変更を実施しました。
 
 **理由**: スプレッドシート上での視認性向上、およびJOINなしでのデータ確認を可能にするため。
 
+### 2.3 距離単位の変更
+
+**変更前**
+```
+| 7 | distance_km | 距離(km) | Number | | |
+```
+
+**変更後**
+```
+| 7 | distance_m | 距離(m) | Number | | 例: 10000, 5000, 9600 |
+```
+
+**理由**: 陸上競技では距離をメートル単位で表記するのが一般的であり、入力の直感性を向上させるため。
+
+| 種目/区間 | 入力値(m) |
+|-----------|-----------|
+| 10000m | 10000 |
+| 5000m | 5000 |
+| 1区（9.6km） | 9600 |
+| ハーフ | 21097 |
+
 ---
 
 ## 3. 変更後のカラム一覧
@@ -58,7 +80,7 @@ Recordsテーブルに対して、以下の変更を実施しました。
 | 4 | date | 日付 | Date | ○ |
 | 5 | **event** | **種目** | String | |
 | 6 | section | 区間 | String | |
-| 7 | distance_km | 距離(km) | Number | |
+| 7 | **distance_m** | **距離(m)** | Number | |
 | 8 | time | タイム | String | ○ |
 | 9 | time_sec | タイム(秒) | Number | |
 | 10 | is_pb | 自己ベスト | Boolean | |
@@ -87,7 +109,7 @@ Recordsテーブルに対して、以下の変更を実施しました。
 
 2. **ヘッダー行の正しい順序**:
 ```
-record_id | player_id | race_id | date | event | section | distance_km | time | time_sec | is_pb | is_section_record | split_times_json | rank_in_section | memo | created_at | updated_at | player_name | race_name | race_type
+record_id | player_id | race_id | date | event | section | distance_m | time | time_sec | is_pb | is_section_record | split_times_json | rank_in_section | memo | created_at | updated_at | player_name | race_name | race_type
 ```
 
 ---

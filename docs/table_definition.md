@@ -52,7 +52,7 @@
 | 4 | date | 日付 | Date | ○ | YYYY-MM-DD形式 |
 | 5 | event | 種目 | String | | 例: 5000m, 3000m（トラック競技用） |
 | 6 | section | 区間 | String | | 例: 1区, 2区, 7区（駅伝用） |
-| 7 | distance_km | 距離(km) | Number | | |
+| 7 | distance_m | 距離(m) | Number | | 例: 10000, 5000, 9600 |
 | 8 | time | タイム | String | ○ | MM:SS または H:MM:SS形式 |
 | 9 | time_sec | タイム(秒) | Number | | 秒換算値 |
 | 10 | is_pb | 自己ベスト | Boolean | | TRUE/FALSE |
@@ -258,5 +258,5 @@
 
 | 日付 | 更新内容 |
 |------|----------|
-| 2024-12-10 | Recordsテーブル: eventカラム追加（種目用）、sectionを区間専用に分離。CSV参照カラム追加。 |
+| 2024-12-10 | Recordsテーブル: eventカラム追加、section分離、distance_km→distance_m変更、CSV参照カラム追加。 |
 | 2024-12-09 | カレンダー、練習日誌、出欠機能を追加。Events, PracticeLogs, Attendanceシートを追加。 |
