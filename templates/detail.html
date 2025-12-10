@@ -234,6 +234,82 @@
         color: var(--text-muted);
     }
 
+    /* タイプ別タブ */
+    .record-tabs {
+        display: flex;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 0;
+        overflow-x: auto;
+    }
+    .record-tab {
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+    .record-tab:hover {
+        color: var(--text-color);
+    }
+    .record-tab.active {
+        color: #3182ce;
+        border-bottom-color: #3182ce;
+    }
+    .record-tab .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: var(--bg-color);
+        margin-left: 4px;
+    }
+    .record-tab.active .badge {
+        background: #3182ce;
+        color: white;
+    }
+    .record-panel {
+        display: none;
+    }
+    .record-panel.active {
+        display: block;
+    }
+
+    /* タイプ別バッジカラー */
+    .type-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        margin-right: 6px;
+    }
+    .type-badge.ekiden {
+        background: #ED8936;
+        color: white;
+    }
+    .type-badge.track {
+        background: #3182CE;
+        color: white;
+    }
+    .type-badge.road {
+        background: #38A169;
+        color: white;
+    }
+
+    .record-race-name {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+    .record-section {
+        font-size: 11px;
+        color: #ED8936;
+        font-weight: 600;
+    }
+
     @media (min-width: 768px) {
         .profile-header {
             margin: -1rem -12px 0 -12px;
@@ -386,25 +462,158 @@
     <div class="section-header">
         <i class="bi bi-list-ul text-primary"></i> 記録一覧
     </div>
-    <div class="section-body" style="padding: 8px 16px;">
-        {% if records %}
-        {% for record in records %}
-        <div class="record-item">
-            <div class="record-date">{{ record.date }}</div>
-            <span class="record-event">{{ record.event }}</span>
-            <div class="record-time">{{ record.time }}</div>
-            <a href="/record/{{ record.row_index }}/edit" class="record-edit">
-                <i class="bi bi-pencil"></i>
-            </a>
+    {% if records %}
+    <!-- タブナビゲーション -->
+    <div class="record-tabs">
+        <div class="record-tab active" data-type="all">
+            すべて<span class="badge">{{ records|length }}</span>
         </div>
-        {% endfor %}
-        {% else %}
+        <div class="record-tab" data-type="駅伝">
+            🏃 駅伝<span class="badge">{{ records|selectattr('race_type', 'equalto', '駅伝')|list|length }}</span>
+        </div>
+        <div class="record-tab" data-type="トラック">
+            🏟️ トラック<span class="badge">{{ records|selectattr('race_type', 'equalto', 'トラック')|list|length }}</span>
+        </div>
+        <div class="record-tab" data-type="ロード">
+            🛣️ ロード<span class="badge">{{ records|selectattr('race_type', 'equalto', 'ロード')|list|length }}</span>
+        </div>
+    </div>
+
+    <!-- すべての記録 -->
+    <div class="record-panel active" data-panel="all">
+        <div class="section-body" style="padding: 8px 16px;">
+            {% for record in records %}
+            <div class="record-item">
+                <div class="record-date">{{ record.date }}</div>
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center;">
+                        {% if record.race_type == '駅伝' %}
+                        <span class="type-badge ekiden">駅伝</span>
+                        {% elif record.race_type == 'トラック' %}
+                        <span class="type-badge track">トラック</span>
+                        {% elif record.race_type == 'ロード' %}
+                        <span class="type-badge road">ロード</span>
+                        {% endif %}
+                        <span class="record-event" style="margin-right: 0;">{{ record.event or record.section or '-' }}</span>
+                    </div>
+                    {% if record.race_name %}
+                    <div class="record-race-name">{{ record.race_name }}</div>
+                    {% endif %}
+                </div>
+                <div class="record-time">{{ record.time }}</div>
+                <a href="/record/{{ record.row_index }}/edit" class="record-edit">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 駅伝記録 -->
+    <div class="record-panel" data-panel="駅伝">
+        <div class="section-body" style="padding: 8px 16px;">
+            {% set ekiden_records = records|selectattr('race_type', 'equalto', '駅伝')|list %}
+            {% if ekiden_records %}
+            {% for record in ekiden_records %}
+            <div class="record-item">
+                <div class="record-date">{{ record.date }}</div>
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center;">
+                        {% if record.section %}
+                        <span class="record-section">{{ record.section }}</span>
+                        {% endif %}
+                        {% if record.distance_m %}
+                        <span style="font-size: 11px; color: var(--text-muted);">（{{ (record.distance_m|float / 1000)|round(1) }}km）</span>
+                        {% endif %}
+                    </div>
+                    {% if record.race_name %}
+                    <div class="record-race-name">{{ record.race_name }}</div>
+                    {% endif %}
+                </div>
+                <div class="record-time">{{ record.time }}</div>
+                <a href="/record/{{ record.row_index }}/edit" class="record-edit">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-records">
+                <p class="mb-0">駅伝の記録がありません</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- トラック記録 -->
+    <div class="record-panel" data-panel="トラック">
+        <div class="section-body" style="padding: 8px 16px;">
+            {% set track_records = records|selectattr('race_type', 'equalto', 'トラック')|list %}
+            {% if track_records %}
+            {% for record in track_records %}
+            <div class="record-item">
+                <div class="record-date">{{ record.date }}</div>
+                <div style="flex: 1;">
+                    <div>
+                        <span class="record-event" style="margin-right: 0;">{{ record.event or '-' }}</span>
+                    </div>
+                    {% if record.race_name %}
+                    <div class="record-race-name">{{ record.race_name }}</div>
+                    {% endif %}
+                </div>
+                <div class="record-time">{{ record.time }}</div>
+                <a href="/record/{{ record.row_index }}/edit" class="record-edit">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-records">
+                <p class="mb-0">トラックの記録がありません</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ロード記録 -->
+    <div class="record-panel" data-panel="ロード">
+        <div class="section-body" style="padding: 8px 16px;">
+            {% set road_records = records|selectattr('race_type', 'equalto', 'ロード')|list %}
+            {% if road_records %}
+            {% for record in road_records %}
+            <div class="record-item">
+                <div class="record-date">{{ record.date }}</div>
+                <div style="flex: 1;">
+                    <div>
+                        <span class="record-event" style="margin-right: 0;">{{ record.event or '-' }}</span>
+                        {% if record.distance_m %}
+                        <span style="font-size: 11px; color: var(--text-muted);">（{{ (record.distance_m|float / 1000)|round(1) }}km）</span>
+                        {% endif %}
+                    </div>
+                    {% if record.race_name %}
+                    <div class="record-race-name">{{ record.race_name }}</div>
+                    {% endif %}
+                </div>
+                <div class="record-time">{{ record.time }}</div>
+                <a href="/record/{{ record.row_index }}/edit" class="record-edit">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-records">
+                <p class="mb-0">ロードの記録がありません</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="section-body">
         <div class="empty-records">
             <i class="bi bi-inbox" style="font-size: 32px;"></i>
             <p class="mb-0 mt-2">記録がありません</p>
         </div>
-        {% endif %}
     </div>
+    {% endif %}
 </div>
 
 <!-- アクションボタン -->
@@ -423,6 +632,25 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const records = {{ records_json|safe }};
+
+// タブ切り替え処理
+document.querySelectorAll('.record-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const type = this.dataset.type;
+
+        // タブのアクティブ状態を切り替え
+        document.querySelectorAll('.record-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+
+        // パネルの表示を切り替え
+        document.querySelectorAll('.record-panel').forEach(panel => {
+            panel.classList.remove('active');
+            if (panel.dataset.panel === type) {
+                panel.classList.add('active');
+            }
+        });
+    });
+});
 </script>
 {% endif %}
 {% endblock %}
