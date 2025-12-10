@@ -170,9 +170,13 @@
         font-weight: 600;
         font-family: 'SF Mono', 'Consolas', monospace;
         color: var(--text-color);
-        width: 55px;
+        width: 50px;
         flex-shrink: 0;
         text-align: right;
+    }
+    .record-time.long {
+        font-size: 10px;
+        width: 58px;
     }
     .record-edit {
         color: var(--text-muted);
@@ -182,10 +186,20 @@
     .record-main {
         flex: 1;
         min-width: 0;
+        overflow: hidden;
+    }
+    .record-main-row {
         display: flex;
         align-items: center;
         gap: 6px;
+    }
+    .record-sub {
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-top: 2px;
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
     }
     .record-info {
         display: flex;
@@ -519,18 +533,23 @@
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
                 <div class="record-main">
-                    {% if record.race_type == '駅伝' %}
-                    <span class="type-badge ekiden">駅伝</span>
-                    {% elif record.race_type == 'トラック' %}
-                    <span class="type-badge track">トラック</span>
-                    {% elif record.race_type == 'ロード' %}
-                    <span class="type-badge road">ロード</span>
+                    <div class="record-main-row">
+                        {% if record.race_type == '駅伝' %}
+                        <span class="type-badge ekiden">駅伝</span>
+                        {% elif record.race_type == 'トラック' %}
+                        <span class="type-badge track">トラック</span>
+                        {% elif record.race_type == 'ロード' %}
+                        <span class="type-badge road">ロード</span>
+                        {% endif %}
+                        <span class="record-event">{{ record.event or record.section or '-' }}</span>
+                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
+                        {% if record.rank_in_section %}<span class="record-rank">{% if record.race_type == '駅伝' %}区間{% endif %}{{ record.rank_in_section }}位</span>{% endif %}
+                    </div>
+                    {% if record.race_name or record.memo %}
+                    <div class="record-sub">{{ record.race_name }}{% if record.race_name and record.memo %} / {% endif %}{{ record.memo }}</div>
                     {% endif %}
-                    <span class="record-event">{{ record.event or record.section or '-' }}</span>
-                    {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
-                    {% if record.memo %}<span class="record-memo">{{ record.memo }}</span>{% endif %}
                 </div>
-                <div class="record-time">{{ record.time }}</div>
+                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
@@ -546,13 +565,16 @@
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
                 <div class="record-main">
-                    {% if record.section %}<span class="record-section">{{ record.section }}</span>{% endif %}
-                    {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
-                    {% if record.rank_in_section %}<span class="record-rank">区間{{ record.rank_in_section }}位</span>{% endif %}
-                    {% if record.race_name %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.race_name }}</span>{% endif %}
-                    {% if record.memo %}<span class="record-memo">{{ record.memo }}</span>{% endif %}
+                    <div class="record-main-row">
+                        {% if record.section %}<span class="record-section">{{ record.section }}</span>{% endif %}
+                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
+                        {% if record.rank_in_section %}<span class="record-rank">区間{{ record.rank_in_section }}位</span>{% endif %}
+                    </div>
+                    {% if record.race_name or record.memo %}
+                    <div class="record-sub">{{ record.race_name }}{% if record.race_name and record.memo %} / {% endif %}{{ record.memo }}</div>
+                    {% endif %}
                 </div>
-                <div class="record-time">{{ record.time }}</div>
+                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
@@ -573,12 +595,15 @@
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
                 <div class="record-main">
-                    <span class="record-event">{{ record.event or '-' }}</span>
-                    {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
-                    {% if record.race_name %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.race_name }}</span>{% endif %}
-                    {% if record.memo %}<span class="record-memo">{{ record.memo }}</span>{% endif %}
+                    <div class="record-main-row">
+                        <span class="record-event">{{ record.event or '-' }}</span>
+                        {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
+                    </div>
+                    {% if record.race_name or record.memo %}
+                    <div class="record-sub">{{ record.race_name }}{% if record.race_name and record.memo %} / {% endif %}{{ record.memo }}</div>
+                    {% endif %}
                 </div>
-                <div class="record-time">{{ record.time }}</div>
+                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
@@ -599,13 +624,16 @@
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
                 <div class="record-main">
-                    <span class="record-event">{{ record.event or '-' }}</span>
-                    {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
-                    {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
-                    {% if record.race_name %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.race_name }}</span>{% endif %}
-                    {% if record.memo %}<span class="record-memo">{{ record.memo }}</span>{% endif %}
+                    <div class="record-main-row">
+                        <span class="record-event">{{ record.event or '-' }}</span>
+                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
+                        {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
+                    </div>
+                    {% if record.race_name or record.memo %}
+                    <div class="record-sub">{{ record.race_name }}{% if record.race_name and record.memo %} / {% endif %}{{ record.memo }}</div>
+                    {% endif %}
                 </div>
-                <div class="record-time">{{ record.time }}</div>
+                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
