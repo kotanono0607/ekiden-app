@@ -55,7 +55,8 @@ PLAYER_EXPECTED_HEADERS = [
 RECORD_EXPECTED_HEADERS = [
     'record_id', 'player_id', 'race_id', 'date', 'section',
     'distance_km', 'time', 'time_sec', 'is_pb', 'is_section_record',
-    'split_times_json', 'rank_in_section', 'memo', 'created_at', 'updated_at'
+    'split_times_json', 'rank_in_section', 'memo', 'created_at', 'updated_at',
+    'player_name', 'race_name', 'race_type'  # CSV参照用カラム
 ]
 
 RACES_EXPECTED_HEADERS = [
