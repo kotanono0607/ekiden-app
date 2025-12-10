@@ -50,20 +50,21 @@
 | 2 | player_id | 選手ID | String | ○ | FK。Players.id を参照 |
 | 3 | race_id | 大会ID | String | | FK。Races.race_id を参照 |
 | 4 | date | 日付 | Date | ○ | YYYY-MM-DD形式 |
-| 5 | section | 区間/種目 | String | ○ | 例: 5000m, 1区 |
-| 6 | distance_km | 距離(km) | Number | | |
-| 7 | time | タイム | String | ○ | MM:SS または H:MM:SS形式 |
-| 8 | time_sec | タイム(秒) | Number | | 秒換算値 |
-| 9 | is_pb | 自己ベスト | Boolean | | TRUE/FALSE |
-| 10 | is_section_record | 区間記録 | Boolean | | TRUE/FALSE |
-| 11 | split_times_json | スプリットタイム | String | | JSON形式 |
-| 12 | rank_in_section | 区間順位 | Number | | |
-| 13 | memo | メモ | String | | |
-| 14 | created_at | 作成日時 | Datetime | ○ | |
-| 15 | updated_at | 更新日時 | Datetime | ○ | |
-| 16 | player_name | 選手氏名 | String | | CSV参照。Players.name_sei + name_mei |
-| 17 | race_name | 大会名 | String | | CSV参照。Races.race_name |
-| 18 | race_type | 大会タイプ | String | | CSV参照。Races.type |
+| 5 | event | 種目 | String | | 例: 5000m, 3000m（トラック競技用） |
+| 6 | section | 区間 | String | | 例: 1区, 2区, 7区（駅伝用） |
+| 7 | distance_km | 距離(km) | Number | | |
+| 8 | time | タイム | String | ○ | MM:SS または H:MM:SS形式 |
+| 9 | time_sec | タイム(秒) | Number | | 秒換算値 |
+| 10 | is_pb | 自己ベスト | Boolean | | TRUE/FALSE |
+| 11 | is_section_record | 区間記録 | Boolean | | TRUE/FALSE |
+| 12 | split_times_json | スプリットタイム | String | | JSON形式 |
+| 13 | rank_in_section | 区間順位 | Number | | |
+| 14 | memo | メモ | String | | |
+| 15 | created_at | 作成日時 | Datetime | ○ | |
+| 16 | updated_at | 更新日時 | Datetime | ○ | |
+| 17 | player_name | 選手氏名 | String | | CSV参照。Players.name_sei + name_mei |
+| 18 | race_name | 大会名 | String | | CSV参照。Races.race_name |
+| 19 | race_type | 大会タイプ | String | | CSV参照。Races.type |
 
 ---
 
@@ -257,5 +258,5 @@
 
 | 日付 | 更新内容 |
 |------|----------|
-| 2024-12-10 | RecordsテーブルにCSV参照カラム（player_name, race_name, race_type）を追加。 |
+| 2024-12-10 | Recordsテーブル: eventカラム追加（種目用）、sectionを区間専用に分離。CSV参照カラム追加。 |
 | 2024-12-09 | カレンダー、練習日誌、出欠機能を追加。Events, PracticeLogs, Attendanceシートを追加。 |
