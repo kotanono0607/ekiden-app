@@ -165,8 +165,29 @@ def record_add():
             memo = request.form.get('memo', '')
             race_id = request.form.get('race_id', '')
             distance_km = request.form.get('distance_km', '')
+            race_type = request.form.get('race_type', '')
+            race_name = request.form.get('race_name', '')
+            section = request.form.get('section', '')
+            rank_in_section = request.form.get('rank_in_section', '')
 
-            sheet_api.add_record(player_id, event, time, memo, date, race_id, distance_km)
+            # 選手名を取得
+            player = sheet_api.get_player_by_id(player_id)
+            player_name = player.get('name', '') if player else ''
+
+            sheet_api.add_record(
+                player_id=player_id,
+                event=event,
+                time=time,
+                memo=memo,
+                date=date,
+                race_id=race_id,
+                distance_km=distance_km,
+                section=section,
+                rank_in_section=rank_in_section,
+                player_name=player_name,
+                race_name=race_name,
+                race_type=race_type
+            )
             flash('記録を登録しました', 'success')
             return redirect(url_for('player_detail', player_id=player_id))
         except Exception as e:
@@ -199,8 +220,30 @@ def record_edit(row_index):
             memo = request.form.get('memo', '')
             race_id = request.form.get('race_id', '')
             distance_km = request.form.get('distance_km', '')
+            race_type = request.form.get('race_type', '')
+            race_name = request.form.get('race_name', '')
+            section = request.form.get('section', '')
+            rank_in_section = request.form.get('rank_in_section', '')
 
-            sheet_api.update_record(row_index, date, player_id, event, time, memo, race_id, distance_km)
+            # 選手名を取得
+            player = sheet_api.get_player_by_id(player_id)
+            player_name = player.get('name', '') if player else ''
+
+            sheet_api.update_record(
+                row_index=row_index,
+                date=date,
+                player_id=player_id,
+                event=event,
+                time=time,
+                memo=memo,
+                race_id=race_id,
+                distance_km=distance_km,
+                section=section,
+                rank_in_section=rank_in_section,
+                player_name=player_name,
+                race_name=race_name,
+                race_type=race_type
+            )
             flash('記録を更新しました', 'success')
             return redirect(url_for('player_detail', player_id=player_id))
         except Exception as e:
@@ -208,7 +251,14 @@ def record_edit(row_index):
 
     players = sheet_api.get_all_players()
     # 日付フォーマットを変換（YYYY/MM/DD → YYYY-MM-DD）
-    record['date'] = record['date'].replace('/', '-')
+    if record.get('date'):
+        record['date'] = record['date'].replace('/', '-')
+    # 距離をkmに変換して表示
+    if record.get('distance_m'):
+        try:
+            record['distance_km'] = str(float(record['distance_m']) / 1000)
+        except:
+            record['distance_km'] = ''
     return render_template('record_edit.html', record=record, players=players)
 
 # ============ 記録削除 ============

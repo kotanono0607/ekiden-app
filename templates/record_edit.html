@@ -17,7 +17,7 @@
         font-weight: 600;
     }
     .form-section {
-        background: white;
+        background: var(--card-bg);
         border-radius: 12px;
         margin: 16px 0;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -27,8 +27,8 @@
         padding: 12px 16px;
         font-size: 14px;
         font-weight: 600;
-        color: #4a5568;
-        border-bottom: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -39,14 +39,16 @@
     .form-label {
         font-size: 13px;
         font-weight: 500;
-        color: #4a5568;
+        color: var(--text-muted);
         margin-bottom: 6px;
     }
     .form-control, .form-select {
         font-size: 16px;
         padding: 12px;
         border-radius: 8px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--border-color);
+        background: var(--bg-color);
+        color: var(--text-color);
     }
     .form-control:focus, .form-select:focus {
         border-color: #ed8936;
@@ -56,7 +58,7 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        color: #718096;
+        color: var(--text-muted);
         text-decoration: none;
         font-size: 14px;
         padding: 8px 0;
@@ -64,10 +66,10 @@
     .submit-area {
         position: sticky;
         bottom: 0;
-        background: white;
+        background: var(--card-bg);
         padding: 16px;
         margin: 16px -12px -1rem -12px;
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid var(--border-color);
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
@@ -78,19 +80,68 @@
         font-weight: 600;
         border-radius: 8px;
     }
-    .event-grid {
+
+    /* 大会タイプ選択 */
+    .type-selector {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 8px;
     }
+    .type-btn {
+        padding: 14px 8px;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--card-bg);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .type-btn i {
+        display: block;
+        font-size: 24px;
+        margin-bottom: 6px;
+    }
+    .type-btn:hover {
+        border-color: #ed8936;
+    }
+    .type-btn.selected {
+        border-color: #ed8936;
+        background: rgba(237, 137, 54, 0.1);
+        color: #dd6b20;
+    }
+    .type-btn.ekiden.selected {
+        border-color: #ED8936;
+        background: rgba(237, 137, 54, 0.1);
+        color: #DD6B20;
+    }
+    .type-btn.track.selected {
+        border-color: #3182CE;
+        background: rgba(49, 130, 206, 0.1);
+        color: #2B6CB0;
+    }
+    .type-btn.road.selected {
+        border-color: #38A169;
+        background: rgba(56, 161, 105, 0.1);
+        color: #2F855A;
+    }
+
+    /* 種目グリッド */
+    .event-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
     .event-btn {
-        padding: 12px 8px;
-        border: 2px solid #e2e8f0;
+        padding: 10px 6px;
+        border: 2px solid var(--border-color);
         border-radius: 8px;
-        background: white;
+        background: var(--card-bg);
         font-size: 13px;
         font-weight: 500;
-        color: #4a5568;
+        color: var(--text-color);
         text-align: center;
         cursor: pointer;
         transition: all 0.15s;
@@ -104,23 +155,67 @@
         background: rgba(237, 137, 54, 0.1);
         color: #dd6b20;
     }
-    .event-section-title {
-        font-size: 11px;
-        color: #a0aec0;
-        text-transform: uppercase;
-        margin: 12px 0 8px;
-        grid-column: 1 / -1;
+
+    /* 区間グリッド */
+    .section-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
     }
-    .event-section-title:first-child {
-        margin-top: 0;
+    .section-btn {
+        padding: 10px 4px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--card-bg);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-color);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
     }
+    .section-btn:hover {
+        border-color: #ED8936;
+    }
+    .section-btn.selected {
+        border-color: #ED8936;
+        background: rgba(237, 137, 54, 0.1);
+        color: #DD6B20;
+    }
+
+    /* 入力グループ */
+    .input-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    /* 条件表示 */
+    .conditional-section {
+        display: none;
+    }
+    .conditional-section.active {
+        display: block;
+    }
+
+    /* タイム入力 */
+    .time-input {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        padding: 16px 12px;
+    }
+
+    /* 削除セクション */
     .delete-section {
-        background: #fff5f5;
+        background: rgba(254, 178, 178, 0.1);
         border: 1px solid #feb2b2;
         border-radius: 8px;
         padding: 16px;
         margin-top: 16px;
     }
+
     @media (min-width: 768px) {
         .submit-area {
             position: static;
@@ -147,7 +242,7 @@
     <h5><i class="bi bi-pencil"></i> 記録編集</h5>
 </div>
 
-<form action="/record/{{ record.row_index }}/edit" method="POST">
+<form action="/record/{{ record.row_index }}/edit" method="POST" id="recordForm">
     <!-- 選手選択 -->
     <div class="form-section">
         <div class="section-title">
@@ -165,6 +260,53 @@
         </div>
     </div>
 
+    <!-- 大会タイプ -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-tag text-info"></i> 大会タイプ
+        </div>
+        <div class="section-body">
+            <input type="hidden" id="race_type" name="race_type" value="{{ record.race_type or '' }}">
+            <div class="type-selector">
+                <button type="button" class="type-btn ekiden {% if record.race_type == '駅伝' %}selected{% endif %}" data-type="駅伝">
+                    <i class="bi bi-arrow-repeat"></i>
+                    駅伝
+                </button>
+                <button type="button" class="type-btn track {% if record.race_type == 'トラック' %}selected{% endif %}" data-type="トラック">
+                    <i class="bi bi-circle"></i>
+                    トラック
+                </button>
+                <button type="button" class="type-btn road {% if record.race_type == 'ロード' %}selected{% endif %}" data-type="ロード">
+                    <i class="bi bi-signpost-2"></i>
+                    ロード
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 大会名 -->
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-trophy text-warning"></i> 大会名
+        </div>
+        <div class="section-body">
+            <input type="text" class="form-control" id="race_name" name="race_name"
+                   value="{{ record.race_name or '' }}"
+                   placeholder="例: 第68回山形県縦断駅伝" list="race_suggestions">
+            <datalist id="race_suggestions">
+                <option value="第68回山形県縦断駅伝">
+                <option value="第67回山形県縦断駅伝">
+                <option value="第66回山形県縦断駅伝">
+                <option value="山形県高校駅伝">
+                <option value="東北高校駅伝">
+                <option value="全国高校駅伝">
+                <option value="山形県選手権">
+                <option value="東北選手権">
+                <option value="インターハイ">
+            </datalist>
+        </div>
+    </div>
+
     <!-- 日付 -->
     <div class="form-section">
         <div class="section-title">
@@ -175,36 +317,77 @@
         </div>
     </div>
 
-    <!-- 種目 -->
-    <div class="form-section">
+    <!-- 駅伝用：区間選択 -->
+    <div class="form-section conditional-section {% if record.race_type == '駅伝' %}active{% endif %}" id="ekiden-section">
         <div class="section-title">
-            <i class="bi bi-flag text-warning"></i> 種目
+            <i class="bi bi-signpost text-warning"></i> 区間
         </div>
         <div class="section-body">
-            <input type="hidden" id="event" name="event" value="{{ record.event }}" required>
+            <input type="hidden" id="section" name="section" value="{{ record.section or '' }}">
+            <div class="section-grid">
+                {% for i in range(1, 30) %}
+                <button type="button" class="section-btn {% if record.section == i|string + '区' %}selected{% endif %}" data-section="{{ i }}区">{{ i }}区</button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- トラック用：種目選択 -->
+    <div class="form-section conditional-section {% if record.race_type == 'トラック' %}active{% endif %}" id="track-section">
+        <div class="section-title">
+            <i class="bi bi-flag text-primary"></i> 種目
+        </div>
+        <div class="section-body">
+            <input type="hidden" id="event_track" name="event_track" value="{{ record.event or '' }}">
             <div class="event-grid">
-                <div class="event-section-title">トラック</div>
-                <button type="button" class="event-btn {% if record.event == '1500m' %}selected{% endif %}" data-event="1500m">1500m</button>
-                <button type="button" class="event-btn {% if record.event == '3000m' %}selected{% endif %}" data-event="3000m">3000m</button>
-                <button type="button" class="event-btn {% if record.event == '5000m' %}selected{% endif %}" data-event="5000m">5000m</button>
-                <button type="button" class="event-btn {% if record.event == '10000m' %}selected{% endif %}" data-event="10000m">10000m</button>
+                <button type="button" class="event-btn track-event {% if record.event == '800m' %}selected{% endif %}" data-event="800m">800m</button>
+                <button type="button" class="event-btn track-event {% if record.event == '1500m' %}selected{% endif %}" data-event="1500m">1500m</button>
+                <button type="button" class="event-btn track-event {% if record.event == '3000m' %}selected{% endif %}" data-event="3000m">3000m</button>
+                <button type="button" class="event-btn track-event {% if record.event == '5000m' %}selected{% endif %}" data-event="5000m">5000m</button>
+                <button type="button" class="event-btn track-event {% if record.event == '10000m' %}selected{% endif %}" data-event="10000m">10000m</button>
+                <button type="button" class="event-btn track-event {% if record.event == '3000mSC' %}selected{% endif %}" data-event="3000mSC">3000mSC</button>
+            </div>
+        </div>
+    </div>
 
-                <div class="event-section-title">ロード</div>
-                <button type="button" class="event-btn {% if record.event == '10km' %}selected{% endif %}" data-event="10km">10km</button>
-                <button type="button" class="event-btn {% if record.event == 'ハーフ' or record.event == 'ハーフマラソン' %}selected{% endif %}" data-event="ハーフ">ハーフ</button>
-                <button type="button" class="event-btn {% if record.event == 'フル' or record.event == 'マラソン' %}selected{% endif %}" data-event="フル">フル</button>
+    <!-- ロード用：種目選択 -->
+    <div class="form-section conditional-section {% if record.race_type == 'ロード' %}active{% endif %}" id="road-section">
+        <div class="section-title">
+            <i class="bi bi-signpost-2 text-success"></i> 種目
+        </div>
+        <div class="section-body">
+            <input type="hidden" id="event_road" name="event_road" value="{{ record.event or '' }}">
+            <div class="event-grid">
+                <button type="button" class="event-btn road-event {% if record.event == '5km' %}selected{% endif %}" data-event="5km">5km</button>
+                <button type="button" class="event-btn road-event {% if record.event == '10km' %}selected{% endif %}" data-event="10km">10km</button>
+                <button type="button" class="event-btn road-event {% if record.event == 'ハーフ' or record.event == 'ハーフマラソン' %}selected{% endif %}" data-event="ハーフ">ハーフ</button>
+                <button type="button" class="event-btn road-event {% if record.event == 'フル' or record.event == 'マラソン' %}selected{% endif %}" data-event="フル">フル</button>
+            </div>
+        </div>
+    </div>
 
-                <div class="event-section-title">駅伝区間</div>
-                <button type="button" class="event-btn {% if record.event == '1区' %}selected{% endif %}" data-event="1区">1区</button>
-                <button type="button" class="event-btn {% if record.event == '2区' %}selected{% endif %}" data-event="2区">2区</button>
-                <button type="button" class="event-btn {% if record.event == '3区' %}selected{% endif %}" data-event="3区">3区</button>
-                <button type="button" class="event-btn {% if record.event == '4区' %}selected{% endif %}" data-event="4区">4区</button>
-                <button type="button" class="event-btn {% if record.event == '5区' %}selected{% endif %}" data-event="5区">5区</button>
-                <button type="button" class="event-btn {% if record.event == '6区' %}selected{% endif %}" data-event="6区">6区</button>
-                <button type="button" class="event-btn {% if record.event == '7区' %}selected{% endif %}" data-event="7区">7区</button>
-                <button type="button" class="event-btn {% if record.event == '8区' %}selected{% endif %}" data-event="8区">8区</button>
-                <button type="button" class="event-btn {% if record.event == '9区' %}selected{% endif %}" data-event="9区">9区</button>
-                <button type="button" class="event-btn {% if record.event == '10区' %}selected{% endif %}" data-event="10区">10区</button>
+    <!-- 統合された event フィールド -->
+    <input type="hidden" id="event" name="event" value="{{ record.event or record.section or '' }}">
+
+    <!-- 距離・順位 -->
+    <div class="form-section conditional-section {% if record.race_type %}active{% endif %}" id="detail-section">
+        <div class="section-title">
+            <i class="bi bi-info-circle text-secondary"></i> 詳細情報
+        </div>
+        <div class="section-body">
+            <div class="input-row">
+                <div>
+                    <label class="form-label">距離 (km)</label>
+                    <input type="number" class="form-control" id="distance_km" name="distance_km"
+                           value="{{ record.distance_km or '' }}"
+                           placeholder="10.5" step="0.1" min="0">
+                </div>
+                <div>
+                    <label class="form-label" id="rank-label">{% if record.race_type == '駅伝' %}区間順位{% else %}順位{% endif %}</label>
+                    <input type="number" class="form-control" id="rank_in_section" name="rank_in_section"
+                           value="{{ record.rank_in_section or '' }}"
+                           placeholder="3" min="1">
+                </div>
             </div>
         </div>
     </div>
@@ -215,9 +398,8 @@
             <i class="bi bi-clock text-success"></i> タイム
         </div>
         <div class="section-body">
-            <input type="text" class="form-control" id="time" name="time"
-                   value="{{ record.time }}" required
-                   style="text-align: center; font-size: 20px; font-weight: 600; font-family: monospace;">
+            <input type="text" class="form-control time-input" id="time" name="time"
+                   value="{{ record.time }}" required>
             <div class="form-text text-center mt-2">MM:SS または HH:MM:SS 形式で入力</div>
         </div>
     </div>
@@ -259,20 +441,82 @@
 
 {% block extra_js %}
 <script>
-// 種目選択
-document.querySelectorAll('.event-btn').forEach(btn => {
+// 大会タイプ選択
+document.querySelectorAll('.type-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        document.querySelectorAll('.event-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
         this.classList.add('selected');
+        const type = this.dataset.type;
+        document.getElementById('race_type').value = type;
+
+        // 条件表示の切り替え
+        document.querySelectorAll('.conditional-section').forEach(s => s.classList.remove('active'));
+
+        if (type === '駅伝') {
+            document.getElementById('ekiden-section').classList.add('active');
+            document.getElementById('detail-section').classList.add('active');
+            document.getElementById('rank-label').textContent = '区間順位';
+        } else if (type === 'トラック') {
+            document.getElementById('track-section').classList.add('active');
+            document.getElementById('detail-section').classList.add('active');
+            document.getElementById('rank-label').textContent = '順位';
+        } else if (type === 'ロード') {
+            document.getElementById('road-section').classList.add('active');
+            document.getElementById('detail-section').classList.add('active');
+            document.getElementById('rank-label').textContent = '順位';
+        }
+    });
+});
+
+// 駅伝区間選択
+document.querySelectorAll('.section-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.section-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('section').value = this.dataset.section;
+        document.getElementById('event').value = this.dataset.section;
+    });
+});
+
+// トラック種目選択
+document.querySelectorAll('.track-event').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.track-event').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('event_track').value = this.dataset.event;
         document.getElementById('event').value = this.dataset.event;
     });
 });
 
-// フォーム送信前に種目チェック
-document.querySelector('form').addEventListener('submit', function(e) {
-    if (!document.getElementById('event').value) {
+// ロード種目選択
+document.querySelectorAll('.road-event').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.road-event').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('event_road').value = this.dataset.event;
+        document.getElementById('event').value = this.dataset.event;
+    });
+});
+
+// フォーム送信前のバリデーション
+document.getElementById('recordForm').addEventListener('submit', function(e) {
+    const raceType = document.getElementById('race_type').value;
+    const event = document.getElementById('event').value;
+
+    if (!raceType) {
         e.preventDefault();
-        alert('種目を選択してください');
+        alert('大会タイプを選択してください');
+        return;
+    }
+
+    if (!event) {
+        e.preventDefault();
+        if (raceType === '駅伝') {
+            alert('区間を選択してください');
+        } else {
+            alert('種目を選択してください');
+        }
+        return;
     }
 });
 </script>

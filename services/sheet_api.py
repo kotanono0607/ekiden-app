@@ -327,32 +327,47 @@ def get_records_by_player(player_id):
     records = get_all_records()
     return [r for r in records if str(r.get('player_id')) == str(player_id)]
 
-def add_record(player_id, event, time, memo='', date=None, race_id='', distance_km='', time_sec='', is_pb=False, is_section_record=False):
+def add_record(player_id, event, time, memo='', date=None, race_id='', distance_km='',
+               time_sec='', is_pb=False, is_section_record=False,
+               section='', rank_in_section='', player_name='', race_name='', race_type=''):
     """記録を追加"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('Records')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='Records', rows=1000, cols=15)
+        worksheet = sh.add_worksheet(title='Records', rows=1000, cols=20)
         worksheet.append_row(RECORD_EXPECTED_HEADERS)
 
     if date is None:
         date = datetime.now().strftime('%Y-%m-%d')
+
+    # 距離をメートルに変換
+    distance_m = ''
+    if distance_km:
+        try:
+            distance_m = str(float(distance_km) * 1000)
+        except:
+            distance_m = distance_km
 
     # 新しいrecord_idを生成
     all_values = worksheet.get_all_values()
     new_record_id = f"R{len(all_values):03d}"
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    # カラム順: record_id, player_id, race_id, date, section, distance_km, time, time_sec, is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at
+    # カラム順: record_id, player_id, race_id, date, event, section, distance_m, time, time_sec,
+    #          is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at,
+    #          player_name, race_name, race_type
     worksheet.append_row([
-        new_record_id, player_id, race_id, date, event,
-        distance_km, time, time_sec, is_pb, is_section_record,
-        '', '', memo, now, now
+        new_record_id, player_id, race_id, date, event, section,
+        distance_m, time, time_sec, is_pb, is_section_record,
+        '', rank_in_section, memo, now, now,
+        player_name, race_name, race_type
     ])
     clear_cache()  # キャッシュクリア
 
-def update_record(row_index, date, player_id, event, time, memo='', race_id='', distance_km='', time_sec='', is_pb=False, is_section_record=False):
+def update_record(row_index, date, player_id, event, time, memo='', race_id='', distance_km='',
+                  time_sec='', is_pb=False, is_section_record=False,
+                  section='', rank_in_section='', player_name='', race_name='', race_type=''):
     """記録を更新"""
     sh = get_spreadsheet()
     try:
@@ -360,19 +375,29 @@ def update_record(row_index, date, player_id, event, time, memo='', race_id='', 
     except gspread.exceptions.WorksheetNotFound:
         return False
 
-    # 既存の行データを取得（record_id, split_times_json, rank_in_section, created_atを保持するため）
+    # 距離をメートルに変換
+    distance_m = ''
+    if distance_km:
+        try:
+            distance_m = str(float(distance_km) * 1000)
+        except:
+            distance_m = distance_km
+
+    # 既存の行データを取得（record_id, split_times_json, created_atを保持するため）
     existing_row = worksheet.row_values(row_index)
     record_id = existing_row[0] if len(existing_row) > 0 else ''
-    split_times_json = existing_row[10] if len(existing_row) > 10 else ''
-    rank_in_section = existing_row[11] if len(existing_row) > 11 else ''
-    created_at = existing_row[13] if len(existing_row) > 13 else ''
+    split_times_json = existing_row[11] if len(existing_row) > 11 else ''
+    created_at = existing_row[14] if len(existing_row) > 14 else ''
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    # カラム順: record_id, player_id, race_id, date, section, distance_km, time, time_sec, is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at
-    worksheet.update(f'A{row_index}:O{row_index}', [[
-        record_id, player_id, race_id, date, event,
-        distance_km, time, time_sec, is_pb, is_section_record,
-        split_times_json, rank_in_section, memo, created_at, now
+    # カラム順: record_id, player_id, race_id, date, event, section, distance_m, time, time_sec,
+    #          is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at,
+    #          player_name, race_name, race_type
+    worksheet.update(f'A{row_index}:S{row_index}', [[
+        record_id, player_id, race_id, date, event, section,
+        distance_m, time, time_sec, is_pb, is_section_record,
+        split_times_json, rank_in_section, memo, created_at, now,
+        player_name, race_name, race_type
     ]])
     clear_cache()  # キャッシュクリア
     return True
