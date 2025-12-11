@@ -1391,16 +1391,17 @@ def _get_section_distance_from_records(leg, edition):
     records = get_all_records()
 
     # 区間番号を抽出（例: "第１区遊佐～酒田" → "1"）
-    leg_match = re.search(r'[第]?(\d+)[区]', str(leg))
-    if not leg_match:
-        # 全角数字も試す
-        zen_match = re.search(r'[第]?([０-９]+)[区]', str(leg))
+    # 半角数字を試す
+    leg_match = re.search(r'[第]?(\d+)[区]?', str(leg))
+    if leg_match:
+        leg_num = leg_match.group(1)
+    else:
+        # 全角数字を試す
+        zen_match = re.search(r'[第]?([０-９]+)[区]?', str(leg))
         if zen_match:
             leg_num = zen_match.group(1).translate(str.maketrans('０１２３４５６７８９', '0123456789'))
         else:
             return None
-    else:
-        leg_num = leg_match.group(1)
 
     for record in records:
         race_name = record.get('race_name', '')
@@ -1416,11 +1417,20 @@ def _get_section_distance_from_records(leg, edition):
         if str(edition) not in race_name:
             continue
 
-        # 区間番号が一致するか確認
+        # 区間番号を抽出（半角・全角両対応）
+        section_num = None
         section_match = re.search(r'(\d+)', str(section))
-        if not section_match:
+        if section_match:
+            section_num = section_match.group(1)
+        else:
+            # 全角数字を試す
+            zen_section_match = re.search(r'([０-９]+)', str(section))
+            if zen_section_match:
+                section_num = zen_section_match.group(1).translate(str.maketrans('０１２３４５６７８９', '0123456789'))
+
+        if section_num is None:
             continue
-        if section_match.group(1) != leg_num:
+        if section_num != leg_num:
             continue
 
         try:
