@@ -209,6 +209,96 @@
         font-family: 'SF Mono', 'Consolas', monospace;
         padding: 16px 12px;
     }
+    .time-input-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+    .time-field {
+        width: 70px;
+        text-align: center;
+        font-size: 28px;
+        font-weight: 600;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        padding: 12px 8px;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+    .time-field:focus {
+        border-color: #48bb78;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+    }
+    .time-separator {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-muted);
+    }
+    .time-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-align: center;
+        margin-top: 4px;
+    }
+    .time-field-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* 距離プリセット */
+    .distance-presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+    .distance-preset-btn {
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        background: var(--card-bg);
+        font-size: 13px;
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .distance-preset-btn:hover {
+        border-color: #48bb78;
+        color: #48bb78;
+    }
+    .distance-preset-btn.selected {
+        border-color: #48bb78;
+        background: rgba(72, 187, 120, 0.1);
+        color: #38a169;
+    }
+
+    /* ペース表示 */
+    .pace-display {
+        margin-top: 12px;
+        padding: 12px;
+        background: rgba(72, 187, 120, 0.1);
+        border-radius: 8px;
+        text-align: center;
+        display: none;
+    }
+    .pace-display.active {
+        display: block;
+    }
+    .pace-value {
+        font-size: 20px;
+        font-weight: 600;
+        color: #38a169;
+        font-family: 'SF Mono', 'Consolas', monospace;
+    }
+    .pace-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
 
     @media (min-width: 768px) {
         .submit-area {
@@ -367,11 +457,22 @@
             <i class="bi bi-info-circle text-secondary"></i> 詳細情報
         </div>
         <div class="section-body">
+            <!-- 距離プリセット -->
+            <div class="distance-presets" id="distance-presets">
+                <button type="button" class="distance-preset-btn" data-distance="3">3km</button>
+                <button type="button" class="distance-preset-btn" data-distance="5">5km</button>
+                <button type="button" class="distance-preset-btn" data-distance="7">7km</button>
+                <button type="button" class="distance-preset-btn" data-distance="8">8km</button>
+                <button type="button" class="distance-preset-btn" data-distance="10">10km</button>
+                <button type="button" class="distance-preset-btn" data-distance="12">12km</button>
+                <button type="button" class="distance-preset-btn" data-distance="15">15km</button>
+                <button type="button" class="distance-preset-btn" data-distance="21.0975">ハーフ</button>
+            </div>
             <div class="input-row">
                 <div>
                     <label class="form-label">距離 (km)</label>
                     <input type="number" class="form-control" id="distance_km" name="distance_km"
-                           placeholder="10.5" step="0.1" min="0">
+                           placeholder="10.5" step="0.01" min="0">
                 </div>
                 <div>
                     <label class="form-label" id="rank-label">順位</label>
@@ -388,9 +489,27 @@
             <i class="bi bi-clock text-success"></i> タイム
         </div>
         <div class="section-body">
-            <input type="text" class="form-control time-input" id="time" name="time"
-                   placeholder="15:30 または 1:05:30" required>
-            <div class="form-text text-center mt-2">MM:SS または HH:MM:SS 形式で入力</div>
+            <input type="hidden" id="time" name="time" value="">
+            <div class="time-input-group">
+                <div class="time-field-wrapper">
+                    <input type="number" class="time-field" id="time_h" min="0" max="23" placeholder="0">
+                    <span class="time-label">時</span>
+                </div>
+                <span class="time-separator">:</span>
+                <div class="time-field-wrapper">
+                    <input type="number" class="time-field" id="time_m" min="0" max="59" placeholder="00">
+                    <span class="time-label">分</span>
+                </div>
+                <span class="time-separator">:</span>
+                <div class="time-field-wrapper">
+                    <input type="number" class="time-field" id="time_s" min="0" max="59" placeholder="00">
+                    <span class="time-label">秒</span>
+                </div>
+            </div>
+            <div class="pace-display" id="pace-display">
+                <div class="pace-value" id="pace-value">--:--</div>
+                <div class="pace-label">/km ペース</div>
+            </div>
         </div>
     </div>
 
@@ -473,30 +592,128 @@ document.querySelectorAll('.road-event').forEach(btn => {
     });
 });
 
-// タイム入力の自動フォーマット
-document.getElementById('time').addEventListener('blur', function() {
-    let value = this.value.trim();
-
-    // 数字のみ（秒数）の場合、MM:SS形式に変換
-    if (/^\d+$/.test(value)) {
-        const totalSeconds = parseInt(value);
-        if (totalSeconds >= 3600) {
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = totalSeconds % 60;
-            this.value = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        } else {
-            const m = Math.floor(totalSeconds / 60);
-            const s = totalSeconds % 60;
-            this.value = `${m}:${s.toString().padStart(2, '0')}`;
-        }
-    }
+// 距離プリセット選択
+document.querySelectorAll('.distance-preset-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.distance-preset-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('distance_km').value = this.dataset.distance;
+        calculatePace();
+    });
 });
+
+// 距離入力時もペース計算
+document.getElementById('distance_km').addEventListener('input', function() {
+    // プリセットボタンの選択状態を更新
+    const value = parseFloat(this.value);
+    document.querySelectorAll('.distance-preset-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseFloat(btn.dataset.distance) === value);
+    });
+    calculatePace();
+});
+
+// タイム入力フィールドの処理
+const timeFields = ['time_h', 'time_m', 'time_s'];
+timeFields.forEach((fieldId, index) => {
+    const field = document.getElementById(fieldId);
+
+    // 入力時の処理
+    field.addEventListener('input', function() {
+        // 2桁入力で次のフィールドに移動
+        if (this.value.length >= 2 && index < timeFields.length - 1) {
+            document.getElementById(timeFields[index + 1]).focus();
+            document.getElementById(timeFields[index + 1]).select();
+        }
+        // 最大値を超えないように
+        const max = parseInt(this.getAttribute('max'));
+        if (parseInt(this.value) > max) {
+            this.value = max;
+        }
+        updateTimeValue();
+        calculatePace();
+    });
+
+    // フォーカス時に全選択
+    field.addEventListener('focus', function() {
+        this.select();
+    });
+
+    // 上下キーで値を変更
+    field.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const max = parseInt(this.getAttribute('max'));
+            let val = parseInt(this.value) || 0;
+            if (val < max) {
+                this.value = val + 1;
+                updateTimeValue();
+                calculatePace();
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            let val = parseInt(this.value) || 0;
+            if (val > 0) {
+                this.value = val - 1;
+                updateTimeValue();
+                calculatePace();
+            }
+        } else if (e.key === ':' || e.key === 'Tab') {
+            // コロンまたはTabで次のフィールドに移動
+            if (e.key === ':') {
+                e.preventDefault();
+                if (index < timeFields.length - 1) {
+                    document.getElementById(timeFields[index + 1]).focus();
+                }
+            }
+        }
+    });
+});
+
+// タイム値を統合フィールドに反映
+function updateTimeValue() {
+    const h = parseInt(document.getElementById('time_h').value) || 0;
+    const m = parseInt(document.getElementById('time_m').value) || 0;
+    const s = parseInt(document.getElementById('time_s').value) || 0;
+
+    let timeStr = '';
+    if (h > 0) {
+        timeStr = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    } else {
+        timeStr = `${m}:${s.toString().padStart(2, '0')}`;
+    }
+    document.getElementById('time').value = timeStr;
+}
+
+// ペース計算
+function calculatePace() {
+    const distance = parseFloat(document.getElementById('distance_km').value);
+    const h = parseInt(document.getElementById('time_h').value) || 0;
+    const m = parseInt(document.getElementById('time_m').value) || 0;
+    const s = parseInt(document.getElementById('time_s').value) || 0;
+
+    const totalSeconds = h * 3600 + m * 60 + s;
+
+    if (distance > 0 && totalSeconds > 0) {
+        const paceSeconds = totalSeconds / distance;
+        const paceMin = Math.floor(paceSeconds / 60);
+        const paceSec = Math.round(paceSeconds % 60);
+
+        document.getElementById('pace-value').textContent =
+            `${paceMin}:${paceSec.toString().padStart(2, '0')}`;
+        document.getElementById('pace-display').classList.add('active');
+    } else {
+        document.getElementById('pace-display').classList.remove('active');
+    }
+}
 
 // フォーム送信前のバリデーション
 document.getElementById('recordForm').addEventListener('submit', function(e) {
     const raceType = document.getElementById('race_type').value;
     const event = document.getElementById('event').value;
+
+    // タイムの最終更新
+    updateTimeValue();
+    const time = document.getElementById('time').value;
 
     if (!raceType) {
         e.preventDefault();
@@ -511,6 +728,12 @@ document.getElementById('recordForm').addEventListener('submit', function(e) {
         } else {
             alert('種目を選択してください');
         }
+        return;
+    }
+
+    if (!time || time === '0:00') {
+        e.preventDefault();
+        alert('タイムを入力してください');
         return;
     }
 });
