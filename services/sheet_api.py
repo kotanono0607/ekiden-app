@@ -1385,6 +1385,37 @@ def _get_ekiden_individual_data():
     return result
 
 
+def _parse_distance_to_km(value):
+    """距離文字列をkm単位の数値に変換（単位付き文字列対応）"""
+    import re
+    if value is None or value == '':
+        return None
+
+    value_str = str(value).strip().lower()
+
+    # 数値部分と単位を抽出
+    match = re.match(r'^([\d.]+)\s*(km|m)?$', value_str)
+    if not match:
+        return None
+
+    try:
+        num = float(match.group(1))
+        unit = match.group(2)
+
+        if unit == 'km':
+            return num
+        elif unit == 'm':
+            return num / 1000
+        else:
+            # 単位なしの場合、100より大きければメートル、それ以下ならkm
+            if num > 100:
+                return num / 1000
+            else:
+                return num
+    except (ValueError, TypeError):
+        return None
+
+
 def _get_section_distance_from_records(leg, edition):
     """Recordsテーブルから区間距離を取得（m/km混在対応）"""
     import re
@@ -1433,15 +1464,10 @@ def _get_section_distance_from_records(leg, edition):
         if section_num != leg_num:
             continue
 
-        try:
-            dist_val = float(distance_m_str)
-            # m/km混在対応: 100より大きい場合はメートル、それ以下はkm
-            if dist_val > 100:
-                return dist_val / 1000  # メートル → km
-            else:
-                return dist_val  # 既にkm
-        except (ValueError, TypeError):
-            continue
+        # 距離を解析（単位付き文字列対応）
+        dist_km = _parse_distance_to_km(distance_m_str)
+        if dist_km is not None:
+            return dist_km
 
     return None
 
