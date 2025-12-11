@@ -15,7 +15,7 @@ CACHE_TTL = 120  # 通常キャッシュ有効期間（秒）- 2分
 CACHE_TTL_LONG = 600  # 長期キャッシュ有効期間（秒）- 10分（駅伝データ等）
 
 # 長期キャッシュ対象のキー
-LONG_CACHE_KEYS = {'ekiden_individual', 'ekiden_distance', 'ekiden_temperature'}
+LONG_CACHE_KEYS = {'ekiden_individual', 'ekiden_temperature'}
 
 def _get_cache(key):
     """キャッシュからデータを取得"""
@@ -1385,28 +1385,55 @@ def _get_ekiden_individual_data():
     return result
 
 
-def _get_ekiden_distance_data():
-    """区間距離シートからデータを取得（キャッシュ付き）"""
-    cached = _get_cache('ekiden_distance')
-    if cached is not None:
-        return cached
+def _get_section_distance_from_records(leg, edition):
+    """Recordsテーブルから区間距離を取得（m/km混在対応）"""
+    import re
+    records = get_all_records()
 
-    sh = get_spreadsheet()
-    try:
-        worksheet = sh.worksheet('区間距離')
-    except gspread.exceptions.WorksheetNotFound:
-        return None, None
+    # 区間番号を抽出（例: "第１区遊佐～酒田" → "1"）
+    leg_match = re.search(r'[第]?(\d+)[区]', str(leg))
+    if not leg_match:
+        # 全角数字も試す
+        zen_match = re.search(r'[第]?([０-９]+)[区]', str(leg))
+        if zen_match:
+            leg_num = zen_match.group(1).translate(str.maketrans('０１２３４５６７８９', '0123456789'))
+        else:
+            return None
+    else:
+        leg_num = leg_match.group(1)
 
-    all_values = worksheet.get_all_values()
-    if len(all_values) < 2:
-        return None, None
+    for record in records:
+        race_name = record.get('race_name', '')
+        section = record.get('section', '')
+        distance_m_str = record.get('distance_m', '')
 
-    header = all_values[0]
-    data = all_values[1:]
+        if not distance_m_str:
+            continue
 
-    result = (header, data)
-    _set_cache('ekiden_distance', result)
-    return result
+        # 駅伝レースかつ大会回数が一致するか確認
+        if '駅伝' not in race_name and '縦断' not in race_name:
+            continue
+        if str(edition) not in race_name:
+            continue
+
+        # 区間番号が一致するか確認
+        section_match = re.search(r'(\d+)', str(section))
+        if not section_match:
+            continue
+        if section_match.group(1) != leg_num:
+            continue
+
+        try:
+            dist_val = float(distance_m_str)
+            # m/km混在対応: 100より大きい場合はメートル、それ以下はkm
+            if dist_val > 100:
+                return dist_val / 1000  # メートル → km
+            else:
+                return dist_val  # 既にkm
+        except (ValueError, TypeError):
+            continue
+
+    return None
 
 
 def _get_ekiden_temperature_data():
@@ -1498,10 +1525,6 @@ def filter_ekiden_pace_data(leg, position):
     if individual_header is None:
         return {'error': '個人シートが見つかりません'}
 
-    distance_header, distance_data = _get_ekiden_distance_data()
-    if distance_header is None:
-        distance_header, distance_data = [], []
-
     temp_header, temp_data = _get_ekiden_temperature_data()
     if temp_header is None:
         temp_header, temp_data = [], []
@@ -1534,8 +1557,10 @@ def filter_ekiden_pace_data(leg, position):
         team = row[0] if len(row) > 0 else ''
         edition = row[1] if len(row) > 1 else ''
 
-        # 距離と気温を取得
-        distance = _get_value_for_edition(distance_data, distance_header, leg, edition)
+        # 距離をRecordsから取得、気温は区間気温シートから取得
+        distance = _get_section_distance_from_records(leg, edition)
+        if distance is None:
+            distance = 'N/A'
         temperature = _get_value_for_edition(temp_data, temp_header, leg, edition)
 
         # 平均ペースを計算
@@ -1587,10 +1612,6 @@ def get_ekiden_section_results(edition, leg):
     if individual_header is None:
         return {'error': '個人シートが見つかりません', 'records': []}
 
-    distance_header, distance_data = _get_ekiden_distance_data()
-    if distance_header is None:
-        distance_header, distance_data = [], []
-
     temp_header, temp_data = _get_ekiden_temperature_data()
     if temp_header is None:
         temp_header, temp_data = [], []
@@ -1621,8 +1642,10 @@ def get_ekiden_section_results(edition, leg):
     if leg_index is None:
         return {'error': f'指定された区間が見つかりません: {leg}', 'records': []}
 
-    # 距離と気温を取得（actual_legを使用）
-    distance = _get_value_for_edition(distance_data, distance_header, actual_leg, edition)
+    # 距離をRecordsテーブルから取得、気温は区間気温シートから取得
+    distance = _get_section_distance_from_records(actual_leg, edition)
+    if distance is None:
+        distance = 'N/A'
     temperature = _get_value_for_edition(temp_data, temp_header, actual_leg, edition)
 
     results = []
@@ -1719,10 +1742,6 @@ def get_team_section_all_editions(team_name, leg):
     if individual_header is None:
         return {'error': '個人シートが見つかりません'}
 
-    distance_header, distance_data = _get_ekiden_distance_data()
-    if distance_header is None:
-        distance_header, distance_data = [], []
-
     temp_header, temp_data = _get_ekiden_temperature_data()
     if temp_header is None:
         temp_header, temp_data = [], []
@@ -1753,8 +1772,10 @@ def get_team_section_all_editions(team_name, leg):
 
         edition = row[1]
 
-        # 距離と気温を取得
-        distance = _get_value_for_edition(distance_data, distance_header, leg, edition)
+        # 距離をRecordsから取得、気温は区間気温シートから取得
+        distance = _get_section_distance_from_records(leg, edition)
+        if distance is None:
+            distance = 'N/A'
         temperature = _get_value_for_edition(temp_data, temp_header, leg, edition)
 
         # 平均タイムを計算
