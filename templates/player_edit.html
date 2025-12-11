@@ -153,8 +153,8 @@
                 <label class="form-label">写真URL</label>
                 <input type="url" class="form-control" name="photo_url" id="photoUrlInput"
                        value="{{ player.photo_url or '' }}"
-                       placeholder="https://drive.google.com/...">
-                <div class="form-text">Google Driveの共有リンクを貼り付けてください</div>
+                       placeholder="https://res.cloudinary.com/...">
+                <div class="form-text">Cloudinaryの画像URLを貼り付けてください</div>
             </div>
         </div>
     </div>
@@ -308,13 +308,7 @@ const photoPreview = document.getElementById('photoPreview');
 photoUrlInput.addEventListener('input', function() {
     const url = this.value.trim();
     if (url) {
-        // Google DriveのURLを画像表示用に変換
-        let imgUrl = url;
-        const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (driveMatch) {
-            imgUrl = `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
-        }
-        photoPreview.innerHTML = `<img src="${imgUrl}" alt="プロフィール写真" onerror="this.parentElement.innerHTML='<i class=\\'bi bi-person-fill\\'></i>'">`;
+        photoPreview.innerHTML = `<img src="${url}" alt="プロフィール写真" onerror="this.parentElement.innerHTML='<i class=\\'bi bi-person-fill\\'></i>'">`;
     } else {
         photoPreview.innerHTML = '<i class="bi bi-person-fill"></i>';
     }
