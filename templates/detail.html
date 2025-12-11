@@ -201,6 +201,21 @@
         width: 58px;
         flex-shrink: 0;
     }
+    .record-date-col {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        width: 58px;
+        flex-shrink: 0;
+    }
+    .record-date-col .record-date {
+        width: auto;
+    }
+    .record-date-col .type-badge {
+        font-size: 9px;
+        padding: 1px 5px;
+    }
     .record-event {
         background: #3182ce;
         color: white;
@@ -594,7 +609,16 @@
         <div class="section-body" style="padding: 8px 12px;">
             {% for record in records %}
             <div class="record-item">
-                <div class="record-date">{{ record.date }}</div>
+                <div class="record-date-col">
+                    <div class="record-date">{{ record.date }}</div>
+                    {% if record.race_type == '駅伝' %}
+                    <span class="type-badge ekiden">駅伝</span>
+                    {% elif record.race_type == 'トラック' %}
+                    <span class="type-badge track">トラック</span>
+                    {% elif record.race_type == 'ロード' %}
+                    <span class="type-badge road">ロード</span>
+                    {% endif %}
+                </div>
                 {% if record.race_type == '駅伝' and record.race_name and record.section %}
                     {% if '縦断駅伝' in record.race_name %}
                         {% set edition = record.race_name.split('第')[1].split('回')[0] if '第' in record.race_name and '回' in record.race_name else '' %}
@@ -610,13 +634,6 @@
                 <div class="record-main">
                 {% endif %}
                     <div class="record-main-row">
-                        {% if record.race_type == '駅伝' %}
-                        <span class="type-badge ekiden">駅伝</span>
-                        {% elif record.race_type == 'トラック' %}
-                        <span class="type-badge track">トラック</span>
-                        {% elif record.race_type == 'ロード' %}
-                        <span class="type-badge road">ロード</span>
-                        {% endif %}
                         <span class="record-event">{{ record.event or record.section or '-' }}</span>
                         {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
                         {% if record.rank_in_section %}<span class="record-rank">{% if record.race_type == '駅伝' %}区間{% endif %}{{ record.rank_in_section }}位</span>{% endif %}
