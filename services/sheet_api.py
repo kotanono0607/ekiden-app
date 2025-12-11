@@ -661,6 +661,61 @@ def get_race_by_id(race_id):
             return race
     return None
 
+def get_section_results(race_name, section):
+    """特定の大会・区間の全結果を取得"""
+    records = get_all_records()
+
+    # 選手IDから選手情報を引くための辞書
+    players = get_all_players()
+    player_dict = {str(p.get('id')): p for p in players}
+
+    # 該当する記録をフィルタリング
+    section_records = []
+    race_date = ''
+    race_type = ''
+    distance_m = ''
+
+    for record in records:
+        rec_race_name = record.get('race_name', '').strip()
+        rec_section = record.get('section', '').strip()
+
+        if rec_race_name == race_name and rec_section == section:
+            # 選手情報を追加
+            player_id = str(record.get('player_id', ''))
+            player = player_dict.get(player_id, {})
+            record['player'] = player
+            if not record.get('player_name') and player:
+                record['player_name'] = player.get('name', '')
+
+            section_records.append(record)
+
+            # 大会情報を取得（最初の1件から）
+            if not race_date:
+                race_date = record.get('date', '')
+            if not race_type:
+                race_type = record.get('race_type', '')
+            if not distance_m:
+                distance_m = record.get('distance_m', '')
+
+    # タイムでソート（区間順位がある場合はそれを優先）
+    def sort_key(r):
+        rank = r.get('rank_in_section', '')
+        if rank and str(rank).isdigit():
+            return (0, int(rank), r.get('time', 'ZZZ'))
+        return (1, 999, r.get('time', 'ZZZ'))
+
+    section_records.sort(key=sort_key)
+
+    return {
+        'race_name': race_name,
+        'section': section,
+        'date': race_date,
+        'race_type': race_type,
+        'distance_m': distance_m,
+        'records': section_records,
+        'record_count': len(section_records)
+    }
+
 def add_race(race_name, short_name, date, location='', race_type='', section_count='', importance='', memo=''):
     """大会を追加"""
     sh = get_spreadsheet()

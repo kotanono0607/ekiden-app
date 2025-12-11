@@ -233,6 +233,22 @@
         min-width: 0;
         overflow: hidden;
     }
+    .record-main-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        cursor: pointer;
+    }
+    .record-main-link:hover {
+        background: rgba(49, 130, 206, 0.05);
+        border-radius: 6px;
+        margin: -4px;
+        padding: 4px;
+    }
+    .record-main-link:hover .record-section,
+    .record-main-link:hover .record-event {
+        color: var(--primary-color);
+    }
     .record-main-row {
         display: flex;
         align-items: center;
@@ -579,7 +595,11 @@
             {% for record in records %}
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
+                {% if record.race_type == '駅伝' and record.race_name and record.section %}
+                <a href="/race/section/{{ record.race_name|urlencode }}/{{ record.section|urlencode }}" class="record-main record-main-link">
+                {% else %}
                 <div class="record-main">
+                {% endif %}
                     <div class="record-main-row">
                         {% if record.race_type == '駅伝' %}
                         <span class="type-badge ekiden">駅伝</span>
@@ -595,7 +615,11 @@
                     {% if record.race_name or record.memo %}
                     <div class="record-sub">{{ record.race_name }}{% if record.race_name and record.memo %} / {% endif %}{{ record.memo }}</div>
                     {% endif %}
+                {% if record.race_type == '駅伝' and record.race_name and record.section %}
+                </a>
+                {% else %}
                 </div>
+                {% endif %}
                 <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
@@ -611,7 +635,11 @@
             {% for record in ekiden_records %}
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
+                {% if record.race_name and record.section %}
+                <a href="/race/section/{{ record.race_name|urlencode }}/{{ record.section|urlencode }}" class="record-main record-main-link">
+                {% else %}
                 <div class="record-main">
+                {% endif %}
                     <div class="record-main-row">
                         {% if record.section %}<span class="record-section">{{ record.section }}</span>{% endif %}
                         {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
@@ -620,7 +648,11 @@
                     {% if record.race_name or record.memo %}
                     <div class="record-sub">{{ record.race_name }}{% if record.race_name and record.memo %} / {% endif %}{{ record.memo }}</div>
                     {% endif %}
+                {% if record.race_name and record.section %}
+                </a>
+                {% else %}
                 </div>
+                {% endif %}
                 <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
