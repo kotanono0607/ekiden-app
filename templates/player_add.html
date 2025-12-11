@@ -159,6 +159,15 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-12">
+                    <label class="form-label">役職</label>
+                    <select class="form-select" name="role">
+                        <option value="">なし</option>
+                        {% for code, name in role_list %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
         </div>
     </div>

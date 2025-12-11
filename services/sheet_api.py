@@ -51,7 +51,7 @@ RECORD_COLUMN_MAPPING = {
 # スプレッドシートの期待するヘッダー（仕様書準拠）
 PLAYER_EXPECTED_HEADERS = [
     'id', 'registration_number', 'name_sei', 'name_mei', 'birth_date',
-    'grade', 'affiliation', 'category', 'status', 'race_count',
+    'grade', 'affiliation', 'category', 'status', 'role', 'race_count',
     'pb_1500m', 'pb_3000m', 'pb_5000m', 'pb_10000m', 'pb_half', 'pb_full',
     'comment', 'is_deleted', 'created_at', 'updated_at'
 ]
@@ -205,7 +205,7 @@ def get_player_by_id(player_id):
             return player
     return None
 
-def add_player(name_sei, name_mei, affiliation='', category='', status='現役', grade='', birth_date='',
+def add_player(name_sei, name_mei, affiliation='', category='', status='現役', role='', grade='', birth_date='',
                pb_1500m='', pb_3000m='', pb_5000m='', pb_10000m='', pb_half='', pb_full='',
                comment='', registration_number=''):
     """選手を追加（仕様書準拠）"""
@@ -213,9 +213,9 @@ def add_player(name_sei, name_mei, affiliation='', category='', status='現役',
     try:
         worksheet = sh.worksheet('Players')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='Players', rows=500, cols=20)
+        worksheet = sh.add_worksheet(title='Players', rows=500, cols=21)
         worksheet.append_row(PLAYER_EXPECTED_HEADERS)
-        worksheet.append_row(['システムID', '登録番号', '姓', '名', '生年月日', '学年', '所属', '区分', '状態', '出場回数',
+        worksheet.append_row(['システムID', '登録番号', '姓', '名', '生年月日', '学年', '所属', '区分', '状態', '役職', '出場回数',
                               'PB 1500m', 'PB 3000m', 'PB 5000m', 'PB 10000m', 'PB ハーフ', 'PB フル',
                               '備考', '削除フラグ', '作成日時', '更新日時'])
 
@@ -224,17 +224,17 @@ def add_player(name_sei, name_mei, affiliation='', category='', status='現役',
     new_id = f"P{len(all_values):03d}"
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    # カラム順: id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, race_count,
+    # カラム順: id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, role, race_count,
     #          pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, is_deleted, created_at, updated_at
     worksheet.append_row([
-        new_id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, 0,
+        new_id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, role, 0,
         pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full,
         comment, 'FALSE', now, now
     ])
     clear_cache()
     return new_id
 
-def update_player(player_id, name_sei, name_mei, affiliation='', category='', status='現役', grade='', birth_date='',
+def update_player(player_id, name_sei, name_mei, affiliation='', category='', status='現役', role='', grade='', birth_date='',
                   pb_1500m='', pb_3000m='', pb_5000m='', pb_10000m='', pb_half='', pb_full='',
                   comment='', registration_number='', is_deleted='FALSE'):
     """選手を更新（仕様書準拠）"""
@@ -251,13 +251,13 @@ def update_player(player_id, name_sei, name_mei, affiliation='', category='', st
             continue
         if str(row[0]) == str(player_id):
             # race_countとcreated_atを保持
-            race_count = row[9] if len(row) > 9 else 0
-            created_at = row[18] if len(row) > 18 else ''
+            race_count = row[10] if len(row) > 10 else 0
+            created_at = row[19] if len(row) > 19 else ''
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             row_num = i + 1
-            worksheet.update(f'A{row_num}:T{row_num}', [[
-                player_id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, race_count,
+            worksheet.update(f'A{row_num}:U{row_num}', [[
+                player_id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, role, race_count,
                 pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full,
                 comment, is_deleted, created_at, now
             ]])
@@ -276,6 +276,7 @@ def delete_player(player_id):
             player.get('affiliation', ''),
             player.get('category', ''),
             player.get('status', ''),
+            player.get('role', ''),
             player.get('grade', ''),
             player.get('birth_date', ''),
             player.get('pb_1500m', ''),

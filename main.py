@@ -77,6 +77,7 @@ def player_add():
             affiliation = request.form.get('affiliation', '')
             category = request.form.get('category', '')
             status = request.form.get('status', '現役')
+            role = request.form.get('role', '')
             grade = request.form.get('grade', '')
             birth_date = request.form.get('birth_date', '')
             pb_1500m = request.form.get('pb_1500m', '')
@@ -87,7 +88,7 @@ def player_add():
             pb_full = request.form.get('pb_full', '')
             comment = request.form.get('comment', '')
 
-            sheet_api.add_player(name_sei, name_mei, affiliation, category, status, grade, birth_date,
+            sheet_api.add_player(name_sei, name_mei, affiliation, category, status, role, grade, birth_date,
                                 pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, registration_number)
             flash(f'{name_sei} {name_mei}さんを登録しました', 'success')
             return redirect(url_for('index'))
@@ -98,11 +99,13 @@ def player_add():
     status_list = sheet_api.get_master_choices('status_list')
     grade_list = sheet_api.get_master_choices('grade_list')
     affiliation_list = sheet_api.get_master_choices('affiliation_list')
+    role_list = sheet_api.get_master_choices('role_list')
     return render_template('player_add.html',
                            category_list=category_list,
                            status_list=status_list,
                            grade_list=grade_list,
-                           affiliation_list=affiliation_list)
+                           affiliation_list=affiliation_list,
+                           role_list=role_list)
 
 # ============ 選手編集 ============
 
@@ -122,6 +125,7 @@ def player_edit(player_id):
             affiliation = request.form.get('affiliation', '')
             category = request.form.get('category', '')
             status = request.form.get('status', '現役')
+            role = request.form.get('role', '')
             grade = request.form.get('grade', '')
             birth_date = request.form.get('birth_date', '')
             pb_1500m = request.form.get('pb_1500m', '')
@@ -133,7 +137,7 @@ def player_edit(player_id):
             comment = request.form.get('comment', '')
             is_deleted = '1' if request.form.get('is_deleted') else ''
 
-            sheet_api.update_player(player_id, name_sei, name_mei, affiliation, category, status, grade, birth_date,
+            sheet_api.update_player(player_id, name_sei, name_mei, affiliation, category, status, role, grade, birth_date,
                                    pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, registration_number, is_deleted)
             flash(f'{name_sei} {name_mei}さんの情報を更新しました', 'success')
             return redirect(url_for('player_detail', player_id=player_id))
@@ -144,12 +148,14 @@ def player_edit(player_id):
     status_list = sheet_api.get_master_choices('status_list')
     grade_list = sheet_api.get_master_choices('grade_list')
     affiliation_list = sheet_api.get_master_choices('affiliation_list')
+    role_list = sheet_api.get_master_choices('role_list')
     return render_template('player_edit.html',
                            player=player,
                            category_list=category_list,
                            status_list=status_list,
                            grade_list=grade_list,
-                           affiliation_list=affiliation_list)
+                           affiliation_list=affiliation_list,
+                           role_list=role_list)
 
 # ============ 記録登録 ============
 
