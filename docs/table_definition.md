@@ -71,42 +71,42 @@
 ## 3. Races（大会マスタ）
 
 **物理名**: Races
-**概要**: 大会情報を管理する。
+**概要**: 大会情報を管理する。毎年開催される大会の定義（テンプレート）として使用。
 
 | No. | 物理名 | 論理名 | データ型 | 必須 | 備考・制約 |
 |-----|--------|--------|----------|------|------------|
 | 1 | race_id | 大会ID | String | ○ | PK。自動採番（例: RAC001） |
 | 2 | race_name | 大会名 | String | ○ | |
 | 3 | short_name | 略称 | String | | |
-| 4 | date | 開催日 | Date | ○ | YYYY-MM-DD形式 |
-| 5 | location | 開催地 | String | | |
-| 6 | type | 大会タイプ | String | | Masters参照(race_type_list) |
-| 7 | section_count | 区間数 | Number | | 駅伝の場合 |
-| 8 | importance | 重要度 | String | | Masters参照(importance_list) |
-| 9 | memo | 備考 | String | | |
-| 10 | created_at | 作成日時 | Datetime | ○ | |
-| 11 | updated_at | 更新日時 | Datetime | ○ | |
+| 4 | location | 開催地 | String | | |
+| 5 | type | 大会タイプ | String | | Masters参照(race_type_list) |
+| 6 | section_count | 区間数 | Number | | 駅伝の場合 |
+| 7 | importance | 重要度 | String | | Masters参照(importance_list) |
+| 8 | memo | 備考 | String | | |
+| 9 | created_at | 作成日時 | Datetime | ○ | |
+| 10 | updated_at | 更新日時 | Datetime | ○ | |
 
 ---
 
 ## 4. TeamRecords（チーム記録）
 
 **物理名**: TeamRecords
-**概要**: 駅伝大会でのチーム総合記録を管理する。
+**概要**: 駅伝大会でのチーム総合記録を管理する。各大会への出場記録。
 
 | No. | 物理名 | 論理名 | データ型 | 必須 | 備考・制約 |
 |-----|--------|--------|----------|------|------------|
 | 1 | team_record_id | チーム記録ID | String | ○ | PK。自動採番（例: TR001） |
 | 2 | race_id | 大会ID | String | ○ | FK。Races.race_id を参照 |
 | 3 | edition | 回数 | Number | | 第○回の数字（例: 67） |
-| 4 | total_time | 総合タイム | String | ○ | H:MM:SS形式 |
-| 5 | total_time_sec | 総合タイム(秒) | Number | | 秒換算値 |
-| 6 | rank | 総合順位 | Number | | |
-| 7 | total_teams | 出場チーム数 | Number | | |
-| 8 | category | 出場カテゴリ | String | | |
-| 9 | memo | メモ | String | | |
-| 10 | created_at | 作成日時 | Datetime | ○ | |
-| 11 | updated_at | 更新日時 | Datetime | ○ | |
+| 4 | date | 開催日 | Date | ○ | YYYY-MM-DD形式 |
+| 5 | total_time | 総合タイム | String | ○ | H:MM:SS形式 |
+| 6 | total_time_sec | 総合タイム(秒) | Number | | 秒換算値 |
+| 7 | rank | 総合順位 | Number | | |
+| 8 | total_teams | 出場チーム数 | Number | | |
+| 9 | category | 出場カテゴリ | String | | |
+| 10 | memo | メモ | String | | |
+| 11 | created_at | 作成日時 | Datetime | ○ | |
+| 12 | updated_at | 更新日時 | Datetime | ○ | |
 
 ---
 
@@ -259,6 +259,6 @@
 
 | 日付 | 更新内容 |
 |------|----------|
-| 2024-12-11 | TeamRecordsテーブル: edition（回数）カラムを追加。 |
+| 2024-12-11 | Racesテーブルからdateカラムを削除、TeamRecordsテーブルにdate（開催日）とedition（回数）カラムを追加。Racesは大会定義、TeamRecordsは出場記録として役割を明確化。 |
 | 2024-12-10 | Recordsテーブル: eventカラム追加、section分離、distance_km→distance_m変更、CSV参照カラム追加。 |
 | 2024-12-09 | カレンダー、練習日誌、出欠機能を追加。Events, PracticeLogs, Attendanceシートを追加。 |

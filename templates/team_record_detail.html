@@ -184,7 +184,7 @@
 <div class="stats-grid">
     <div class="stats-item">
         <div class="stats-label">開催日</div>
-        <div class="stats-value">{% if race %}{{ race.date }}{% else %}-{% endif %}</div>
+        <div class="stats-value">{{ record.date or '-' }}</div>
     </div>
     <div class="stats-item">
         <div class="stats-label">カテゴリ</div>

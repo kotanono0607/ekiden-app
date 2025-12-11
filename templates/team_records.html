@@ -124,8 +124,7 @@
                     {% if record.edition %}第{{ record.edition }}回 {% endif %}{% if race %}{{ race.race_name }}{% else %}{{ record.race_id }}{% endif %}
                 </div>
                 <div class="record-date">
-                    {% if race %}{{ race.date }}{% endif %}
-                    {% if record.category %} / {{ record.category }}{% endif %}
+                    {{ record.date }}{% if record.category %} / {{ record.category }}{% endif %}
                 </div>
             </div>
             <div class="record-time">{{ record.total_time }}</div>

@@ -208,7 +208,7 @@
             <select class="form-select" name="race_id" required>
                 <option value="">選択してください</option>
                 {% for race in races %}
-                <option value="{{ race.race_id }}">{{ race.race_name }} ({{ race.date }})</option>
+                <option value="{{ race.race_id }}">{{ race.race_name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -216,6 +216,10 @@
             <label class="form-label">回数</label>
             <input type="number" class="form-control" name="edition" min="1" placeholder="例: 67" inputmode="numeric">
             <small class="text-muted">第○回の数字を入力</small>
+        </div>
+        <div class="form-group">
+            <label class="form-label">開催日 <span class="required">*</span></label>
+            <input type="date" class="form-control" name="date" value="{{ today }}" required>
         </div>
         <div class="form-group">
             <label class="form-label">出場カテゴリ</label>

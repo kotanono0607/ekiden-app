@@ -572,15 +572,14 @@ def race_add():
     if request.method == 'POST':
         try:
             race_name = request.form.get('race_name')
-            short_name = request.form.get('short_name')
-            date = request.form.get('date')
+            short_name = request.form.get('short_name', '')
             location = request.form.get('location', '')
             race_type = request.form.get('type', '')
             section_count = request.form.get('section_count', '')
             importance = request.form.get('importance', '')
             memo = request.form.get('memo', '')
 
-            sheet_api.add_race(race_name, short_name, date, location, race_type, section_count, importance, memo)
+            sheet_api.add_race(race_name, short_name, location, race_type, section_count, importance, memo)
             flash(f'{race_name}を登録しました', 'success')
             return redirect(url_for('races'))
         except Exception as e:
@@ -588,8 +587,7 @@ def race_add():
 
     race_types = sheet_api.get_master_choices('race_type_list')
     importance_list = sheet_api.get_master_choices('importance_list')
-    today = datetime.now().strftime('%Y-%m-%d')
-    return render_template('race_add.html', race_types=race_types, importance_list=importance_list, today=today)
+    return render_template('race_add.html', race_types=race_types, importance_list=importance_list)
 
 @app.route("/race/<race_id>/edit", methods=['GET', 'POST'])
 def race_edit(race_id):
@@ -602,15 +600,14 @@ def race_edit(race_id):
     if request.method == 'POST':
         try:
             race_name = request.form.get('race_name')
-            short_name = request.form.get('short_name')
-            date = request.form.get('date')
+            short_name = request.form.get('short_name', '')
             location = request.form.get('location', '')
             race_type = request.form.get('type', '')
             section_count = request.form.get('section_count', '')
             importance = request.form.get('importance', '')
             memo = request.form.get('memo', '')
 
-            sheet_api.update_race(race_id, race_name, short_name, date, location, race_type, section_count, importance, memo)
+            sheet_api.update_race(race_id, race_name, short_name, location, race_type, section_count, importance, memo)
             flash('大会情報を更新しました', 'success')
             return redirect(url_for('races'))
         except Exception as e:
@@ -651,6 +648,7 @@ def team_record_add():
         try:
             race_id = request.form.get('race_id')
             edition = request.form.get('edition', '')
+            date = request.form.get('date', '')
             total_time = request.form.get('total_time')
             total_time_sec = request.form.get('total_time_sec', '')
             rank = request.form.get('rank', '')
@@ -658,14 +656,15 @@ def team_record_add():
             category = request.form.get('category', '')
             memo = request.form.get('memo', '')
 
-            team_record_id = sheet_api.add_team_record(race_id, edition, total_time, total_time_sec, rank, total_teams, category, memo)
+            team_record_id = sheet_api.add_team_record(race_id, edition, date, total_time, total_time_sec, rank, total_teams, category, memo)
             flash('チーム記録を登録しました', 'success')
             return redirect(url_for('team_record_detail', team_record_id=team_record_id))
         except Exception as e:
             flash(f'登録に失敗しました: {str(e)}', 'danger')
 
     races = sheet_api.get_all_races()
-    return render_template('team_record_add.html', races=races)
+    today = datetime.now().strftime('%Y-%m-%d')
+    return render_template('team_record_add.html', races=races, today=today)
 
 @app.route("/team_record/<team_record_id>")
 def team_record_detail(team_record_id):
