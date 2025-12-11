@@ -6,14 +6,14 @@
 <style>
     .calendar-header {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
         margin-bottom: 16px;
     }
     .calendar-nav {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 16px;
     }
     .calendar-nav .btn {
         padding: 8px 12px;
@@ -161,7 +161,6 @@
 
 {% block content %}
 <div class="calendar-header">
-    <h5><i class="bi bi-calendar3 text-primary"></i> カレンダー</h5>
     <div class="calendar-nav">
         <a href="{{ url_for('calendar_view', year=prev_year, month=prev_month) }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-chevron-left"></i>
