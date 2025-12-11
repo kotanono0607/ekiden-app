@@ -704,17 +704,18 @@ def team_record_delete(team_record_id):
 
 @app.route("/team_record/<team_record_id>/order/add", methods=['POST'])
 def race_order_add(team_record_id):
-    """大会オーダーを追加"""
+    """区間記録を追加"""
     try:
         section_no = request.form.get('section_no')
         section_name = request.form.get('section_name')
         player_id = request.form.get('player_id')
-        record_id = request.form.get('record_id', '')
-        memo = request.form.get('memo', '')
+        time = request.form.get('time', '')
+        rank = request.form.get('rank', '')
         distance_m = request.form.get('distance_m', '')
+        memo = request.form.get('memo', '')
 
-        sheet_api.add_race_order(team_record_id, section_no, section_name, player_id, record_id, memo, distance_m)
-        flash('区間オーダーを追加しました', 'success')
+        sheet_api.add_race_order(team_record_id, section_no, section_name, player_id, time, rank, distance_m, memo)
+        flash('区間記録を追加しました', 'success')
     except Exception as e:
         flash(f'追加に失敗しました: {str(e)}', 'danger')
     return redirect(url_for('team_record_detail', team_record_id=team_record_id))

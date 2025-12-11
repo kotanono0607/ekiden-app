@@ -110,10 +110,10 @@
 
 ---
 
-## 5. RaceOrders（大会オーダー）
+## 5. RaceOrders（区間記録）
 
 **物理名**: RaceOrders
-**概要**: 駅伝大会での区間オーダー（走順）を管理する。
+**概要**: 駅伝大会での区間別の選手記録を管理する。
 
 | No. | 物理名 | 論理名 | データ型 | 必須 | 備考・制約 |
 |-----|--------|--------|----------|------|------------|
@@ -122,8 +122,10 @@
 | 3 | section_no | 区間番号 | Number | ○ | 1, 2, 3... |
 | 4 | section_name | 区間名 | String | | 例: 1区, アンカー |
 | 5 | player_id | 選手ID | String | ○ | FK。Players.id を参照 |
-| 6 | record_id | 記録ID | String | | FK。Records.record_id を参照 |
-| 7 | memo | メモ | String | | |
+| 6 | time | タイム | String | | mm:ss または h:mm:ss形式 |
+| 7 | rank | 区間順位 | Number | | |
+| 8 | distance_m | 距離(m) | Number | | 区間距離 |
+| 9 | memo | メモ | String | | |
 
 ---
 
@@ -259,6 +261,7 @@
 
 | 日付 | 更新内容 |
 |------|----------|
+| 2024-12-11 | RaceOrdersテーブル: record_idを削除し、time（タイム）、rank（区間順位）、distance_m（距離）を追加。区間記録の直接入力に対応。 |
 | 2024-12-11 | Racesテーブルからdateカラムを削除、TeamRecordsテーブルにdate（開催日）とedition（回数）カラムを追加。Racesは大会定義、TeamRecordsは出場記録として役割を明確化。 |
 | 2024-12-10 | Recordsテーブル: eventカラム追加、section分離、distance_km→distance_m変更、CSV参照カラム追加。 |
 | 2024-12-09 | カレンダー、練習日誌、出欠機能を追加。Events, PracticeLogs, Attendanceシートを追加。 |

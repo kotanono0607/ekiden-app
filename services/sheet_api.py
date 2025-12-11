@@ -75,7 +75,7 @@ TEAM_RECORDS_EXPECTED_HEADERS = [
 
 RACE_ORDERS_EXPECTED_HEADERS = [
     'order_id', 'team_record_id', 'section_no', 'section_name',
-    'player_id', 'record_id', 'memo', 'distance_m'
+    'player_id', 'time', 'rank', 'distance_m', 'memo'
 ]
 
 MASTERS_EXPECTED_HEADERS = [
@@ -953,27 +953,27 @@ def get_race_orders_by_team_record(team_record_id):
 
     return sorted(records, key=lambda x: int(x.get('section_no', 0) or 0))
 
-def add_race_order(team_record_id, section_no, section_name, player_id, record_id='', memo='', distance_m=''):
-    """大会オーダーを追加"""
+def add_race_order(team_record_id, section_no, section_name, player_id, time='', rank='', distance_m='', memo=''):
+    """大会オーダー（区間記録）を追加"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('RaceOrders')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='RaceOrders', rows=500, cols=8)
+        worksheet = sh.add_worksheet(title='RaceOrders', rows=500, cols=9)
         worksheet.append_row(RACE_ORDERS_EXPECTED_HEADERS)
-        worksheet.append_row(['オーダーID', 'チーム記録ID', '区間番号', '区間名', '選手ID', '記録ID', 'メモ', '距離(m)'])
+        worksheet.append_row(['オーダーID', 'チーム記録ID', '区間番号', '区間名', '選手ID', 'タイム', '区間順位', '距離(m)', 'メモ'])
 
     all_values = worksheet.get_all_values()
     new_id = f"ORD{len(all_values):03d}"
 
     worksheet.append_row([
-        new_id, team_record_id, section_no, section_name, player_id, record_id, memo, distance_m
+        new_id, team_record_id, section_no, section_name, player_id, time, rank, distance_m, memo
     ])
     clear_cache()
     return new_id
 
-def update_race_order(order_id, team_record_id, section_no, section_name, player_id, record_id='', memo=''):
-    """大会オーダーを更新"""
+def update_race_order(order_id, team_record_id, section_no, section_name, player_id, time='', rank='', distance_m='', memo=''):
+    """大会オーダー（区間記録）を更新"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('RaceOrders')
@@ -985,8 +985,8 @@ def update_race_order(order_id, team_record_id, section_no, section_name, player
         if i < 2:
             continue
         if str(row[0]) == str(order_id):
-            worksheet.update(f'A{i+1}:G{i+1}', [[
-                order_id, team_record_id, section_no, section_name, player_id, record_id, memo
+            worksheet.update(f'A{i+1}:I{i+1}', [[
+                order_id, team_record_id, section_no, section_name, player_id, time, rank, distance_m, memo
             ]])
             clear_cache()
             return True
