@@ -635,7 +635,7 @@
                 {% endif %}
                     <div class="record-main-row">
                         <span class="record-event">{{ record.event or record.section or '-' }}</span>
-                        {% if record.race_type == '駅伝' and record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.distance_m|parse_distance_km }}km</span>{% endif %}
+                        {% if record.race_type != 'トラック' and record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.distance_m|parse_distance_km }}km</span>{% endif %}
                         {% if record.rank_in_section %}<span class="record-rank">{% if record.race_type == '駅伝' %}区間{% endif %}{{ record.rank_in_section }}位</span>{% endif %}
                     </div>
                     {% if record.race_name or record.memo %}
