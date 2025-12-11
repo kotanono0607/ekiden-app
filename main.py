@@ -10,6 +10,47 @@ from services import sheet_api
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'ekiden-app-secret-key')
 
+# ============ カスタムJinja2フィルター ============
+
+import re
+
+@app.template_filter('parse_distance_km')
+def parse_distance_km(value):
+    """距離文字列をkm単位の数値に変換するフィルター
+
+    対応形式:
+    - "5.8km" → 5.8
+    - "5800m" → 5.8
+    - "5800" (数値のみ、メートル想定) → 5.8
+    - 5800 (数値) → 5.8
+    """
+    if value is None or value == '':
+        return None
+
+    value_str = str(value).strip().lower()
+
+    # 数値部分を抽出
+    match = re.match(r'^([\d.]+)\s*(km|m)?$', value_str)
+    if not match:
+        return None
+
+    try:
+        num = float(match.group(1))
+        unit = match.group(2)
+
+        if unit == 'km':
+            return round(num, 2)
+        elif unit == 'm':
+            return round(num / 1000, 2)
+        else:
+            # 単位なしの場合、100より大きければメートル、それ以下ならkm
+            if num > 100:
+                return round(num / 1000, 2)
+            else:
+                return round(num, 2)
+    except (ValueError, TypeError):
+        return None
+
 # ============ 選手一覧 (ホーム) ============
 
 @app.route("/")

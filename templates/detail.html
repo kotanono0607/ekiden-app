@@ -635,7 +635,7 @@
                 {% endif %}
                     <div class="record-main-row">
                         <span class="record-event">{{ record.event or record.section or '-' }}</span>
-                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
+                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.distance_m|parse_distance_km }}km</span>{% endif %}
                         {% if record.rank_in_section %}<span class="record-rank">{% if record.race_type == '駅伝' %}区間{% endif %}{{ record.rank_in_section }}位</span>{% endif %}
                     </div>
                     {% if record.race_name or record.memo %}
@@ -677,7 +677,7 @@
                 {% endif %}
                     <div class="record-main-row">
                         {% if record.section %}<span class="record-section">{{ record.section }}</span>{% endif %}
-                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
+                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.distance_m|parse_distance_km }}km</span>{% endif %}
                         {% if record.rank_in_section %}<span class="record-rank">区間{{ record.rank_in_section }}位</span>{% endif %}
                     </div>
                     {% if record.race_name or record.memo %}
@@ -740,7 +740,7 @@
                 <div class="record-main">
                     <div class="record-main-row">
                         <span class="record-event">{{ record.event or '-' }}</span>
-                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ (record.distance_m|float / 1000)|round(1) }}km</span>{% endif %}
+                        {% if record.distance_m %}<span style="font-size: 10px; color: var(--text-muted);">{{ record.distance_m|parse_distance_km }}km</span>{% endif %}
                         {% if record.rank_in_section %}<span class="record-rank">{{ record.rank_in_section }}位</span>{% endif %}
                     </div>
                     {% if record.race_name or record.memo %}

@@ -203,7 +203,7 @@
         <span><i class="bi bi-calendar3"></i>{{ result.date }}</span>
         {% endif %}
         {% if result.distance_m %}
-        <span><i class="bi bi-signpost-2"></i>{{ (result.distance_m|float / 1000)|round(1) }}km</span>
+        <span><i class="bi bi-signpost-2"></i>{{ result.distance_m|parse_distance_km }}km</span>
         {% endif %}
         <span class="type-badge ekiden">駅伝</span>
     </div>
@@ -219,7 +219,7 @@
         <div class="stats-label">区間距離</div>
         <div class="stats-value">
             {% if result.distance_m %}
-            {{ (result.distance_m|float / 1000)|round(1) }}<span class="unit">km</span>
+            {{ result.distance_m|parse_distance_km }}<span class="unit">km</span>
             {% else %}
             -
             {% endif %}
