@@ -312,7 +312,7 @@ photoUrlInput.addEventListener('input', function() {
         let imgUrl = url;
         const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
         if (driveMatch) {
-            imgUrl = `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w200`;
+            imgUrl = `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
         }
         photoPreview.innerHTML = `<img src="${imgUrl}" alt="プロフィール写真" onerror="this.parentElement.innerHTML='<i class=\\'bi bi-person-fill\\'></i>'">`;
     } else {

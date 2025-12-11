@@ -229,7 +229,7 @@ def player_edit(player_id):
                 import re
                 drive_match = re.search(r'/d/([a-zA-Z0-9_-]+)', photo_url)
                 if drive_match:
-                    photo_url = f"https://drive.google.com/thumbnail?id={drive_match.group(1)}&sz=w200"
+                    photo_url = f"https://drive.google.com/uc?export=view&id={drive_match.group(1)}"
 
             sheet_api.update_player(player_id, name_sei, name_mei, affiliation, category, status, role, grade, birth_date,
                                    pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, registration_number, photo_url, is_deleted)
