@@ -573,24 +573,60 @@ document.querySelectorAll('.section-btn').forEach(btn => {
 });
 
 // トラック種目選択
+const trackDistances = {
+    '800m': 0.8,
+    '1500m': 1.5,
+    '3000m': 3,
+    '5000m': 5,
+    '10000m': 10,
+    '3000mSC': 3
+};
 document.querySelectorAll('.track-event').forEach(btn => {
     btn.addEventListener('click', function() {
         document.querySelectorAll('.track-event').forEach(b => b.classList.remove('selected'));
         this.classList.add('selected');
         document.getElementById('event_track').value = this.dataset.event;
         document.getElementById('event').value = this.dataset.event;
+        // 距離を自動入力
+        const dist = trackDistances[this.dataset.event];
+        if (dist) {
+            document.getElementById('distance_km').value = dist;
+            updateDistancePresets();
+            calculatePace();
+        }
     });
 });
 
 // ロード種目選択
+const roadDistances = {
+    '5km': 5,
+    '10km': 10,
+    'ハーフ': 21.0975,
+    'フル': 42.195
+};
 document.querySelectorAll('.road-event').forEach(btn => {
     btn.addEventListener('click', function() {
         document.querySelectorAll('.road-event').forEach(b => b.classList.remove('selected'));
         this.classList.add('selected');
         document.getElementById('event_road').value = this.dataset.event;
         document.getElementById('event').value = this.dataset.event;
+        // 距離を自動入力
+        const dist = roadDistances[this.dataset.event];
+        if (dist) {
+            document.getElementById('distance_km').value = dist;
+            updateDistancePresets();
+            calculatePace();
+        }
     });
 });
+
+// 距離プリセットの選択状態を更新
+function updateDistancePresets() {
+    const value = parseFloat(document.getElementById('distance_km').value);
+    document.querySelectorAll('.distance-preset-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseFloat(btn.dataset.distance) === value);
+    });
+}
 
 // 距離プリセット選択
 document.querySelectorAll('.distance-preset-btn').forEach(btn => {
@@ -604,11 +640,7 @@ document.querySelectorAll('.distance-preset-btn').forEach(btn => {
 
 // 距離入力時もペース計算
 document.getElementById('distance_km').addEventListener('input', function() {
-    // プリセットボタンの選択状態を更新
-    const value = parseFloat(this.value);
-    document.querySelectorAll('.distance-preset-btn').forEach(btn => {
-        btn.classList.toggle('selected', parseFloat(btn.dataset.distance) === value);
-    });
+    updateDistancePresets();
     calculatePace();
 });
 
