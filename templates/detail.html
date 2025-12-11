@@ -238,6 +238,11 @@
         font-size: 10px;
         width: 58px;
     }
+    .record-pace {
+        font-size: 9px;
+        color: var(--text-muted);
+        font-weight: 400;
+    }
     .record-edit {
         color: var(--text-muted);
         padding: 4px;
@@ -646,7 +651,13 @@
                 {% else %}
                 </div>
                 {% endif %}
-                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
+                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">
+                    {{ record.time }}
+                    {% if record.race_type != 'トラック' and record.distance_m and record.time %}
+                    {% set pace = record.time|calc_pace(record.distance_m) %}
+                    {% if pace %}<div class="record-pace">({{ pace }}/km)</div>{% endif %}
+                    {% endif %}
+                </div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
@@ -688,7 +699,13 @@
                 {% else %}
                 </div>
                 {% endif %}
-                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
+                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">
+                    {{ record.time }}
+                    {% if record.distance_m and record.time %}
+                    {% set pace = record.time|calc_pace(record.distance_m) %}
+                    {% if pace %}<div class="record-pace">({{ pace }}/km)</div>{% endif %}
+                    {% endif %}
+                </div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}
@@ -747,7 +764,13 @@
                     <div class="record-sub">{{ record.race_name }}{% if record.race_name and record.memo %} / {% endif %}{{ record.memo }}</div>
                     {% endif %}
                 </div>
-                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">{{ record.time }}</div>
+                <div class="record-time{% if record.time and ':' in record.time and record.time.count(':') > 1 %} long{% endif %}">
+                    {{ record.time }}
+                    {% if record.distance_m and record.time %}
+                    {% set pace = record.time|calc_pace(record.distance_m) %}
+                    {% if pace %}<div class="record-pace">({{ pace }}/km)</div>{% endif %}
+                    {% endif %}
+                </div>
                 <a href="/record/{{ record.row_index }}/edit" class="record-edit"><i class="bi bi-pencil"></i></a>
             </div>
             {% endfor %}

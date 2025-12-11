@@ -51,6 +51,51 @@ def parse_distance_km(value):
     except (ValueError, TypeError):
         return None
 
+
+@app.template_filter('calc_pace')
+def calc_pace(time_str, distance_m):
+    """タイムと距離から1km平均ペースを計算するフィルター
+
+    Args:
+        time_str: タイム文字列 (mm:ss または hh:mm:ss)
+        distance_m: 距離（単位付き文字列対応: "5.8km", "5800m", "5800"）
+
+    Returns:
+        平均ペース文字列 (例: "3:45") または None
+    """
+    if not time_str or not distance_m:
+        return None
+
+    # 距離をkmに変換
+    distance_km = parse_distance_km(distance_m)
+    if not distance_km or distance_km <= 0:
+        return None
+
+    # タイムを秒に変換
+    try:
+        parts = time_str.split(':')
+        if len(parts) == 3:
+            total_seconds = int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+        elif len(parts) == 2:
+            total_seconds = int(parts[0]) * 60 + float(parts[1])
+        else:
+            return None
+    except (ValueError, TypeError):
+        return None
+
+    if total_seconds <= 0:
+        return None
+
+    # 1kmあたりの秒数を計算
+    pace_seconds = total_seconds / distance_km
+
+    # mm:ss形式に変換
+    pace_minutes = int(pace_seconds // 60)
+    pace_secs = int(pace_seconds % 60)
+
+    return f"{pace_minutes}:{pace_secs:02d}"
+
+
 # ============ 選手一覧 (ホーム) ============
 
 @app.route("/")
