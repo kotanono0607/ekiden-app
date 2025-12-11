@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}第{{ result.edition }}回県縦断駅伝 {{ result.leg }} - 南陽東置賜{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-header-main {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 24px 16px;
+        margin: -1rem -12px 0 -12px;
+        text-align: center;
+    }
+    .section-header-main h1 {
+        font-size: 1.2rem;
+        margin: 0 0 8px 0;
+        font-weight: 700;
+    }
+    .section-meta {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        font-size: 0.85rem;
+        opacity: 0.9;
+        flex-wrap: wrap;
+    }
+    .section-meta i {
+        margin-right: 4px;
+    }
+    .section-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 8px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 16px 0;
+    }
+    .stats-item {
+        background: var(--card-bg);
+        padding: 12px 8px;
+        text-align: center;
+    }
+    .stats-label {
+        font-size: 10px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+    .stats-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+    .stats-value .unit {
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--text-muted);
+    }
+
+    .section-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        margin: 16px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .section-card-header {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .record-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.15s;
+    }
+    .record-item:hover {
+        background: rgba(0,0,0,0.02);
+    }
+    [data-theme="dark"] .record-item:hover {
+        background: rgba(255,255,255,0.03);
+    }
+    .record-item:last-child {
+        border-bottom: none;
+    }
+    .record-item.highlight {
+        background: rgba(237, 137, 54, 0.08);
+    }
+    .record-rank {
+        width: 32px;
+        height: 32px;
+        background: var(--bg-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--text-muted);
+        flex-shrink: 0;
+    }
+    .record-rank.top1 {
+        background: linear-gradient(135deg, #ffd700, #ffb700);
+        color: #333;
+    }
+    .record-rank.top2 {
+        background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+        color: #333;
+    }
+    .record-rank.top3 {
+        background: linear-gradient(135deg, #cd7f32, #b87333);
+        color: white;
+    }
+    .record-info {
+        flex: 1;
+        margin-left: 12px;
+        min-width: 0;
+    }
+    .record-player {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .team-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        background: #ED8936;
+        color: white;
+    }
+    .team-badge.own-team {
+        background: #3182CE;
+    }
+    .record-detail {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+    .record-time {
+        font-size: 16px;
+        font-weight: 700;
+        color: #3182ce;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        flex-shrink: 0;
+        text-align: right;
+    }
+    .record-avg {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    .type-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+    .type-badge.ekiden {
+        background: #ED8936;
+        color: white;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 32px 16px;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/analysis" class="back-link">
+    <i class="bi bi-chevron-left"></i> 分析メニュー
+</a>
+
+<!-- ヘッダー -->
+<div class="section-header-main">
+    <h1>第{{ result.edition }}回 山形県縦断駅伝</h1>
+    <div class="section-badge">{{ result.leg }}</div>
+    <div class="section-meta" style="margin-top: 12px;">
+        {% if result.distance %}
+        <span><i class="bi bi-signpost-2"></i>{{ result.distance }}km</span>
+        {% endif %}
+        {% if result.temperature %}
+        <span><i class="bi bi-thermometer-half"></i>{{ result.temperature }}℃</span>
+        {% endif %}
+        <span class="type-badge ekiden">駅伝</span>
+    </div>
+</div>
+
+<!-- 統計 -->
+<div class="stats-grid">
+    <div class="stats-item">
+        <div class="stats-label">出走チーム</div>
+        <div class="stats-value">{{ result.record_count }}<span class="unit">チーム</span></div>
+    </div>
+    <div class="stats-item">
+        <div class="stats-label">区間距離</div>
+        <div class="stats-value">
+            {% if result.distance %}
+            {{ result.distance }}<span class="unit">km</span>
+            {% else %}
+            -
+            {% endif %}
+        </div>
+    </div>
+    <div class="stats-item">
+        <div class="stats-label">気温</div>
+        <div class="stats-value">
+            {% if result.temperature %}
+            {{ result.temperature }}<span class="unit">℃</span>
+            {% else %}
+            -
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 区間結果一覧 -->
+<div class="section-card">
+    <div class="section-card-header">
+        <i class="bi bi-list-ol text-primary"></i> 区間結果（全チーム）
+    </div>
+    {% if result.records %}
+    {% for record in result.records %}
+    <div class="record-item {% if record.team == '南陽東置賜' %}highlight{% endif %}">
+        <div class="record-rank {% if record.rank == '1' %}top1{% elif record.rank == '2' %}top2{% elif record.rank == '3' %}top3{% endif %}">
+            {{ record.rank }}
+        </div>
+        <div class="record-info">
+            <div class="record-player">
+                <span class="team-badge {% if record.team == '南陽東置賜' %}own-team{% endif %}">{{ record.team }}</span>
+                {{ record.name }}
+            </div>
+            <div class="record-detail">
+                {{ record.affiliation }}
+                {% if record.year_of_birth %} / {{ record.year_of_birth }}{% endif %}
+            </div>
+        </div>
+        <div class="record-time">
+            {{ record.time }}
+            {% if record.avg_time %}
+            <div class="record-avg">{{ record.avg_time }}/km</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-inbox" style="font-size: 32px;"></i>
+        <p class="mb-0 mt-2">記録がありません</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

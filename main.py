@@ -390,7 +390,7 @@ def race_detail(race_name):
 
 @app.route("/race/section/<path:race_name>/<section>")
 def section_result(race_name, section):
-    """区間別結果画面（縦断駅伝など）"""
+    """区間別結果画面（Recordsテーブルから）"""
     try:
         result = sheet_api.get_section_results(race_name, section)
 
@@ -402,6 +402,25 @@ def section_result(race_name, section):
     except Exception as e:
         flash(f'エラーが発生しました: {str(e)}', 'danger')
         return redirect(url_for('races'))
+
+@app.route("/ekiden/section/<int:edition>/<path:leg>")
+def ekiden_section_result(edition, leg):
+    """縦断駅伝区間別結果画面（全チーム表示）"""
+    try:
+        result = sheet_api.get_ekiden_section_results(edition, leg)
+
+        if 'error' in result and result.get('error'):
+            flash(result['error'], 'warning')
+            return redirect(url_for('analysis_menu'))
+
+        if not result['records']:
+            flash('該当する記録が見つかりません', 'warning')
+            return redirect(url_for('analysis_menu'))
+
+        return render_template('ekiden_section_result.html', result=result)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return redirect(url_for('analysis_menu'))
 
 @app.route("/race/add", methods=['GET', 'POST'])
 def race_add():

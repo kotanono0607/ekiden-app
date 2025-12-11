@@ -596,7 +596,16 @@
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
                 {% if record.race_type == '駅伝' and record.race_name and record.section %}
+                    {% if '縦断駅伝' in record.race_name %}
+                        {% set edition = record.race_name.split('第')[1].split('回')[0] if '第' in record.race_name and '回' in record.race_name else '' %}
+                        {% if edition %}
+                <a href="/ekiden/section/{{ edition }}/{{ record.section|urlencode }}" class="record-main record-main-link">
+                        {% else %}
                 <a href="/race/section/{{ record.race_name|urlencode }}/{{ record.section|urlencode }}" class="record-main record-main-link">
+                        {% endif %}
+                    {% else %}
+                <a href="/race/section/{{ record.race_name|urlencode }}/{{ record.section|urlencode }}" class="record-main record-main-link">
+                    {% endif %}
                 {% else %}
                 <div class="record-main">
                 {% endif %}
@@ -636,7 +645,16 @@
             <div class="record-item">
                 <div class="record-date">{{ record.date }}</div>
                 {% if record.race_name and record.section %}
+                    {% if '縦断駅伝' in record.race_name %}
+                        {% set edition = record.race_name.split('第')[1].split('回')[0] if '第' in record.race_name and '回' in record.race_name else '' %}
+                        {% if edition %}
+                <a href="/ekiden/section/{{ edition }}/{{ record.section|urlencode }}" class="record-main record-main-link">
+                        {% else %}
                 <a href="/race/section/{{ record.race_name|urlencode }}/{{ record.section|urlencode }}" class="record-main record-main-link">
+                        {% endif %}
+                    {% else %}
+                <a href="/race/section/{{ record.race_name|urlencode }}/{{ record.section|urlencode }}" class="record-main record-main-link">
+                    {% endif %}
                 {% else %}
                 <div class="record-main">
                 {% endif %}

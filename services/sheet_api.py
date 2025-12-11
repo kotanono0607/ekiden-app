@@ -1555,6 +1555,100 @@ def get_ekiden_editions():
     return list(range(60, 69))  # 60〜68
 
 
+def get_ekiden_section_results(edition, leg):
+    """縦断駅伝の特定大会・区間の全チーム結果を取得"""
+    individual_header, individual_data = _get_ekiden_individual_data()
+    if individual_header is None:
+        return {'error': '個人シートが見つかりません', 'records': []}
+
+    distance_header, distance_data = _get_ekiden_distance_data()
+    if distance_header is None:
+        distance_header, distance_data = [], []
+
+    temp_header, temp_data = _get_ekiden_temperature_data()
+    if temp_header is None:
+        temp_header, temp_data = [], []
+
+    # 区間のインデックスを取得（完全一致または部分一致）
+    leg_index = None
+    actual_leg = leg
+
+    # まず完全一致を試す
+    if leg in individual_header:
+        leg_index = individual_header.index(leg)
+        actual_leg = leg
+    else:
+        # 部分一致で検索（例: "1区" → "第１区遊佐～酒田"）
+        # 区間番号を抽出して検索
+        import re
+        match = re.search(r'(\d+)', str(leg))
+        if match:
+            section_num = match.group(1)
+            # 全角数字にも対応
+            section_num_zen = section_num.translate(str.maketrans('0123456789', '０１２３４５６７８９'))
+            for i, header in enumerate(individual_header):
+                if f'第{section_num}区' in header or f'第{section_num_zen}区' in header:
+                    leg_index = i
+                    actual_leg = header
+                    break
+
+    if leg_index is None:
+        return {'error': f'指定された区間が見つかりません: {leg}', 'records': []}
+
+    # 距離と気温を取得（actual_legを使用）
+    distance = _get_value_for_edition(distance_data, distance_header, actual_leg, edition)
+    temperature = _get_value_for_edition(temp_data, temp_header, actual_leg, edition)
+
+    results = []
+    for row in individual_data:
+        if len(row) < 2:
+            continue
+
+        # 大会回数でフィルタリング
+        if str(row[1]) != str(edition):
+            continue
+
+        if leg_index >= len(row):
+            continue
+
+        cell_value = row[leg_index]
+        if not cell_value:
+            continue
+
+        # データは「名前_生年_アルファベット名_所属_順位_タイム」形式
+        details = cell_value.split('_')
+        if len(details) < 6:
+            continue
+
+        team = row[0] if len(row) > 0 else ''
+        time_str = details[5]
+        avg_time = _calculate_avg_time(time_str, distance)
+
+        results.append({
+            'team': team,
+            'name': details[0],
+            'year_of_birth': details[1],
+            'name_alphabet': details[2],
+            'affiliation': details[3],
+            'rank': details[4],
+            'rank_int': int(details[4]) if details[4].isdigit() else 999,
+            'time': time_str,
+            'avg_time': avg_time
+        })
+
+    # 順位でソート
+    results.sort(key=lambda x: x['rank_int'])
+
+    return {
+        'edition': edition,
+        'leg': actual_leg,
+        'distance': distance,
+        'temperature': temperature,
+        'records': results,
+        'record_count': len(results)
+    }
+
+
 def get_team_edition_sections(team_name, edition):
     """チーム大会別区間一覧を取得"""
     individual_header, individual_data = _get_ekiden_individual_data()
