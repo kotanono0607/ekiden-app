@@ -98,14 +98,15 @@
 |-----|--------|--------|----------|------|------------|
 | 1 | team_record_id | チーム記録ID | String | ○ | PK。自動採番（例: TR001） |
 | 2 | race_id | 大会ID | String | ○ | FK。Races.race_id を参照 |
-| 3 | total_time | 総合タイム | String | ○ | H:MM:SS形式 |
-| 4 | total_time_sec | 総合タイム(秒) | Number | | 秒換算値 |
-| 5 | rank | 総合順位 | Number | | |
-| 6 | total_teams | 出場チーム数 | Number | | |
-| 7 | category | 出場カテゴリ | String | | |
-| 8 | memo | メモ | String | | |
-| 9 | created_at | 作成日時 | Datetime | ○ | |
-| 10 | updated_at | 更新日時 | Datetime | ○ | |
+| 3 | edition | 回数 | Number | | 第○回の数字（例: 67） |
+| 4 | total_time | 総合タイム | String | ○ | H:MM:SS形式 |
+| 5 | total_time_sec | 総合タイム(秒) | Number | | 秒換算値 |
+| 6 | rank | 総合順位 | Number | | |
+| 7 | total_teams | 出場チーム数 | Number | | |
+| 8 | category | 出場カテゴリ | String | | |
+| 9 | memo | メモ | String | | |
+| 10 | created_at | 作成日時 | Datetime | ○ | |
+| 11 | updated_at | 更新日時 | Datetime | ○ | |
 
 ---
 
@@ -258,5 +259,6 @@
 
 | 日付 | 更新内容 |
 |------|----------|
+| 2024-12-11 | TeamRecordsテーブル: edition（回数）カラムを追加。 |
 | 2024-12-10 | Recordsテーブル: eventカラム追加、section分離、distance_km→distance_m変更、CSV参照カラム追加。 |
 | 2024-12-09 | カレンダー、練習日誌、出欠機能を追加。Events, PracticeLogs, Attendanceシートを追加。 |

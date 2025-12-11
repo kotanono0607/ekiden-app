@@ -170,7 +170,7 @@
 
 <!-- ヘッダー -->
 <div class="record-header">
-    <h5>{% if race %}{{ race.race_name }}{% else %}{{ record.race_id }}{% endif %}</h5>
+    <h5>{% if record.edition %}第{{ record.edition }}回 {% endif %}{% if race %}{{ race.race_name }}{% else %}{{ record.race_id }}{% endif %}</h5>
     <div class="record-time">{{ record.total_time }}</div>
     {% if record.rank %}
     <div class="record-rank">

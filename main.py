@@ -650,6 +650,7 @@ def team_record_add():
     if request.method == 'POST':
         try:
             race_id = request.form.get('race_id')
+            edition = request.form.get('edition', '')
             total_time = request.form.get('total_time')
             total_time_sec = request.form.get('total_time_sec', '')
             rank = request.form.get('rank', '')
@@ -657,7 +658,7 @@ def team_record_add():
             category = request.form.get('category', '')
             memo = request.form.get('memo', '')
 
-            team_record_id = sheet_api.add_team_record(race_id, total_time, total_time_sec, rank, total_teams, category, memo)
+            team_record_id = sheet_api.add_team_record(race_id, edition, total_time, total_time_sec, rank, total_teams, category, memo)
             flash('チーム記録を登録しました', 'success')
             return redirect(url_for('team_record_detail', team_record_id=team_record_id))
         except Exception as e:
