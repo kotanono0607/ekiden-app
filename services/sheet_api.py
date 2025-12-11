@@ -53,7 +53,7 @@ PLAYER_EXPECTED_HEADERS = [
     'id', 'registration_number', 'name_sei', 'name_mei', 'birth_date',
     'grade', 'affiliation', 'category', 'status', 'role', 'race_count',
     'pb_1500m', 'pb_3000m', 'pb_5000m', 'pb_10000m', 'pb_half', 'pb_full',
-    'comment', 'is_deleted', 'created_at', 'updated_at'
+    'comment', 'photo_url', 'is_deleted', 'created_at', 'updated_at'
 ]
 
 RECORD_EXPECTED_HEADERS = [
@@ -213,11 +213,11 @@ def add_player(name_sei, name_mei, affiliation='', category='', status='現役',
     try:
         worksheet = sh.worksheet('Players')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='Players', rows=500, cols=21)
+        worksheet = sh.add_worksheet(title='Players', rows=500, cols=22)
         worksheet.append_row(PLAYER_EXPECTED_HEADERS)
         worksheet.append_row(['システムID', '登録番号', '姓', '名', '生年月日', '学年', '所属', '区分', '状態', '役職', '出場回数',
                               'PB 1500m', 'PB 3000m', 'PB 5000m', 'PB 10000m', 'PB ハーフ', 'PB フル',
-                              '備考', '削除フラグ', '作成日時', '更新日時'])
+                              '備考', '写真URL', '削除フラグ', '作成日時', '更新日時'])
 
     # 新しいIDを生成
     all_values = worksheet.get_all_values()
@@ -225,18 +225,42 @@ def add_player(name_sei, name_mei, affiliation='', category='', status='現役',
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     # カラム順: id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, role, race_count,
-    #          pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, is_deleted, created_at, updated_at
+    #          pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full, comment, photo_url, is_deleted, created_at, updated_at
     worksheet.append_row([
         new_id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, role, 0,
         pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full,
-        comment, 'FALSE', now, now
+        comment, '', 'FALSE', now, now
     ])
     clear_cache()
     return new_id
 
+
+def update_player_photo(player_id, photo_url):
+    """選手の写真URLのみを更新"""
+    sh = get_spreadsheet()
+    try:
+        worksheet = sh.worksheet('Players')
+    except gspread.exceptions.WorksheetNotFound:
+        return False
+
+    all_values = worksheet.get_all_values()
+    for i, row in enumerate(all_values):
+        if i < 2:
+            continue
+        if str(row[0]) == str(player_id):
+            row_num = i + 1
+            # photo_urlは19列目（S列）
+            worksheet.update_acell(f'S{row_num}', photo_url)
+            # updated_atも更新（22列目、V列）
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            worksheet.update_acell(f'V{row_num}', now)
+            clear_cache()
+            return True
+    return False
+
 def update_player(player_id, name_sei, name_mei, affiliation='', category='', status='現役', role='', grade='', birth_date='',
                   pb_1500m='', pb_3000m='', pb_5000m='', pb_10000m='', pb_half='', pb_full='',
-                  comment='', registration_number='', is_deleted='FALSE'):
+                  comment='', registration_number='', photo_url='', is_deleted='FALSE'):
     """選手を更新（仕様書準拠）"""
     sh = get_spreadsheet()
     try:
@@ -252,14 +276,17 @@ def update_player(player_id, name_sei, name_mei, affiliation='', category='', st
         if str(row[0]) == str(player_id):
             # race_countとcreated_atを保持
             race_count = row[10] if len(row) > 10 else 0
-            created_at = row[19] if len(row) > 19 else ''
+            created_at = row[20] if len(row) > 20 else ''
+            # photo_urlが指定されていない場合は既存値を保持
+            if not photo_url and len(row) > 18:
+                photo_url = row[18] if row[18] else ''
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             row_num = i + 1
-            worksheet.update(f'A{row_num}:U{row_num}', [[
+            worksheet.update(f'A{row_num}:V{row_num}', [[
                 player_id, registration_number, name_sei, name_mei, birth_date, grade, affiliation, category, status, role, race_count,
                 pb_1500m, pb_3000m, pb_5000m, pb_10000m, pb_half, pb_full,
-                comment, is_deleted, created_at, now
+                comment, photo_url, is_deleted, created_at, now
             ]])
             clear_cache()
             return True

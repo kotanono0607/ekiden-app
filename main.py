@@ -6,6 +6,7 @@ import calendar
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from services import sheet_api
+from services import drive_api
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'ekiden-app-secret-key')
@@ -242,6 +243,52 @@ def player_edit(player_id):
                            grade_list=grade_list,
                            affiliation_list=affiliation_list,
                            role_list=role_list)
+
+
+@app.route("/player/<player_id>/photo", methods=['POST'])
+def player_photo_upload(player_id):
+    """選手写真アップロードAPI"""
+    player = sheet_api.get_player_by_id(player_id)
+    if not player:
+        return jsonify({'success': False, 'error': '選手が見つかりません'}), 404
+
+    if 'photo' not in request.files:
+        return jsonify({'success': False, 'error': 'ファイルが選択されていません'}), 400
+
+    file = request.files['photo']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'ファイルが選択されていません'}), 400
+
+    # ファイルデータを読み込み
+    file_data = file.read()
+    mime_type = file.content_type
+
+    # Google Driveにアップロード
+    result = drive_api.upload_photo(file_data, file.filename, mime_type, player_id)
+
+    if result['success']:
+        # スプレッドシートのphoto_urlを更新
+        sheet_api.update_player_photo(player_id, result['url'])
+        return jsonify({
+            'success': True,
+            'url': result['url'],
+            'message': '写真をアップロードしました'
+        })
+    else:
+        return jsonify(result), 400
+
+
+@app.route("/player/<player_id>/photo", methods=['DELETE'])
+def player_photo_delete(player_id):
+    """選手写真削除API"""
+    player = sheet_api.get_player_by_id(player_id)
+    if not player:
+        return jsonify({'success': False, 'error': '選手が見つかりません'}), 404
+
+    # スプレッドシートのphoto_urlをクリア
+    sheet_api.update_player_photo(player_id, '')
+    return jsonify({'success': True, 'message': '写真を削除しました'})
+
 
 # ============ 記録登録 ============
 
