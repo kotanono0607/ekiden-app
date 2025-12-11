@@ -109,25 +109,6 @@
         font-size: 40px;
         color: #a0aec0;
     }
-    .photo-buttons {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-    }
-    .photo-btn {
-        padding: 8px 16px;
-        font-size: 13px;
-        border-radius: 6px;
-    }
-    .photo-input {
-        display: none;
-    }
-    .photo-loading {
-        display: none;
-    }
-    .photo-loading.active {
-        display: block;
-    }
     @media (min-width: 768px) {
         .submit-area {
             position: static;
@@ -155,39 +136,29 @@
 </div>
 
 <!-- 写真アップロード -->
-<div class="form-section">
-    <div class="section-title">
-        <i class="bi bi-camera text-secondary"></i> プロフィール写真
-    </div>
-    <div class="photo-upload-section">
-        <div class="photo-preview" id="photoPreview">
-            {% if player.photo_url %}
-            <img src="{{ player.photo_url }}" alt="{{ player.name }}">
-            {% else %}
-            <i class="bi bi-person-fill"></i>
-            {% endif %}
-        </div>
-        <div class="photo-loading" id="photoLoading">
-            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                <span class="visually-hidden">アップロード中...</span>
-            </div>
-            <span class="ms-2">アップロード中...</span>
-        </div>
-        <div class="photo-buttons" id="photoButtons">
-            <input type="file" class="photo-input" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
-            <button type="button" class="btn btn-outline-primary photo-btn" onclick="document.getElementById('photoInput').click()">
-                <i class="bi bi-upload"></i> 写真を選択
-            </button>
-            {% if player.photo_url %}
-            <button type="button" class="btn btn-outline-danger photo-btn" id="deletePhotoBtn">
-                <i class="bi bi-trash"></i> 削除
-            </button>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
 <form action="/player/{{ player.id }}/edit" method="POST">
+    <div class="form-section">
+        <div class="section-title">
+            <i class="bi bi-camera text-secondary"></i> プロフィール写真
+        </div>
+        <div class="photo-upload-section">
+            <div class="photo-preview" id="photoPreview">
+                {% if player.photo_url %}
+                <img src="{{ player.photo_url }}" alt="{{ player.name }}" id="previewImg">
+                {% else %}
+                <i class="bi bi-person-fill" id="previewIcon"></i>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">写真URL</label>
+                <input type="url" class="form-control" name="photo_url" id="photoUrlInput"
+                       value="{{ player.photo_url or '' }}"
+                       placeholder="https://drive.google.com/...">
+                <div class="form-text">Google Driveの共有リンクを貼り付けてください</div>
+            </div>
+        </div>
+    </div>
+
     <!-- 基本情報 -->
     <div class="form-section">
         <div class="section-title">
@@ -330,95 +301,23 @@
 
 {% block extra_js %}
 <script>
-const playerId = '{{ player.id }}';
-const photoInput = document.getElementById('photoInput');
+// 写真URLプレビュー
+const photoUrlInput = document.getElementById('photoUrlInput');
 const photoPreview = document.getElementById('photoPreview');
-const photoLoading = document.getElementById('photoLoading');
-const photoButtons = document.getElementById('photoButtons');
-const deletePhotoBtn = document.getElementById('deletePhotoBtn');
 
-// 写真アップロード
-photoInput.addEventListener('change', async function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // ファイルサイズチェック (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-        alert('ファイルサイズが大きすぎます。5MB以下にしてください。');
-        return;
-    }
-
-    // UI更新
-    photoButtons.style.display = 'none';
-    photoLoading.classList.add('active');
-
-    const formData = new FormData();
-    formData.append('photo', file);
-
-    try {
-        const response = await fetch(`/player/${playerId}/photo`, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            // プレビュー更新
-            photoPreview.innerHTML = `<img src="${result.url}" alt="プロフィール写真">`;
-            // 削除ボタンを追加
-            if (!deletePhotoBtn) {
-                const deleteBtn = document.createElement('button');
-                deleteBtn.type = 'button';
-                deleteBtn.className = 'btn btn-outline-danger photo-btn';
-                deleteBtn.id = 'deletePhotoBtn';
-                deleteBtn.innerHTML = '<i class="bi bi-trash"></i> 削除';
-                deleteBtn.onclick = handleDelete;
-                photoButtons.appendChild(deleteBtn);
-            }
-        } else {
-            alert(result.error || 'アップロードに失敗しました');
+photoUrlInput.addEventListener('input', function() {
+    const url = this.value.trim();
+    if (url) {
+        // Google DriveのURLを画像表示用に変換
+        let imgUrl = url;
+        const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (driveMatch) {
+            imgUrl = `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w200`;
         }
-    } catch (error) {
-        alert('アップロードに失敗しました: ' + error.message);
-    } finally {
-        photoLoading.classList.remove('active');
-        photoButtons.style.display = 'flex';
-        photoInput.value = '';
+        photoPreview.innerHTML = `<img src="${imgUrl}" alt="プロフィール写真" onerror="this.parentElement.innerHTML='<i class=\\'bi bi-person-fill\\'></i>'">`;
+    } else {
+        photoPreview.innerHTML = '<i class="bi bi-person-fill"></i>';
     }
 });
-
-// 写真削除
-async function handleDelete() {
-    if (!confirm('写真を削除しますか？')) return;
-
-    photoButtons.style.display = 'none';
-    photoLoading.classList.add('active');
-
-    try {
-        const response = await fetch(`/player/${playerId}/photo`, {
-            method: 'DELETE'
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            photoPreview.innerHTML = '<i class="bi bi-person-fill"></i>';
-            const btn = document.getElementById('deletePhotoBtn');
-            if (btn) btn.remove();
-        } else {
-            alert(result.error || '削除に失敗しました');
-        }
-    } catch (error) {
-        alert('削除に失敗しました: ' + error.message);
-    } finally {
-        photoLoading.classList.remove('active');
-        photoButtons.style.display = 'flex';
-    }
-}
-
-if (deletePhotoBtn) {
-    deletePhotoBtn.onclick = handleDelete;
-}
 </script>
 {% endblock %}
