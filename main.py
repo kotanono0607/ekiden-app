@@ -102,29 +102,39 @@ def calc_pace(time_str, distance_m):
 def index():
     """選手一覧画面"""
     try:
-        players = sheet_api.get_all_players()
-        categories = list(set(p.get('category', '') for p in players if p.get('category')))
+        all_players = sheet_api.get_all_players()
+
+        # 現役選手と非現役選手を分離
+        active_players = [p for p in all_players if p.get('status', '現役') == '現役' or not p.get('status')]
+        inactive_players = [p for p in all_players if p.get('status') and p.get('status') != '現役']
+
+        # カテゴリ一覧（現役選手のみから取得）
+        categories = list(set(p.get('category', '') for p in active_players if p.get('category')))
 
         # ソートパラメータ
         sort_by = request.args.get('sort', 'name')
         if sort_by == 'name':
-            players = sorted(players, key=lambda x: x.get('name', ''))
+            active_players = sorted(active_players, key=lambda x: x.get('name', ''))
+            inactive_players = sorted(inactive_players, key=lambda x: x.get('name', ''))
         elif sort_by == 'category':
-            players = sorted(players, key=lambda x: x.get('category', ''))
+            active_players = sorted(active_players, key=lambda x: x.get('category', ''))
+            inactive_players = sorted(inactive_players, key=lambda x: x.get('category', ''))
         elif sort_by == 'pb_5000m':
-            players = sorted(players, key=lambda x: x.get('pb_5000m', '') or 'ZZZ')
+            active_players = sorted(active_players, key=lambda x: x.get('pb_5000m', '') or 'ZZZ')
+            inactive_players = sorted(inactive_players, key=lambda x: x.get('pb_5000m', '') or 'ZZZ')
 
         # 表示モード
         view_mode = request.args.get('view', 'card')
 
         return render_template('index.html',
-                               players=players,
+                               players=active_players,
+                               inactive_players=inactive_players,
                                categories=sorted(categories),
                                sort_by=sort_by,
                                view_mode=view_mode)
     except Exception as e:
         flash(f'データの取得に失敗しました: {str(e)}', 'danger')
-        return render_template('index.html', players=[], categories=[], sort_by='name', view_mode='card')
+        return render_template('index.html', players=[], inactive_players=[], categories=[], sort_by='name', view_mode='card')
 
 # ============ 選手詳細 ============
 

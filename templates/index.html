@@ -146,7 +146,7 @@
 <div class="header-row">
     <h5><i class="bi bi-people-fill text-primary"></i> 選手名簿</h5>
     <div class="d-flex align-items-center gap-2">
-        <span class="player-count">{{ players|length }}名</span>
+        <span class="player-count" id="playerCount">{{ players|length }}名</span>
         <a href="/player/add" class="btn btn-primary btn-sm d-none d-md-inline-block">
             <i class="bi bi-person-plus"></i> 追加
         </a>
@@ -168,6 +168,7 @@
                 {% for category in categories %}
                 <option value="{{ category }}">{{ category }}</option>
                 {% endfor %}
+                {% if inactive_players %}<option value="---">---</option>{% endif %}
             </select>
         </div>
     </div>
@@ -176,9 +177,10 @@
 <!-- 選手リスト -->
 <div class="card">
     <div id="playerList">
+        <!-- 現役選手 -->
         {% for player in players %}
-        <a href="/player/{{ player.id }}" class="player-card player-item"
-           data-name="{{ player.name }}" data-category="{{ player.category or '' }}">
+        <a href="/player/{{ player.id }}" class="player-card player-item player-active"
+           data-name="{{ player.name }}" data-category="{{ player.category or '' }}" data-status="active">
             <div class="player-avatar">
                 {{ player.name[:1] if player.name else '?' }}
             </div>
@@ -193,13 +195,31 @@
             <i class="bi bi-chevron-right player-arrow"></i>
         </a>
         {% else %}
-        <div class="empty-state">
+        <div class="empty-state" id="emptyStateActive">
             <i class="bi bi-person-x"></i>
             <p class="mt-2 mb-0">選手が登録されていません</p>
             <a href="/player/add" class="btn btn-primary btn-sm mt-3">
                 <i class="bi bi-person-plus"></i> 選手を追加
             </a>
         </div>
+        {% endfor %}
+        <!-- 非現役選手（デフォルトでは非表示） -->
+        {% for player in inactive_players %}
+        <a href="/player/{{ player.id }}" class="player-card player-item player-inactive"
+           data-name="{{ player.name }}" data-category="{{ player.category or '' }}" data-status="inactive" style="display: none;">
+            <div class="player-avatar" style="opacity: 0.6;">
+                {{ player.name[:1] if player.name else '?' }}
+            </div>
+            <div class="player-info">
+                <div class="player-name" style="opacity: 0.8;">{{ player.name }}</div>
+                <div class="player-meta">
+                    {% if player.status %}<span><i class="bi bi-person-dash"></i> {{ player.status }}</span>{% endif %}
+                    {% if player.category %}<span><i class="bi bi-tag"></i> {{ player.category }}</span>{% endif %}
+                    {% if player.affiliation %}<span><i class="bi bi-building"></i> {{ player.affiliation }}</span>{% endif %}
+                </div>
+            </div>
+            <i class="bi bi-chevron-right player-arrow"></i>
+        </a>
         {% endfor %}
     </div>
 </div>
@@ -219,14 +239,33 @@ function filterPlayers() {
     const searchText = document.getElementById('searchInput').value.toLowerCase();
     const categoryFilter = document.getElementById('categoryFilter').value;
     const items = document.querySelectorAll('.player-item');
+    let visibleCount = 0;
 
     items.forEach(item => {
         const name = item.dataset.name.toLowerCase();
         const category = item.dataset.category || '';
+        const status = item.dataset.status; // 'active' or 'inactive'
         const matchName = name.includes(searchText);
-        const matchCategory = !categoryFilter || category === categoryFilter;
-        item.style.display = (matchName && matchCategory) ? '' : 'none';
+
+        let matchCategory = false;
+        if (categoryFilter === '---') {
+            // 「---」を選択した場合は非現役選手のみ表示
+            matchCategory = (status === 'inactive');
+        } else if (categoryFilter === '') {
+            // 区分未選択の場合は現役選手のみ表示
+            matchCategory = (status === 'active');
+        } else {
+            // 特定カテゴリを選択した場合は現役選手のみ
+            matchCategory = (status === 'active') && (category === categoryFilter);
+        }
+
+        const shouldShow = matchName && matchCategory;
+        item.style.display = shouldShow ? '' : 'none';
+        if (shouldShow) visibleCount++;
     });
+
+    // 表示件数を更新
+    document.getElementById('playerCount').textContent = visibleCount + '名';
 }
 </script>
 {% endblock %}

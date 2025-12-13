@@ -497,9 +497,7 @@
         {% if player.affiliation %}<span class="profile-tag">{{ player.affiliation }}</span>{% endif %}
         {% if player.grade %}<span class="profile-tag">{{ player.grade }}</span>{% endif %}
         {% if player.category %}<span class="profile-tag">{{ player.category }}</span>{% endif %}
-        {% if player.status == '現役' or not player.status %}
-        <span class="profile-tag active">現役</span>
-        {% else %}
+        {% if player.status and player.status != '現役' %}
         <span class="profile-tag">{{ player.status }}</span>
         {% endif %}
     </div>
