@@ -1049,7 +1049,7 @@ def delete_event(event_id):
 
 PRACTICE_LOGS_EXPECTED_HEADERS = [
     'log_id', 'date', 'title', 'content', 'weather', 'temperature',
-    'participants', 'memo', 'created_at', 'updated_at'
+    'participants', 'memo', 'menu_data', 'created_at', 'updated_at'
 ]
 
 def get_all_practice_logs():
@@ -1096,15 +1096,15 @@ def get_practice_log_by_date(date):
             return log
     return None
 
-def add_practice_log(date, title, content='', weather='', temperature='', participants='', memo=''):
+def add_practice_log(date, title, content='', weather='', temperature='', participants='', memo='', menu_data=''):
     """練習日誌を追加"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('PracticeLogs')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='PracticeLogs', rows=500, cols=10)
+        worksheet = sh.add_worksheet(title='PracticeLogs', rows=500, cols=11)
         worksheet.append_row(PRACTICE_LOGS_EXPECTED_HEADERS)
-        worksheet.append_row(['日誌ID', '日付', 'タイトル', '内容', '天候', '気温', '参加人数', 'メモ', '作成日時', '更新日時'])
+        worksheet.append_row(['日誌ID', '日付', 'タイトル', '内容', '天候', '気温', '参加人数', 'メモ', 'メニューデータ', '作成日時', '更新日時'])
 
     all_values = worksheet.get_all_values()
     new_id = f"LOG{len(all_values):03d}"
@@ -1112,12 +1112,12 @@ def add_practice_log(date, title, content='', weather='', temperature='', partic
 
     worksheet.append_row([
         new_id, date, title, content, weather, temperature,
-        participants, memo, now, now
+        participants, memo, menu_data, now, now
     ])
     clear_cache()
     return new_id
 
-def update_practice_log(log_id, date, title, content='', weather='', temperature='', participants='', memo=''):
+def update_practice_log(log_id, date, title, content='', weather='', temperature='', participants='', memo='', menu_data=None):
     """練習日誌を更新"""
     sh = get_spreadsheet()
     try:
@@ -1130,11 +1130,15 @@ def update_practice_log(log_id, date, title, content='', weather='', temperature
         if i < 2:
             continue
         if str(row[0]) == str(log_id):
-            created_at = row[8] if len(row) > 8 else ''
+            # 既存のmenu_dataとcreated_atを保持
+            existing_menu_data = row[8] if len(row) > 8 else ''
+            created_at = row[9] if len(row) > 9 else ''
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            worksheet.update(f'A{i+1}:J{i+1}', [[
+            # menu_dataがNoneの場合は既存値を保持
+            final_menu_data = menu_data if menu_data is not None else existing_menu_data
+            worksheet.update(f'A{i+1}:K{i+1}', [[
                 log_id, date, title, content, weather, temperature,
-                participants, memo, created_at, now
+                participants, memo, final_menu_data, created_at, now
             ]])
             clear_cache()
             return True

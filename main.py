@@ -1015,7 +1015,10 @@ def practice_log_add():
             participants = request.form.get('participants', '')
             memo = request.form.get('memo', '')
 
-            log_id = sheet_api.add_practice_log(date, title, content, weather, temperature, participants, memo)
+            # メニューデータを取得
+            menu_data = request.form.get('menu_data', '')
+
+            log_id = sheet_api.add_practice_log(date, title, content, weather, temperature, participants, memo, menu_data)
 
             # 出欠データも保存
             all_players = sheet_api.get_all_players()

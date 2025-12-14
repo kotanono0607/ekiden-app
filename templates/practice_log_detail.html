@@ -156,6 +156,105 @@
         padding: 2px 5px;
         font-size: 10px;
     }
+    /* Menu display styles */
+    .menu-section {
+        background: var(--card-bg);
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+    }
+    .menu-section h6 {
+        color: var(--text-muted);
+        font-size: 12px;
+        margin-bottom: 12px;
+    }
+    .menu-item {
+        background: rgba(102, 126, 234, 0.08);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+    .menu-item:last-child {
+        margin-bottom: 0;
+    }
+    .menu-type-badge {
+        display: inline-block;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: #667eea;
+        color: white;
+        margin-bottom: 6px;
+    }
+    .menu-type-badge.interval { background: #f59e0b; }
+    .menu-type-badge.tt { background: #10b981; }
+    .menu-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 8px;
+    }
+    .menu-detail {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .lap-table {
+        width: 100%;
+        font-size: 12px;
+        margin-top: 8px;
+    }
+    .lap-table th, .lap-table td {
+        padding: 4px 8px;
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .lap-table th {
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+    .lap-table td {
+        color: var(--text-color);
+    }
+    .lap-table tr:last-child td {
+        border-bottom: none;
+    }
+    .total-row {
+        font-weight: 600;
+        background: rgba(102, 126, 234, 0.1);
+    }
+    .result-list {
+        margin-top: 8px;
+    }
+    .result-item {
+        display: flex;
+        align-items: center;
+        padding: 4px 0;
+        font-size: 13px;
+        gap: 8px;
+    }
+    .result-rank {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--text-color);
+    }
+    .result-rank.gold { background: #fbbf24; color: #78350f; }
+    .result-rank.silver { background: #d1d5db; color: #374151; }
+    .result-rank.bronze { background: #d97706; color: white; }
+    .result-player {
+        flex: 1;
+        color: var(--text-color);
+    }
+    .result-time {
+        font-weight: 500;
+        color: #667eea;
+    }
 </style>
 {% endblock %}
 
@@ -205,6 +304,12 @@
     <div class="content-text">{{ log.memo }}</div>
 </div>
 {% endif %}
+
+<!-- 練習メニュー表示セクション -->
+<div class="menu-section" id="menuSection" style="display: none;">
+    <h6><i class="bi bi-list-check"></i> 練習メニュー</h6>
+    <div id="menuDisplay"></div>
+</div>
 
 <!-- 出欠入力セクション -->
 <div class="attendance-section">
@@ -350,5 +455,141 @@ function removeGuest(btn) {
 
 // Initial summary
 updateSummary();
+
+// Menu data display
+const menuDataRaw = {{ log.menu_data | tojson | safe if log.menu_data else 'null' }};
+if (menuDataRaw) {
+    try {
+        const menuData = typeof menuDataRaw === 'string' ? JSON.parse(menuDataRaw) : menuDataRaw;
+        if (menuData && menuData.menus && menuData.menus.length > 0) {
+            document.getElementById('menuSection').style.display = 'block';
+            renderMenus(menuData.menus);
+        }
+    } catch (e) {
+        console.error('Menu data parse error:', e);
+    }
+}
+
+function renderMenus(menus) {
+    const container = document.getElementById('menuDisplay');
+    let html = '';
+
+    menus.forEach(menu => {
+        if (menu.type === 'pace_run') {
+            html += renderPaceRun(menu);
+        } else if (menu.type === 'interval') {
+            html += renderInterval(menu);
+        } else if (menu.type === 'tt') {
+            html += renderTT(menu);
+        }
+    });
+
+    container.innerHTML = html;
+}
+
+function renderPaceRun(menu) {
+    let html = `
+        <div class="menu-item">
+            <span class="menu-type-badge">ペース走</span>
+            <div class="menu-name">${escapeHtml(menu.name)}</div>
+    `;
+
+    if (menu.lap_distance) {
+        html += `<div class="menu-detail">周回距離: ${escapeHtml(menu.lap_distance)}</div>`;
+    }
+
+    if (menu.laps && menu.laps.length > 0) {
+        html += `
+            <table class="lap-table">
+                <thead>
+                    <tr>
+                        <th>距離</th>
+                        <th>タイム</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        menu.laps.forEach(lap => {
+            html += `
+                <tr>
+                    <td>${escapeHtml(lap.distance)}</td>
+                    <td>${escapeHtml(lap.time)}</td>
+                </tr>
+            `;
+        });
+
+        if (menu.total) {
+            html += `
+                <tr class="total-row">
+                    <td>Total</td>
+                    <td>${escapeHtml(menu.total)}</td>
+                </tr>
+            `;
+        }
+        html += '</tbody></table>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+function renderInterval(menu) {
+    let detail = '';
+    if (menu.pace) detail += `設定: ${escapeHtml(menu.pace)}`;
+    if (menu.rest) detail += (detail ? ' / ' : '') + `レスト: ${escapeHtml(menu.rest)}`;
+
+    return `
+        <div class="menu-item">
+            <span class="menu-type-badge interval">インターバル</span>
+            <div class="menu-name">${escapeHtml(menu.name)}</div>
+            ${detail ? `<div class="menu-detail">${detail}</div>` : ''}
+        </div>
+    `;
+}
+
+function renderTT(menu) {
+    let html = `
+        <div class="menu-item">
+            <span class="menu-type-badge tt">TT</span>
+            <div class="menu-name">${escapeHtml(menu.name)}</div>
+    `;
+
+    if (menu.distance) {
+        html += `<div class="menu-detail">距離: ${escapeHtml(menu.distance)}</div>`;
+    }
+
+    if (menu.results && menu.results.length > 0) {
+        // Sort by rank if available
+        const sortedResults = [...menu.results].sort((a, b) => (a.rank || 999) - (b.rank || 999));
+
+        html += '<div class="result-list">';
+        sortedResults.forEach((result, idx) => {
+            const rank = result.rank || (idx + 1);
+            let rankClass = '';
+            if (rank === 1) rankClass = 'gold';
+            else if (rank === 2) rankClass = 'silver';
+            else if (rank === 3) rankClass = 'bronze';
+
+            html += `
+                <div class="result-item">
+                    <div class="result-rank ${rankClass}">${rank}</div>
+                    <div class="result-player">${escapeHtml(result.player)}</div>
+                    <div class="result-time">${escapeHtml(result.time)}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 </script>
 {% endblock %}

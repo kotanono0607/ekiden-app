@@ -12,6 +12,7 @@
         padding-bottom: 8px;
         border-bottom: 2px solid #667eea;
     }
+    /* 出欠スタイル */
     .player-row {
         display: flex;
         align-items: center;
@@ -19,18 +20,13 @@
         border-bottom: 1px solid var(--border-color);
         gap: 8px;
     }
-    .player-row:last-child {
-        border-bottom: none;
-    }
+    .player-row:last-child { border-bottom: none; }
     .player-name {
         flex: 1;
         font-size: 14px;
         color: var(--text-color);
     }
-    .status-btns {
-        display: flex;
-        gap: 4px;
-    }
+    .status-btns { display: flex; gap: 4px; }
     .status-btn {
         padding: 2px 10px;
         border-radius: 12px;
@@ -41,14 +37,8 @@
         transition: all 0.15s;
         color: var(--text-muted);
     }
-    .status-btn:hover {
-        border-color: #667eea;
-    }
-    .status-btn.active {
-        background: #667eea;
-        border-color: #667eea;
-        color: white;
-    }
+    .status-btn:hover { border-color: #667eea; }
+    .status-btn.active { background: #667eea; border-color: #667eea; color: white; }
     .status-btn.present.active { background: #10b981; border-color: #10b981; }
     .status-btn.absent.active { background: #ef4444; border-color: #ef4444; }
     .status-btn.clear { color: var(--text-muted); }
@@ -92,13 +82,121 @@
         padding: 3px 8px;
         max-width: 120px;
     }
-    .btn-add-guest {
+    .btn-add-guest, .btn-remove-guest {
         font-size: 11px;
         padding: 2px 6px;
     }
-    .btn-remove-guest {
-        padding: 2px 5px;
-        font-size: 10px;
+
+    /* メニュー入力スタイル */
+    .menu-type-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+    .menu-type-tab {
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all 0.15s;
+    }
+    .menu-type-tab:hover { border-color: #667eea; }
+    .menu-type-tab.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    .menu-form { display: none; }
+    .menu-form.active { display: block; }
+    .menu-item {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+    .menu-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .menu-item-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-color);
+    }
+    .lap-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .lap-input {
+        width: 70px;
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    .lap-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        min-width: 60px;
+    }
+    .result-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .result-rank {
+        width: 40px;
+        font-size: 12px;
+        padding: 4px 6px;
+    }
+    .result-player {
+        flex: 1;
+        font-size: 12px;
+        padding: 4px 8px;
+        max-width: 100px;
+    }
+    .result-time {
+        width: 80px;
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    .added-menus {
+        margin-top: 12px;
+    }
+    .added-menu-item {
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .added-menu-content {
+        flex: 1;
+    }
+    .added-menu-type {
+        font-size: 11px;
+        color: #667eea;
+        margin-bottom: 2px;
+    }
+    .added-menu-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+    .added-menu-detail {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
     }
 </style>
 {% endblock %}
@@ -111,7 +209,7 @@
     </a>
 </div>
 
-<form method="POST">
+<form method="POST" id="mainForm">
     <!-- 練習日誌情報 -->
     <div class="card mb-3">
         <div class="card-body">
@@ -125,11 +223,6 @@
             <div class="mb-3">
                 <label class="form-label">タイトル <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" name="title" placeholder="例: ポイント練習、各自ジョグ" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">練習内容</label>
-                <textarea class="form-control" name="content" rows="3" placeholder="詳細な練習メニューや設定タイムなど"></textarea>
             </div>
 
             <div class="row">
@@ -164,6 +257,115 @@
             </div>
 
             <input type="hidden" name="participants" id="participantsInput" value="">
+            <input type="hidden" name="content" id="contentInput" value="">
+            <input type="hidden" name="menu_data" id="menuDataInput" value="">
+        </div>
+    </div>
+
+    <!-- 練習メニュー -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="section-title"><i class="bi bi-list-check"></i> 練習メニュー</div>
+
+            <div class="menu-type-tabs">
+                <button type="button" class="menu-type-tab active" onclick="switchMenuType('pace')">ペース走</button>
+                <button type="button" class="menu-type-tab" onclick="switchMenuType('interval')">インターバル</button>
+                <button type="button" class="menu-type-tab" onclick="switchMenuType('tt')">TT/フリー</button>
+            </div>
+
+            <!-- ペース走フォーム -->
+            <div id="menuFormPace" class="menu-form active">
+                <div class="row mb-2">
+                    <div class="col-6">
+                        <label class="form-label" style="font-size:12px;">総距離</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" id="paceDistance" placeholder="12000">
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" style="font-size:12px;">周回距離</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" id="paceLapDistance" placeholder="600">
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">ラップ間隔</label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" id="paceLapInterval" value="1000" placeholder="1000">
+                        <span class="input-group-text">mごと</span>
+                        <button type="button" class="btn btn-outline-primary" onclick="generatePaceLaps()">生成</button>
+                    </div>
+                </div>
+                <div id="paceLapsContainer" class="mb-2"></div>
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">トータルタイム</label>
+                    <input type="text" class="form-control form-control-sm" id="paceTotalTime" placeholder="42:44" readonly>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addPaceMenu()">
+                    <i class="bi bi-plus"></i> ペース走を追加
+                </button>
+            </div>
+
+            <!-- インターバルフォーム -->
+            <div id="menuFormInterval" class="menu-form">
+                <div class="row mb-2">
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;">距離</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" id="intervalDistance" placeholder="400">
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;">本数</label>
+                        <input type="number" class="form-control form-control-sm" id="intervalReps" placeholder="10">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;">設定</label>
+                        <input type="text" class="form-control form-control-sm" id="intervalPace" placeholder="70秒">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">レスト</label>
+                    <input type="text" class="form-control form-control-sm" id="intervalRest" placeholder="200mジョグ">
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addIntervalMenu()">
+                    <i class="bi bi-plus"></i> インターバルを追加
+                </button>
+            </div>
+
+            <!-- TT/フリーフォーム -->
+            <div id="menuFormTT" class="menu-form">
+                <div class="row mb-2">
+                    <div class="col-6">
+                        <label class="form-label" style="font-size:12px;">種目名</label>
+                        <input type="text" class="form-control form-control-sm" id="ttName" placeholder="1000m TT">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" style="font-size:12px;">距離</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" id="ttDistance" placeholder="1000">
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="ttResultsContainer" class="mb-2">
+                    <label class="form-label" style="font-size:12px;">個人タイム</label>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="addTTResult()">
+                    <i class="bi bi-plus"></i> 選手追加
+                </button>
+                <br>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addTTMenu()">
+                    <i class="bi bi-plus"></i> TTを追加
+                </button>
+            </div>
+
+            <!-- 追加済みメニュー -->
+            <div class="added-menus" id="addedMenus"></div>
         </div>
     </div>
 
@@ -190,22 +392,16 @@
             <div class="player-row">
                 <div class="player-name">{{ player.name }}</div>
                 <div class="status-btns">
-                    <button type="button" class="status-btn present"
-                            onclick="selectStatus(this, '{{ player.id }}', '出席')">出席</button>
-                    <button type="button" class="status-btn absent"
-                            onclick="selectStatus(this, '{{ player.id }}', '欠席')">欠席</button>
-                    <button type="button" class="status-btn clear active"
-                            onclick="selectStatus(this, '{{ player.id }}', '')">クリア</button>
+                    <button type="button" class="status-btn present" onclick="selectStatus(this, '{{ player.id }}', '出席')">出席</button>
+                    <button type="button" class="status-btn absent" onclick="selectStatus(this, '{{ player.id }}', '欠席')">欠席</button>
+                    <button type="button" class="status-btn clear active" onclick="selectStatus(this, '{{ player.id }}', '')">クリア</button>
                 </div>
                 <input type="hidden" name="status_{{ player.id }}" id="status_{{ player.id }}" value="">
             </div>
             {% else %}
-            <div class="text-center py-3 text-muted">
-                選手が登録されていません
-            </div>
+            <div class="text-center py-3 text-muted">選手が登録されていません</div>
             {% endfor %}
 
-            <!-- ゲストセクション -->
             <div class="guest-section">
                 <div class="guest-header">
                     <span><i class="bi bi-person-plus"></i> ゲスト</span>
@@ -220,7 +416,7 @@
     </div>
 
     <div class="d-grid">
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" onclick="prepareSubmit()">
             <i class="bi bi-check-lg"></i> 登録
         </button>
     </div>
@@ -229,8 +425,221 @@
 
 {% block extra_js %}
 <script>
+// メニューデータ
+let menus = [];
 let guestIndex = 0;
+let ttResultIndex = 0;
 
+// メニュータイプ切り替え
+function switchMenuType(type) {
+    document.querySelectorAll('.menu-type-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.menu-form').forEach(f => f.classList.remove('active'));
+    event.target.classList.add('active');
+    if (type === 'pace') document.getElementById('menuFormPace').classList.add('active');
+    else if (type === 'interval') document.getElementById('menuFormInterval').classList.add('active');
+    else if (type === 'tt') document.getElementById('menuFormTT').classList.add('active');
+}
+
+// ペース走ラップ生成
+function generatePaceLaps() {
+    const total = parseInt(document.getElementById('paceDistance').value) || 0;
+    const interval = parseInt(document.getElementById('paceLapInterval').value) || 1000;
+    const container = document.getElementById('paceLapsContainer');
+    container.innerHTML = '';
+
+    if (total <= 0) return;
+
+    for (let d = interval; d <= total; d += interval) {
+        const html = `
+            <div class="lap-row">
+                <span class="lap-label">${d}m</span>
+                <input type="text" class="form-control lap-input" id="paceLap_${d}" placeholder="3:35" oninput="calculatePaceTotal()">
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+}
+
+// ペース走トータル計算
+function calculatePaceTotal() {
+    let totalSeconds = 0;
+    document.querySelectorAll('#paceLapsContainer input').forEach(input => {
+        const time = input.value.trim();
+        if (time) {
+            const parts = time.split(':');
+            if (parts.length === 2) {
+                totalSeconds += parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+        }
+    });
+    if (totalSeconds > 0) {
+        const min = Math.floor(totalSeconds / 60);
+        const sec = totalSeconds % 60;
+        document.getElementById('paceTotalTime').value = `${min}:${sec.toString().padStart(2, '0')}`;
+    }
+}
+
+// ペース走追加
+function addPaceMenu() {
+    const distance = document.getElementById('paceDistance').value;
+    const lapDistance = document.getElementById('paceLapDistance').value;
+    const totalTime = document.getElementById('paceTotalTime').value;
+
+    if (!distance) { alert('距離を入力してください'); return; }
+
+    const laps = [];
+    document.querySelectorAll('#paceLapsContainer input').forEach(input => {
+        const d = input.id.replace('paceLap_', '');
+        if (input.value.trim()) {
+            laps.push({ distance: d + 'm', time: input.value.trim() });
+        }
+    });
+
+    const menu = {
+        type: 'pace_run',
+        name: `${distance}mペース走`,
+        distance: distance + 'm',
+        lap_distance: lapDistance ? lapDistance + 'm' : '',
+        laps: laps,
+        total: totalTime
+    };
+    menus.push(menu);
+    renderAddedMenus();
+
+    // フォームリセット
+    document.getElementById('paceDistance').value = '';
+    document.getElementById('paceLapDistance').value = '';
+    document.getElementById('paceLapsContainer').innerHTML = '';
+    document.getElementById('paceTotalTime').value = '';
+}
+
+// インターバル追加
+function addIntervalMenu() {
+    const distance = document.getElementById('intervalDistance').value;
+    const reps = document.getElementById('intervalReps').value;
+    const pace = document.getElementById('intervalPace').value;
+    const rest = document.getElementById('intervalRest').value;
+
+    if (!distance || !reps) { alert('距離と本数を入力してください'); return; }
+
+    const menu = {
+        type: 'interval',
+        name: `${distance}m×${reps}`,
+        distance: distance + 'm',
+        reps: parseInt(reps),
+        pace: pace,
+        rest: rest
+    };
+    menus.push(menu);
+    renderAddedMenus();
+
+    // フォームリセット
+    document.getElementById('intervalDistance').value = '';
+    document.getElementById('intervalReps').value = '';
+    document.getElementById('intervalPace').value = '';
+    document.getElementById('intervalRest').value = '';
+}
+
+// TT結果行追加
+function addTTResult() {
+    const container = document.getElementById('ttResultsContainer');
+    const html = `
+        <div class="result-row" id="ttResult_${ttResultIndex}">
+            <input type="number" class="form-control result-rank" placeholder="#" id="ttRank_${ttResultIndex}">
+            <input type="text" class="form-control result-player" placeholder="選手名" id="ttPlayer_${ttResultIndex}">
+            <input type="text" class="form-control result-time" placeholder="2:52.7" id="ttTime_${ttResultIndex}">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeTTResult(${ttResultIndex})">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+    ttResultIndex++;
+}
+
+function removeTTResult(idx) {
+    document.getElementById('ttResult_' + idx)?.remove();
+}
+
+// TT追加
+function addTTMenu() {
+    const name = document.getElementById('ttName').value || 'TT';
+    const distance = document.getElementById('ttDistance').value;
+
+    const results = [];
+    document.querySelectorAll('#ttResultsContainer .result-row').forEach(row => {
+        const idx = row.id.replace('ttResult_', '');
+        const rank = document.getElementById('ttRank_' + idx)?.value;
+        const player = document.getElementById('ttPlayer_' + idx)?.value;
+        const time = document.getElementById('ttTime_' + idx)?.value;
+        if (player && time) {
+            results.push({ rank: parseInt(rank) || 0, player: player, time: time });
+        }
+    });
+
+    const menu = {
+        type: 'tt',
+        name: name,
+        distance: distance ? distance + 'm' : '',
+        results: results
+    };
+    menus.push(menu);
+    renderAddedMenus();
+
+    // フォームリセット
+    document.getElementById('ttName').value = '';
+    document.getElementById('ttDistance').value = '';
+    document.getElementById('ttResultsContainer').innerHTML = '<label class="form-label" style="font-size:12px;">個人タイム</label>';
+    ttResultIndex = 0;
+}
+
+// 追加済みメニュー表示
+function renderAddedMenus() {
+    const container = document.getElementById('addedMenus');
+    if (menus.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">追加済みメニュー:</div>';
+    menus.forEach((menu, idx) => {
+        let detail = '';
+        if (menu.type === 'pace_run') {
+            detail = menu.laps.length + '本ラップ';
+            if (menu.total) detail += ' / total ' + menu.total;
+        } else if (menu.type === 'interval') {
+            detail = menu.pace || '';
+            if (menu.rest) detail += (detail ? ' / ' : '') + 'レスト ' + menu.rest;
+        } else if (menu.type === 'tt') {
+            detail = menu.results.length + '名参加';
+            if (menu.results.length > 0 && menu.results[0].player) {
+                detail += ' / 1位 ' + menu.results[0].player + ' ' + menu.results[0].time;
+            }
+        }
+
+        const typeLabel = menu.type === 'pace_run' ? 'ペース走' : menu.type === 'interval' ? 'インターバル' : 'TT';
+        html += `
+            <div class="added-menu-item">
+                <div class="added-menu-content">
+                    <div class="added-menu-type">${typeLabel}</div>
+                    <div class="added-menu-name">${menu.name}</div>
+                    <div class="added-menu-detail">${detail}</div>
+                </div>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMenu(${idx})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function removeMenu(idx) {
+    menus.splice(idx, 1);
+    renderAddedMenus();
+}
+
+// 出欠関連
 function selectStatus(btn, playerId, status) {
     btn.parentElement.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -249,9 +658,7 @@ function setAllStatus(status) {
     document.querySelectorAll('.player-row .status-btns').forEach(btns => {
         btns.querySelectorAll('.status-btn').forEach(btn => {
             btn.classList.remove('active');
-            if (btn.textContent.trim() === status) {
-                btn.classList.add('active');
-            }
+            if (btn.textContent.trim() === status) btn.classList.add('active');
         });
     });
     document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
@@ -264,14 +671,10 @@ function clearAllStatus() {
     document.querySelectorAll('.player-row .status-btns').forEach(btns => {
         btns.querySelectorAll('.status-btn').forEach(btn => {
             btn.classList.remove('active');
-            if (btn.textContent.trim() === 'クリア') {
-                btn.classList.add('active');
-            }
+            if (btn.textContent.trim() === 'クリア') btn.classList.add('active');
         });
     });
-    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
-        input.value = '';
-    });
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => input.value = '');
     updateSummary();
 }
 
@@ -301,12 +704,9 @@ function addGuest() {
             <input type="text" class="form-control form-control-sm guest-name-input"
                    name="guest_name_${guestIndex}" placeholder="名前" oninput="updateSummary()">
             <div class="status-btns">
-                <button type="button" class="status-btn present active"
-                        onclick="selectGuestStatus(this, ${guestIndex}, '出席')">出席</button>
-                <button type="button" class="status-btn absent"
-                        onclick="selectGuestStatus(this, ${guestIndex}, '欠席')">欠席</button>
-                <button type="button" class="status-btn clear"
-                        onclick="selectGuestStatus(this, ${guestIndex}, '')">クリア</button>
+                <button type="button" class="status-btn present active" onclick="selectGuestStatus(this, ${guestIndex}, '出席')">出席</button>
+                <button type="button" class="status-btn absent" onclick="selectGuestStatus(this, ${guestIndex}, '欠席')">欠席</button>
+                <button type="button" class="status-btn clear" onclick="selectGuestStatus(this, ${guestIndex}, '')">クリア</button>
             </div>
             <input type="hidden" name="guest_status_${guestIndex}" id="guest_status_${guestIndex}" value="出席">
             <button type="button" class="btn btn-outline-danger btn-remove-guest" onclick="removeGuest(this)">
@@ -326,7 +726,40 @@ function removeGuest(btn) {
     updateSummary();
 }
 
-// Initial summary
+// 送信前処理
+function prepareSubmit() {
+    // メニューデータをJSONに
+    document.getElementById('menuDataInput').value = JSON.stringify({ menus: menus });
+
+    // contentフィールドにテキスト形式も生成
+    let content = '';
+    menus.forEach(menu => {
+        if (menu.type === 'pace_run') {
+            content += menu.name;
+            if (menu.lap_distance) content += ` (${menu.lap_distance}周回)`;
+            content += '\n';
+            menu.laps.forEach(lap => {
+                content += `${lap.distance} ${lap.time}\n`;
+            });
+            if (menu.total) content += `total ${menu.total}\n`;
+            content += '\n';
+        } else if (menu.type === 'interval') {
+            content += `${menu.name}`;
+            if (menu.pace) content += ` ${menu.pace}`;
+            if (menu.rest) content += ` レスト${menu.rest}`;
+            content += '\n\n';
+        } else if (menu.type === 'tt') {
+            content += menu.name + '\n';
+            menu.results.forEach(r => {
+                content += `${r.rank ? r.rank + '位 ' : ''}${r.player} ${r.time}\n`;
+            });
+            content += '\n';
+        }
+    });
+    document.getElementById('contentInput').value = content.trim();
+}
+
+// 初期化
 updateSummary();
 </script>
 {% endblock %}
