@@ -134,17 +134,55 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
-    .lap-input {
-        width: 70px;
-        font-size: 12px;
-        padding: 4px 8px;
+    .lap-input, .time-input {
+        width: 80px;
+        font-size: 18px;
+        font-weight: 600;
+        padding: 10px 12px;
+        text-align: center;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-color);
+        transition: all 0.15s;
+    }
+    .lap-input:focus, .time-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        outline: none;
+    }
+    .lap-input.filled, .time-input.filled {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: #10b981;
     }
     .lap-label {
-        font-size: 12px;
-        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
         min-width: 60px;
+    }
+    /* タイム入力グリッド */
+    .time-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+    }
+    .time-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .time-cell-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+    }
+    .time-hint {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 4px;
     }
     .result-row {
         display: flex;
@@ -326,6 +364,52 @@
         </div>
     </div>
 
+    <!-- 出欠入力（練習情報の直後に移動） -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="section-title"><i class="bi bi-person-check"></i> 出欠入力</div>
+
+            <div class="summary-inline">
+                <span>出席 <span class="count present" id="presentCount">0</span></span>
+                <span>欠席 <span class="count absent" id="absentCount">0</span></span>
+            </div>
+
+            <div class="quick-actions">
+                <button type="button" class="btn btn-success btn-sm" onclick="setAllStatus('出席')">
+                    <i class="bi bi-check-all"></i> 全員出席
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllStatus()">
+                    <i class="bi bi-x-lg"></i> クリア
+                </button>
+            </div>
+
+            {% for player in players %}
+            <div class="player-row">
+                <div class="player-name">{{ player.name }}</div>
+                <div class="status-btns">
+                    <button type="button" class="status-btn present" onclick="selectStatus(this, '{{ player.id }}', '出席')">出席</button>
+                    <button type="button" class="status-btn absent" onclick="selectStatus(this, '{{ player.id }}', '欠席')">欠席</button>
+                    <button type="button" class="status-btn clear active" onclick="selectStatus(this, '{{ player.id }}', '')">クリア</button>
+                </div>
+                <input type="hidden" name="status_{{ player.id }}" id="status_{{ player.id }}" value="">
+            </div>
+            {% else %}
+            <div class="text-center py-3 text-muted">選手が登録されていません</div>
+            {% endfor %}
+
+            <div class="guest-section">
+                <div class="guest-header">
+                    <span><i class="bi bi-person-plus"></i> ゲスト</span>
+                    <button type="button" class="btn btn-outline-primary btn-add-guest" onclick="addGuest()">
+                        <i class="bi bi-plus"></i> 追加
+                    </button>
+                </div>
+                <div id="guestList"></div>
+            </div>
+            <input type="hidden" name="guest_count" id="guestCount" value="0">
+        </div>
+    </div>
+
     <!-- 練習メニュー -->
     <div class="card mb-3">
         <div class="card-body">
@@ -369,19 +453,12 @@
                         </div>
                     </div>
                     <div class="col-6">
-                        <label class="form-label" style="font-size:12px;">周回距離</label>
+                        <label class="form-label" style="font-size:12px;">ラップ間隔</label>
                         <div class="input-group input-group-sm">
-                            <input type="number" class="form-control" id="paceLapDistance" placeholder="600">
-                            <span class="input-group-text">m</span>
+                            <input type="number" class="form-control" id="paceLapInterval" value="1000" placeholder="1000">
+                            <span class="input-group-text">mごと</span>
+                            <button type="button" class="btn btn-outline-primary" onclick="generatePaceLaps()">生成</button>
                         </div>
-                    </div>
-                </div>
-                <div class="mb-2">
-                    <label class="form-label" style="font-size:12px;">ラップ間隔</label>
-                    <div class="input-group input-group-sm">
-                        <input type="number" class="form-control" id="paceLapInterval" value="1000" placeholder="1000">
-                        <span class="input-group-text">mごと</span>
-                        <button type="button" class="btn btn-outline-primary" onclick="generatePaceLaps()">生成</button>
                     </div>
                 </div>
                 <div id="paceLapsContainer" class="mb-2"></div>
@@ -455,52 +532,6 @@
 
             <!-- 追加済みメニュー -->
             <div class="added-menus" id="addedMenus"></div>
-        </div>
-    </div>
-
-    <!-- 出欠入力 -->
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="section-title"><i class="bi bi-person-check"></i> 出欠入力</div>
-
-            <div class="summary-inline">
-                <span>出席 <span class="count present" id="presentCount">0</span></span>
-                <span>欠席 <span class="count absent" id="absentCount">0</span></span>
-            </div>
-
-            <div class="quick-actions">
-                <button type="button" class="btn btn-success btn-sm" onclick="setAllStatus('出席')">
-                    <i class="bi bi-check-all"></i> 全員出席
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllStatus()">
-                    <i class="bi bi-x-lg"></i> クリア
-                </button>
-            </div>
-
-            {% for player in players %}
-            <div class="player-row">
-                <div class="player-name">{{ player.name }}</div>
-                <div class="status-btns">
-                    <button type="button" class="status-btn present" onclick="selectStatus(this, '{{ player.id }}', '出席')">出席</button>
-                    <button type="button" class="status-btn absent" onclick="selectStatus(this, '{{ player.id }}', '欠席')">欠席</button>
-                    <button type="button" class="status-btn clear active" onclick="selectStatus(this, '{{ player.id }}', '')">クリア</button>
-                </div>
-                <input type="hidden" name="status_{{ player.id }}" id="status_{{ player.id }}" value="">
-            </div>
-            {% else %}
-            <div class="text-center py-3 text-muted">選手が登録されていません</div>
-            {% endfor %}
-
-            <div class="guest-section">
-                <div class="guest-header">
-                    <span><i class="bi bi-person-plus"></i> ゲスト</span>
-                    <button type="button" class="btn btn-outline-primary btn-add-guest" onclick="addGuest()">
-                        <i class="bi bi-plus"></i> 追加
-                    </button>
-                </div>
-                <div id="guestList"></div>
-            </div>
-            <input type="hidden" name="guest_count" id="guestCount" value="0">
         </div>
     </div>
 
@@ -622,6 +653,36 @@ function switchMenuType(type) {
     else if (type === 'tt') document.getElementById('menuFormTT').classList.add('active');
 }
 
+// タイム自動フォーマット（335→3:35、70→70）
+function formatTimeInput(input) {
+    let val = input.value.replace(/[^0-9]/g, '');
+    if (val.length >= 3) {
+        // 3桁以上なら分:秒に変換
+        const sec = val.slice(-2);
+        const min = val.slice(0, -2);
+        input.value = min + ':' + sec;
+    }
+    // 入力済みスタイル
+    if (input.value.trim()) {
+        input.classList.add('filled');
+    } else {
+        input.classList.remove('filled');
+    }
+}
+
+// 次の入力欄にフォーカス移動
+function moveToNextInput(currentInput, e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        const allInputs = Array.from(document.querySelectorAll('.time-input, .lap-input'));
+        const idx = allInputs.indexOf(currentInput);
+        if (idx >= 0 && idx < allInputs.length - 1) {
+            allInputs[idx + 1].focus();
+            allInputs[idx + 1].select();
+        }
+    }
+}
+
 // ペース走ラップ生成
 function generatePaceLaps() {
     const total = parseInt(document.getElementById('paceDistance').value) || 0;
@@ -631,15 +692,25 @@ function generatePaceLaps() {
 
     if (total <= 0) return;
 
+    let html = '<div class="time-hint">💡 数字だけ入力 → 自動で「:」挿入（335→3:35）、Enterで次へ</div>';
     for (let d = interval; d <= total; d += interval) {
-        const html = `
+        html += `
             <div class="lap-row">
                 <span class="lap-label">${d}m</span>
-                <input type="text" class="form-control lap-input" id="paceLap_${d}" placeholder="3:35" oninput="calculatePaceTotal()">
+                <input type="text" class="lap-input time-input" id="paceLap_${d}"
+                       inputmode="numeric" placeholder="3:35"
+                       onblur="formatTimeInput(this); calculatePaceTotal()"
+                       onkeydown="moveToNextInput(this, event)">
             </div>
         `;
-        container.insertAdjacentHTML('beforeend', html);
     }
+    container.innerHTML = html;
+
+    // 最初の入力欄にフォーカス
+    setTimeout(() => {
+        const firstInput = container.querySelector('.lap-input');
+        if (firstInput) firstInput.focus();
+    }, 100);
 }
 
 // ペース走トータル計算
@@ -664,13 +735,12 @@ function calculatePaceTotal() {
 // ペース走追加
 function addPaceMenu() {
     const distance = document.getElementById('paceDistance').value;
-    const lapDistance = document.getElementById('paceLapDistance').value;
     const totalTime = document.getElementById('paceTotalTime').value;
 
     if (!distance) { alert('距離を入力してください'); return; }
 
     const laps = [];
-    document.querySelectorAll('#paceLapsContainer input').forEach(input => {
+    document.querySelectorAll('#paceLapsContainer .lap-input').forEach(input => {
         const d = input.id.replace('paceLap_', '');
         if (input.value.trim()) {
             laps.push({ distance: d + 'm', time: input.value.trim() });
@@ -681,7 +751,6 @@ function addPaceMenu() {
         type: 'pace_run',
         name: `${distance}mペース走`,
         distance: distance + 'm',
-        lap_distance: lapDistance ? lapDistance + 'm' : '',
         laps: laps,
         total: totalTime,
         group: currentGroup,
@@ -692,7 +761,6 @@ function addPaceMenu() {
 
     // フォームリセット
     document.getElementById('paceDistance').value = '';
-    document.getElementById('paceLapDistance').value = '';
     document.getElementById('paceLapsContainer').innerHTML = '';
     document.getElementById('paceTotalTime').value = '';
     resetGroupSelection();
@@ -701,24 +769,40 @@ function addPaceMenu() {
 // インターバルタイム入力欄生成
 function generateIntervalTimes() {
     const reps = parseInt(document.getElementById('intervalReps').value) || 0;
+    const distance = parseInt(document.getElementById('intervalDistance').value) || 0;
     const container = document.getElementById('intervalTimesContainer');
     container.innerHTML = '';
 
     if (reps <= 0 || reps > 30) return;
 
-    let html = '<label class="form-label" style="font-size:12px;">各本タイム</label><div class="row g-1">';
+    // 距離に応じたプレースホルダー
+    let placeholder = '70';
+    if (distance >= 1000) placeholder = '3:20';
+    else if (distance >= 600) placeholder = '1:50';
+    else if (distance >= 300) placeholder = '50';
+
+    let html = '<label class="form-label" style="font-size:12px;">各本タイム</label>';
+    html += '<div class="time-hint">💡 数字だけ入力 → 自動で「:」挿入（335→3:35）、Enterで次へ</div>';
+    html += '<div class="time-grid">';
     for (let i = 1; i <= reps; i++) {
         html += `
-            <div class="col-3 mb-1">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text" style="font-size:10px;padding:2px 4px;">${i}</span>
-                    <input type="text" class="form-control" id="intervalTime_${i}" placeholder="70" style="font-size:12px;">
-                </div>
+            <div class="time-cell">
+                <span class="time-cell-label">${i}本目</span>
+                <input type="text" class="time-input" id="intervalTime_${i}"
+                       inputmode="numeric" placeholder="${placeholder}"
+                       onblur="formatTimeInput(this)"
+                       onkeydown="moveToNextInput(this, event)">
             </div>
         `;
     }
     html += '</div>';
     container.innerHTML = html;
+
+    // 最初の入力欄にフォーカス
+    setTimeout(() => {
+        const firstInput = container.querySelector('.time-input');
+        if (firstInput) firstInput.focus();
+    }, 100);
 }
 
 // インターバル追加
@@ -981,9 +1065,7 @@ function prepareSubmit() {
         }
 
         if (menu.type === 'pace_run') {
-            content += menu.name;
-            if (menu.lap_distance) content += ` (${menu.lap_distance}周回)`;
-            content += '\n';
+            content += menu.name + '\n';
             menu.laps.forEach(lap => {
                 content += `${lap.distance} ${lap.time}\n`;
             });
