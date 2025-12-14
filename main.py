@@ -1036,13 +1036,29 @@ def practice_log_detail(log_id):
 
         # その日の出欠データ取得
         attendance = sheet_api.get_attendance_by_date(log.get('date', ''))
-        players = sheet_api.get_all_players()
-        player_dict = {str(p.get('id')): p for p in players}
+        all_players = sheet_api.get_all_players()
+        # statusがFALSE（非アクティブ）の選手は非表示
+        players = [p for p in all_players if str(p.get('status', 'TRUE')).upper() != 'FALSE']
+        player_dict = {str(p.get('id')): p for p in all_players}
+        attendance_by_player = {str(a.get('player_id')): a for a in attendance}
+
+        # ゲストデータを抽出
+        guests = []
+        for att in attendance:
+            player_id = str(att.get('player_id', ''))
+            if player_id.startswith('GUEST_'):
+                guests.append({
+                    'name': att.get('memo', ''),
+                    'status': att.get('status', '出席')
+                })
 
         return render_template('practice_log_detail.html',
                                log=log,
                                attendance=attendance,
-                               player_dict=player_dict)
+                               players=players,
+                               player_dict=player_dict,
+                               attendance_by_player=attendance_by_player,
+                               guests=guests)
     except Exception as e:
         flash(f'エラーが発生しました: {str(e)}', 'danger')
         return redirect(url_for('practice_logs'))
@@ -1175,6 +1191,10 @@ def attendance_save():
     except Exception as e:
         flash(f'保存に失敗しました: {str(e)}', 'danger')
 
+    # redirect_to が指定されていればそこにリダイレクト
+    redirect_to = request.form.get('redirect_to')
+    if redirect_to:
+        return redirect(redirect_to)
     return redirect(url_for('attendance', date=request.form.get('date')))
 
 @app.route("/attendance/player/<player_id>")

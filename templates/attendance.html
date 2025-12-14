@@ -63,6 +63,8 @@
     }
     .status-btn.present.active { background: #10b981; border-color: #10b981; }
     .status-btn.absent.active { background: #ef4444; border-color: #ef4444; }
+    .status-btn.clear { color: var(--text-muted); }
+    .status-btn.clear:hover { border-color: #9ca3af; }
     .quick-actions {
         display: flex;
         gap: 8px;
@@ -198,6 +200,8 @@
                         onclick="selectStatus(this, '{{ player.id }}', '出席')">出席</button>
                 <button type="button" class="status-btn absent {% if att.status == '欠席' %}active{% endif %}"
                         onclick="selectStatus(this, '{{ player.id }}', '欠席')">欠席</button>
+                <button type="button" class="status-btn clear {% if not att.status %}active{% endif %}"
+                        onclick="selectStatus(this, '{{ player.id }}', '')">クリア</button>
             </div>
             <input type="hidden" name="status_{{ player.id }}" id="status_{{ player.id }}" value="{{ att.status or '' }}">
         </div>
@@ -225,6 +229,8 @@
                                 onclick="selectGuestStatus(this, {{ loop.index0 }}, '出席')">出席</button>
                         <button type="button" class="status-btn absent {% if guest.status == '欠席' %}active{% endif %}"
                                 onclick="selectGuestStatus(this, {{ loop.index0 }}, '欠席')">欠席</button>
+                        <button type="button" class="status-btn clear {% if not guest.status %}active{% endif %}"
+                                onclick="selectGuestStatus(this, {{ loop.index0 }}, '')">クリア</button>
                     </div>
                     <input type="hidden" name="guest_status_{{ loop.index0 }}" id="guest_status_{{ loop.index0 }}" value="{{ guest.status or '出席' }}">
                     <button type="button" class="btn btn-outline-danger btn-remove-guest" onclick="removeGuest(this)">
@@ -315,6 +321,8 @@ function addGuest() {
                         onclick="selectGuestStatus(this, ${guestIndex}, '出席')">出席</button>
                 <button type="button" class="status-btn absent"
                         onclick="selectGuestStatus(this, ${guestIndex}, '欠席')">欠席</button>
+                <button type="button" class="status-btn clear"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '')">クリア</button>
             </div>
             <input type="hidden" name="guest_status_${guestIndex}" id="guest_status_${guestIndex}" value="出席">
             <button type="button" class="btn btn-outline-danger btn-remove-guest" onclick="removeGuest(this)">

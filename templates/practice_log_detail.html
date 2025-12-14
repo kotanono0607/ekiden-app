@@ -61,32 +61,101 @@
         white-space: pre-wrap;
         color: var(--text-color);
     }
+    /* Attendance input styles */
     .attendance-section {
         background: var(--card-bg);
         padding: 16px;
         border-radius: 12px;
     }
-    .attendance-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid var(--border-color);
+    .attendance-section h6 {
+        color: var(--text-muted);
+        font-size: 12px;
+        margin-bottom: 12px;
     }
-    .attendance-item:last-child {
+    .player-row {
+        display: flex;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border-color);
+        gap: 8px;
+    }
+    .player-row:last-child {
         border-bottom: none;
     }
-    .attendance-status {
-        font-size: 12px;
-        padding: 2px 8px;
-        border-radius: 4px;
+    .player-name {
+        flex: 1;
+        font-size: 14px;
+        color: var(--text-color);
     }
-    .attendance-status.present { background: #d1fae5; color: #065f46; }
-    .attendance-status.absent { background: #fee2e2; color: #991b1b; }
-    .attendance-status.late { background: #fef3c7; color: #92400e; }
-    [data-theme="dark"] .attendance-status.present { background: #065f46; color: #d1fae5; }
-    [data-theme="dark"] .attendance-status.absent { background: #991b1b; color: #fee2e2; }
-    [data-theme="dark"] .attendance-status.late { background: #92400e; color: #fef3c7; }
+    .status-btns {
+        display: flex;
+        gap: 4px;
+    }
+    .status-btn {
+        padding: 2px 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.15s;
+        color: var(--text-muted);
+    }
+    .status-btn:hover {
+        border-color: #667eea;
+    }
+    .status-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    .status-btn.present.active { background: #10b981; border-color: #10b981; }
+    .status-btn.absent.active { background: #ef4444; border-color: #ef4444; }
+    .status-btn.clear { color: var(--text-muted); }
+    .summary-inline {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+    }
+    .summary-inline span { color: var(--text-muted); }
+    .summary-inline .count { font-weight: 600; }
+    .summary-inline .present { color: #10b981; }
+    .summary-inline .absent { color: #ef4444; }
+    /* Guest section */
+    .guest-section {
+        border-top: 1px dashed var(--border-color);
+        margin-top: 8px;
+        padding-top: 8px;
+    }
+    .guest-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .guest-row {
+        display: flex;
+        align-items: center;
+        padding: 6px 0;
+        gap: 8px;
+    }
+    .guest-name-input {
+        flex: 1;
+        font-size: 12px;
+        padding: 3px 8px;
+        max-width: 120px;
+    }
+    .btn-add-guest {
+        font-size: 11px;
+        padding: 2px 6px;
+    }
+    .btn-remove-guest {
+        padding: 2px 5px;
+        font-size: 10px;
+    }
 </style>
 {% endblock %}
 
@@ -95,14 +164,9 @@
     <a href="{{ url_for('practice_logs') }}" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-arrow-left"></i> 一覧
     </a>
-    <div class="d-flex gap-2">
-        <a href="{{ url_for('attendance', date=log.date) }}" class="btn btn-info btn-sm">
-            <i class="bi bi-person-check"></i> 出欠
-        </a>
-        <a href="{{ url_for('practice_log_edit', log_id=log.log_id) }}" class="btn btn-primary btn-sm">
-            <i class="bi bi-pencil"></i> 編集
-        </a>
-    </div>
+    <a href="{{ url_for('practice_log_edit', log_id=log.log_id) }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-pencil"></i> 編集
+    </a>
 </div>
 
 <div class="log-header">
@@ -124,7 +188,7 @@
     <div class="info-item">
         <div class="info-icon"><i class="bi bi-people"></i></div>
         <div class="info-label">参加</div>
-        <div class="info-value">{{ log.participants + '名' if log.participants else '-' }}</div>
+        <div class="info-value" id="participantCount">{{ log.participants + '名' if log.participants else '-' }}</div>
     </div>
 </div>
 
@@ -142,18 +206,149 @@
 </div>
 {% endif %}
 
-{% if attendance %}
+<!-- 出欠入力セクション -->
 <div class="attendance-section">
-    <h6 class="mb-3"><i class="bi bi-person-check"></i> 出欠状況</h6>
-    {% for att in attendance %}
-    {% set player = player_dict.get(att.player_id|string) %}
-    <div class="attendance-item">
-        <span>{{ player.name if player else att.player_id }}</span>
-        <span class="attendance-status {% if att.status == '出席' %}present{% elif att.status == '欠席' %}absent{% else %}late{% endif %}">
-            {{ att.status }}
-        </span>
+    <h6><i class="bi bi-person-check"></i> 出欠入力</h6>
+    <div class="summary-inline">
+        <span>出席 <span class="count present" id="presentCount">0</span></span>
+        <span>欠席 <span class="count absent" id="absentCount">0</span></span>
     </div>
-    {% endfor %}
+    <form method="POST" action="{{ url_for('attendance_save') }}" id="attendanceForm">
+        <input type="hidden" name="date" value="{{ log.date }}">
+        <input type="hidden" name="redirect_to" value="{{ url_for('practice_log_detail', log_id=log.log_id) }}">
+
+        {% for player in players %}
+        {% set att = attendance_by_player.get(player.id|string, {}) %}
+        <div class="player-row">
+            <div class="player-name">{{ player.name }}</div>
+            <div class="status-btns">
+                <button type="button" class="status-btn present {% if att.status == '出席' %}active{% endif %}"
+                        onclick="selectStatus(this, '{{ player.id }}', '出席')">出席</button>
+                <button type="button" class="status-btn absent {% if att.status == '欠席' %}active{% endif %}"
+                        onclick="selectStatus(this, '{{ player.id }}', '欠席')">欠席</button>
+                <button type="button" class="status-btn clear {% if not att.status %}active{% endif %}"
+                        onclick="selectStatus(this, '{{ player.id }}', '')">クリア</button>
+            </div>
+            <input type="hidden" name="status_{{ player.id }}" id="status_{{ player.id }}" value="{{ att.status or '' }}">
+        </div>
+        {% else %}
+        <div class="text-center py-3 text-muted">
+            選手が登録されていません
+        </div>
+        {% endfor %}
+
+        <!-- ゲストセクション -->
+        <div class="guest-section">
+            <div class="guest-header">
+                <span><i class="bi bi-person-plus"></i> ゲスト</span>
+                <button type="button" class="btn btn-outline-primary btn-add-guest" onclick="addGuest()">
+                    <i class="bi bi-plus"></i> 追加
+                </button>
+            </div>
+            <div id="guestList">
+                {% for guest in guests %}
+                <div class="guest-row" data-guest-index="{{ loop.index0 }}">
+                    <input type="text" class="form-control form-control-sm guest-name-input"
+                           name="guest_name_{{ loop.index0 }}" value="{{ guest.name }}" placeholder="名前">
+                    <div class="status-btns">
+                        <button type="button" class="status-btn present {% if guest.status == '出席' %}active{% endif %}"
+                                onclick="selectGuestStatus(this, {{ loop.index0 }}, '出席')">出席</button>
+                        <button type="button" class="status-btn absent {% if guest.status == '欠席' %}active{% endif %}"
+                                onclick="selectGuestStatus(this, {{ loop.index0 }}, '欠席')">欠席</button>
+                        <button type="button" class="status-btn clear {% if not guest.status %}active{% endif %}"
+                                onclick="selectGuestStatus(this, {{ loop.index0 }}, '')">クリア</button>
+                    </div>
+                    <input type="hidden" name="guest_status_{{ loop.index0 }}" id="guest_status_{{ loop.index0 }}" value="{{ guest.status or '出席' }}">
+                    <button type="button" class="btn btn-outline-danger btn-remove-guest" onclick="removeGuest(this)">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <input type="hidden" name="guest_count" id="guestCount" value="{{ guests|length }}">
+
+        <div class="d-grid mt-3">
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="bi bi-check-lg"></i> 出欠を保存
+            </button>
+        </div>
+    </form>
 </div>
-{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let guestIndex = {{ guests|length }};
+
+function selectStatus(btn, playerId, status) {
+    btn.parentElement.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('status_' + playerId).value = status;
+    updateSummary();
+}
+
+function selectGuestStatus(btn, index, status) {
+    btn.parentElement.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('guest_status_' + index).value = status;
+    updateSummary();
+}
+
+function updateSummary() {
+    let present = 0, absent = 0;
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
+        if (input.value === '出席') present++;
+        else if (input.value === '欠席') absent++;
+    });
+    document.querySelectorAll('.guest-row').forEach(row => {
+        const nameInput = row.querySelector('.guest-name-input');
+        const statusInput = row.querySelector('input[id^="guest_status_"]');
+        if (nameInput && nameInput.value.trim() && statusInput) {
+            if (statusInput.value === '出席') present++;
+            else if (statusInput.value === '欠席') absent++;
+        }
+    });
+    document.getElementById('presentCount').textContent = present;
+    document.getElementById('absentCount').textContent = absent;
+    // Update participant count in info grid
+    const total = present;
+    document.getElementById('participantCount').textContent = total > 0 ? total + '名' : '-';
+}
+
+function addGuest() {
+    const guestList = document.getElementById('guestList');
+    const html = `
+        <div class="guest-row" data-guest-index="${guestIndex}">
+            <input type="text" class="form-control form-control-sm guest-name-input"
+                   name="guest_name_${guestIndex}" placeholder="名前">
+            <div class="status-btns">
+                <button type="button" class="status-btn present active"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '出席')">出席</button>
+                <button type="button" class="status-btn absent"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '欠席')">欠席</button>
+                <button type="button" class="status-btn clear"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '')">クリア</button>
+            </div>
+            <input type="hidden" name="guest_status_${guestIndex}" id="guest_status_${guestIndex}" value="出席">
+            <button type="button" class="btn btn-outline-danger btn-remove-guest" onclick="removeGuest(this)">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    guestList.insertAdjacentHTML('beforeend', html);
+    guestIndex++;
+    document.getElementById('guestCount').value = document.querySelectorAll('.guest-row').length;
+    updateSummary();
+}
+
+function removeGuest(btn) {
+    btn.closest('.guest-row').remove();
+    document.getElementById('guestCount').value = document.querySelectorAll('.guest-row').length;
+    updateSummary();
+}
+
+// Initial summary
+updateSummary();
+</script>
 {% endblock %}
