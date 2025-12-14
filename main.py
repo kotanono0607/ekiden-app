@@ -639,6 +639,9 @@ def race_delete(race_id):
 
 # ============ 駅伝メニュー ============
 
+# 山形県縦断駅伝の親race_name（１日目〜３日目をまとめる）
+KENJUDAN_PARENT = '山形県縦断駅伝競走大会'
+
 @app.route("/ekiden")
 def ekiden_menu():
     """駅伝メニュー画面"""
@@ -646,6 +649,10 @@ def ekiden_menu():
         all_races = sheet_api.get_all_races()
         # 駅伝大会のみフィルタリング（race_nameに「駅伝」を含むもの）
         ekiden_races = [r for r in all_races if '駅伝' in r.get('race_name', '')]
+        # 山形県縦断駅伝の「X日目」は除外（親の「山形県縦断駅伝競走大会」のみ表示）
+        ekiden_races = [r for r in ekiden_races
+                        if not (KENJUDAN_PARENT in r.get('race_name', '')
+                               and r.get('race_name', '') != KENJUDAN_PARENT)]
         return render_template('ekiden_menu.html', ekiden_races=ekiden_races)
     except Exception as e:
         flash(f'エラーが発生しました: {str(e)}', 'danger')
@@ -660,9 +667,18 @@ def ekiden_race_detail(race_id):
             flash('大会が見つかりません', 'warning')
             return redirect(url_for('ekiden_menu'))
 
-        # この大会のチーム記録を取得
         all_records = sheet_api.get_all_team_records()
-        records = [r for r in all_records if r.get('race_id') == race_id]
+
+        # 山形県縦断駅伝の場合、１日目〜３日目も含めて取得
+        if race.get('race_name') == KENJUDAN_PARENT:
+            all_races = sheet_api.get_all_races()
+            # 「山形県縦断駅伝競走大会」を含む全てのrace_idを取得
+            related_race_ids = [r.get('race_id') for r in all_races
+                               if KENJUDAN_PARENT in r.get('race_name', '')]
+            records = [r for r in all_records if r.get('race_id') in related_race_ids]
+        else:
+            records = [r for r in all_records if r.get('race_id') == race_id]
+
         # 日付の新しい順にソート
         records = sorted(records, key=lambda x: x.get('date', ''), reverse=True)
 
