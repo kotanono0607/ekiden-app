@@ -209,7 +209,7 @@
     </a>
 </div>
 
-<form method="POST" id="mainForm">
+<form method="POST" id="mainForm" onsubmit="return prepareSubmit()">
     <!-- 練習日誌情報 -->
     <div class="card mb-3">
         <div class="card-body">
@@ -416,7 +416,7 @@
     </div>
 
     <div class="d-grid">
-        <button type="submit" class="btn btn-primary" onclick="prepareSubmit()">
+        <button type="submit" class="btn btn-primary">
             <i class="bi bi-check-lg"></i> 登録
         </button>
     </div>
@@ -757,6 +757,7 @@ function prepareSubmit() {
         }
     });
     document.getElementById('contentInput').value = content.trim();
+    return true; // フォーム送信を続行
 }
 
 // 初期化
