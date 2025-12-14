@@ -637,6 +637,40 @@ def race_delete(race_id):
         flash(f'削除に失敗しました: {str(e)}', 'danger')
     return redirect(url_for('races'))
 
+# ============ 駅伝メニュー ============
+
+@app.route("/ekiden")
+def ekiden_menu():
+    """駅伝メニュー画面"""
+    try:
+        all_races = sheet_api.get_all_races()
+        # 駅伝大会のみフィルタリング（race_nameに「駅伝」を含むもの）
+        ekiden_races = [r for r in all_races if '駅伝' in r.get('race_name', '')]
+        return render_template('ekiden_menu.html', ekiden_races=ekiden_races)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return render_template('ekiden_menu.html', ekiden_races=[])
+
+@app.route("/ekiden/<race_id>")
+def ekiden_race_detail(race_id):
+    """駅伝大会別の記録一覧"""
+    try:
+        race = sheet_api.get_race_by_id(race_id)
+        if not race:
+            flash('大会が見つかりません', 'warning')
+            return redirect(url_for('ekiden_menu'))
+
+        # この大会のチーム記録を取得
+        all_records = sheet_api.get_all_team_records()
+        records = [r for r in all_records if r.get('race_id') == race_id]
+        # 日付の新しい順にソート
+        records = sorted(records, key=lambda x: x.get('date', ''), reverse=True)
+
+        return render_template('ekiden_race_detail.html', race=race, records=records)
+    except Exception as e:
+        flash(f'エラーが発生しました: {str(e)}', 'danger')
+        return redirect(url_for('ekiden_menu'))
+
 # ============ チーム記録管理 ============
 
 @app.route("/team_records")

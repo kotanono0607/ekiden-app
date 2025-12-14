@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}{{ race.race_name }} - 駅伝アプリ{% endblock %}
+
+{% block extra_css %}
+<style>
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #718096;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+
+    .race-header {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        color: white;
+        padding: 24px 16px;
+        margin: 0 -12px 16px -12px;
+        text-align: center;
+    }
+    .race-header h4 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .race-header p {
+        margin: 8px 0 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .stats-row {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 16px;
+    }
+    .stat-item {
+        text-align: center;
+    }
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+    .stat-label {
+        font-size: 11px;
+        opacity: 0.8;
+        text-transform: uppercase;
+    }
+
+    .record-card {
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+        text-decoration: none;
+        display: block;
+        color: inherit;
+        transition: all 0.15s;
+    }
+    .record-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        color: inherit;
+    }
+    [data-theme="dark"] .record-card {
+        background: var(--card-bg);
+    }
+
+    .record-card-inner {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+    }
+
+    .record-edition {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #e53e3e, #c53030);
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+    .record-edition-num {
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .record-edition-label {
+        font-size: 10px;
+        opacity: 0.9;
+    }
+
+    .record-info {
+        flex: 1;
+        margin-left: 14px;
+        min-width: 0;
+    }
+    .record-date {
+        font-size: 14px;
+        color: #718096;
+        margin-bottom: 4px;
+    }
+    [data-theme="dark"] .record-date {
+        color: var(--text-muted);
+    }
+    .record-time {
+        font-size: 22px;
+        font-weight: 700;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        color: #2d3748;
+    }
+    [data-theme="dark"] .record-time {
+        color: var(--text-color);
+    }
+    .record-meta {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 2px;
+    }
+    [data-theme="dark"] .record-meta {
+        color: var(--text-muted);
+    }
+
+    .record-arrow {
+        color: #a0aec0;
+        font-size: 20px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 16px;
+        color: #a0aec0;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .add-record-btn {
+        position: fixed;
+        bottom: calc(80px + var(--safe-area-bottom, 0px));
+        right: 16px;
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #e53e3e, #c53030);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .add-record-btn:hover {
+        transform: scale(1.1);
+        color: white;
+    }
+    @media (min-width: 992px) {
+        .add-record-btn {
+            bottom: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/ekiden" class="back-link">
+    <i class="bi bi-chevron-left"></i> 駅伝メニュー
+</a>
+
+<div class="race-header">
+    <h4>{{ race.race_name }}</h4>
+    {% if race.location %}
+    <p><i class="bi bi-geo-alt"></i> {{ race.location }}</p>
+    {% endif %}
+    <div class="stats-row">
+        <div class="stat-item">
+            <div class="stat-value">{{ records|length }}</div>
+            <div class="stat-label">出場回数</div>
+        </div>
+        {% if race.section_count %}
+        <div class="stat-item">
+            <div class="stat-value">{{ race.section_count }}</div>
+            <div class="stat-label">区間数</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if records %}
+    {% for record in records %}
+    <a href="/team_record/{{ record.team_record_id }}" class="record-card">
+        <div class="record-card-inner">
+            <div class="record-edition">
+                {% if record.edition %}
+                <div class="record-edition-num">{{ record.edition }}</div>
+                <div class="record-edition-label">回</div>
+                {% else %}
+                <i class="bi bi-flag-fill" style="font-size: 24px;"></i>
+                {% endif %}
+            </div>
+            <div class="record-info">
+                <div class="record-date">{{ record.date }}</div>
+                <div class="record-time">{{ record.total_time }}</div>
+                <div class="record-meta">
+                    {% if record.rank %}{{ record.rank }}位{% endif %}
+                    {% if record.total_teams %} / {{ record.total_teams }}チーム{% endif %}
+                    {% if record.category %} ({{ record.category }}){% endif %}
+                </div>
+            </div>
+            <i class="bi bi-chevron-right record-arrow"></i>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>この大会の記録はまだありません</p>
+    </div>
+{% endif %}
+
+<a href="/team_record/add" class="add-record-btn">
+    <i class="bi bi-plus-lg"></i>
+</a>
+{% endblock %}

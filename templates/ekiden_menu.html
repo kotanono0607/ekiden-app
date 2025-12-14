@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}駅伝 - 南陽・東置賜駅伝{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        color: white;
+        padding: 24px 16px;
+        margin: -1rem -12px 16px -12px;
+        text-align: center;
+    }
+    .page-header h4 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .page-header p {
+        margin: 8px 0 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .menu-section {
+        margin-bottom: 24px;
+    }
+    .menu-section-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0 4px;
+        margin-bottom: 8px;
+    }
+
+    .race-list {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    [data-theme="dark"] .race-list {
+        background: var(--card-bg);
+    }
+
+    .race-item {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid #e2e8f0;
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.15s;
+    }
+    .race-item:last-child {
+        border-bottom: none;
+    }
+    .race-item:hover {
+        background: #f7fafc;
+    }
+    [data-theme="dark"] .race-item {
+        border-bottom-color: var(--border-color);
+    }
+    [data-theme="dark"] .race-item:hover {
+        background: rgba(255,255,255,0.05);
+    }
+
+    .race-icon {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #e53e3e, #c53030);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .race-info {
+        flex: 1;
+        margin-left: 14px;
+        min-width: 0;
+    }
+    .race-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 2px;
+    }
+    [data-theme="dark"] .race-name {
+        color: var(--text-color);
+    }
+    .race-meta {
+        font-size: 12px;
+        color: #718096;
+    }
+    [data-theme="dark"] .race-meta {
+        color: var(--text-muted);
+    }
+
+    .race-arrow {
+        color: #a0aec0;
+        font-size: 18px;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .quick-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 16px;
+        background: white;
+        border-radius: 12px;
+        text-decoration: none;
+        color: #2d3748;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        transition: all 0.15s;
+    }
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        color: #2d3748;
+    }
+    [data-theme="dark"] .quick-action-btn {
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+    .quick-action-btn i {
+        font-size: 28px;
+        margin-bottom: 8px;
+        color: #e53e3e;
+    }
+    .quick-action-btn span {
+        font-size: 13px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="bi bi-flag-fill"></i> 駅伝</h4>
+    <p>大会別の記録を確認</p>
+</div>
+
+<!-- クイックアクション -->
+<div class="quick-actions">
+    <a href="/team_records" class="quick-action-btn">
+        <i class="bi bi-clock-history"></i>
+        <span>全記録一覧</span>
+    </a>
+    <a href="/team_record/add" class="quick-action-btn">
+        <i class="bi bi-plus-circle"></i>
+        <span>記録を追加</span>
+    </a>
+</div>
+
+<!-- 大会一覧 -->
+<div class="menu-section">
+    <div class="menu-section-title">大会を選択</div>
+    <div class="race-list">
+        {% for race in ekiden_races %}
+        <a href="/ekiden/{{ race.race_id }}" class="race-item">
+            <div class="race-icon">
+                <i class="bi bi-flag-fill"></i>
+            </div>
+            <div class="race-info">
+                <div class="race-name">{{ race.race_name }}</div>
+                <div class="race-meta">
+                    {% if race.location %}{{ race.location }}{% endif %}
+                    {% if race.section_count %}{{ race.section_count }}区間{% endif %}
+                </div>
+            </div>
+            <i class="bi bi-chevron-right race-arrow"></i>
+        </a>
+        {% else %}
+        <div class="race-item" style="justify-content: center; color: #a0aec0;">
+            <i class="bi bi-inbox" style="margin-right: 8px;"></i>
+            駅伝大会が登録されていません
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
