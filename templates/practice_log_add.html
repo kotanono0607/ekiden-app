@@ -254,10 +254,6 @@
     .numpad-btn.action:active {
         background: #5a6fd6;
     }
-    .numpad-btn.delete {
-        background: #ef4444;
-        color: white;
-    }
     .numpad-btn.next {
         background: #10b981;
         color: white;
@@ -649,13 +645,12 @@
             <button type="button" class="numpad-btn" onclick="numpadInput('7')">7</button>
             <button type="button" class="numpad-btn" onclick="numpadInput('8')">8</button>
             <button type="button" class="numpad-btn" onclick="numpadInput('9')">9</button>
-            <button type="button" class="numpad-btn delete" onclick="numpadDelete()">⌫</button>
-            <button type="button" class="numpad-btn" onclick="numpadInput('0')">0</button>
             <button type="button" class="numpad-btn action" onclick="numpadClear()">C</button>
-        </div>
-        <div class="numpad-actions">
-            <button type="button" class="numpad-btn next" onclick="numpadNext()">次へ →</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('0')">0</button>
             <button type="button" class="numpad-btn action" onclick="numpadConfirm()">確定</button>
+        </div>
+        <div class="numpad-actions" style="grid-template-columns: 1fr;">
+            <button type="button" class="numpad-btn next" onclick="numpadNext()">次へ →</button>
         </div>
     </div>
 </div>
@@ -850,13 +845,6 @@ function updateNumpadDisplay() {
 function numpadInput(digit) {
     if (numpadRawValue.length < 5) {
         numpadRawValue += digit;
-        updateNumpadDisplay();
-    }
-}
-
-function numpadDelete() {
-    if (numpadRawValue.length > 0) {
-        numpadRawValue = numpadRawValue.slice(0, -1);
         updateNumpadDisplay();
     }
 }
