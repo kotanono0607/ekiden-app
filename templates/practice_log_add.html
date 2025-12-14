@@ -286,7 +286,7 @@
 
             <div class="mb-3">
                 <label class="form-label">タイトル <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="title" placeholder="例: ポイント練習、各自ジョグ" required>
+                <input type="text" class="form-control" name="title" value="南陽・東置賜練習会" required>
             </div>
 
             <div class="row">
@@ -335,10 +335,10 @@
             <div class="group-selector">
                 <label class="form-label" style="font-size:12px;margin-bottom:6px;">グループ選択</label>
                 <div class="group-btns">
-                    <button type="button" class="group-btn active" onclick="selectGroup('')">なし</button>
                     <button type="button" class="group-btn group-a" onclick="selectGroup('A')">A</button>
                     <button type="button" class="group-btn group-b" onclick="selectGroup('B')">B</button>
                     <button type="button" class="group-btn group-c" onclick="selectGroup('C')">C</button>
+                    <button type="button" class="group-btn active" onclick="selectGroup('')">なし</button>
                 </div>
                 <div class="member-selector" id="memberSelector">
                     <label class="form-label" style="font-size:11px;margin-bottom:4px;margin-top:8px;">参加メンバー（出席者から選択）</label>
@@ -608,7 +608,7 @@ function getSelectedMembers() {
 function resetGroupSelection() {
     currentGroup = '';
     document.querySelectorAll('.group-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector('.group-btn').classList.add('active'); // 「なし」を選択
+    document.querySelectorAll('.group-btn')[3].classList.add('active'); // 「なし」を選択（4番目）
     document.getElementById('memberSelector').classList.remove('active');
 }
 
