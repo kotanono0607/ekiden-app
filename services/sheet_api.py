@@ -60,7 +60,8 @@ RECORD_EXPECTED_HEADERS = [
     'record_id', 'player_id', 'race_id', 'date', 'event', 'section',
     'distance_m', 'time', 'time_sec', 'is_pb', 'is_section_record',
     'split_times_json', 'rank_in_section', 'memo', 'created_at', 'updated_at',
-    'player_name', 'race_name', 'race_type'  # CSV参照用カラム
+    'player_name', 'race_name', 'race_type',  # CSV参照用カラム
+    'team_record_id'  # 駅伝チーム記録への参照（FK → TeamRecords）
 ]
 
 RACES_EXPECTED_HEADERS = [
@@ -71,11 +72,6 @@ RACES_EXPECTED_HEADERS = [
 TEAM_RECORDS_EXPECTED_HEADERS = [
     'team_record_id', 'race_id', 'edition', 'date', 'total_time', 'total_time_sec',
     'rank', 'total_teams', 'category', 'memo', 'created_at', 'updated_at'
-]
-
-RACE_ORDERS_EXPECTED_HEADERS = [
-    'order_id', 'team_record_id', 'section_no', 'section_name',
-    'player_id', 'time', 'rank', 'distance_m', 'memo'
 ]
 
 MASTERS_EXPECTED_HEADERS = [
@@ -355,9 +351,16 @@ def get_records_by_player(player_id):
     records = get_all_records()
     return [r for r in records if str(r.get('player_id')) == str(player_id)]
 
+def get_records_by_team_record(team_record_id):
+    """チーム記録IDで区間記録を取得（section順でソート）"""
+    records = get_all_records()
+    filtered = [r for r in records if str(r.get('team_record_id')) == str(team_record_id)]
+    return sorted(filtered, key=lambda x: int(x.get('section') or 0))
+
 def add_record(player_id, event, time, memo='', date=None, race_id='', distance_km='',
                time_sec='', is_pb=False, is_section_record=False,
-               section='', rank_in_section='', player_name='', race_name='', race_type=''):
+               section='', rank_in_section='', player_name='', race_name='', race_type='',
+               team_record_id=''):
     """記録を追加"""
     sh = get_spreadsheet()
     try:
@@ -384,18 +387,19 @@ def add_record(player_id, event, time, memo='', date=None, race_id='', distance_
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     # カラム順: record_id, player_id, race_id, date, event, section, distance_m, time, time_sec,
     #          is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at,
-    #          player_name, race_name, race_type
+    #          player_name, race_name, race_type, team_record_id
     worksheet.append_row([
         new_record_id, player_id, race_id, date, event, section,
         distance_m, time, time_sec, is_pb, is_section_record,
         '', rank_in_section, memo, now, now,
-        player_name, race_name, race_type
+        player_name, race_name, race_type, team_record_id
     ])
     clear_cache()  # キャッシュクリア
 
 def update_record(row_index, date, player_id, event, time, memo='', race_id='', distance_km='',
                   time_sec='', is_pb=False, is_section_record=False,
-                  section='', rank_in_section='', player_name='', race_name='', race_type=''):
+                  section='', rank_in_section='', player_name='', race_name='', race_type='',
+                  team_record_id=''):
     """記録を更新"""
     sh = get_spreadsheet()
     try:
@@ -411,21 +415,24 @@ def update_record(row_index, date, player_id, event, time, memo='', race_id='', 
         except:
             distance_m = distance_km
 
-    # 既存の行データを取得（record_id, split_times_json, created_atを保持するため）
+    # 既存の行データを取得（record_id, split_times_json, created_at, team_record_idを保持するため）
     existing_row = worksheet.row_values(row_index)
     record_id = existing_row[0] if len(existing_row) > 0 else ''
     split_times_json = existing_row[11] if len(existing_row) > 11 else ''
     created_at = existing_row[14] if len(existing_row) > 14 else ''
+    # team_record_idが指定されていない場合は既存値を保持
+    if not team_record_id:
+        team_record_id = existing_row[19] if len(existing_row) > 19 else ''
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     # カラム順: record_id, player_id, race_id, date, event, section, distance_m, time, time_sec,
     #          is_pb, is_section_record, split_times_json, rank_in_section, memo, created_at, updated_at,
-    #          player_name, race_name, race_type
-    worksheet.update(f'A{row_index}:S{row_index}', [[
+    #          player_name, race_name, race_type, team_record_id
+    worksheet.update(f'A{row_index}:T{row_index}', [[
         record_id, player_id, race_id, date, event, section,
         distance_m, time, time_sec, is_pb, is_section_record,
         split_times_json, rank_in_section, memo, created_at, now,
-        player_name, race_name, race_type
+        player_name, race_name, race_type, team_record_id
     ]])
     clear_cache()  # キャッシュクリア
     return True
@@ -924,87 +931,6 @@ def delete_team_record(team_record_id):
         if i < 2:
             continue
         if str(row[0]) == str(team_record_id):
-            worksheet.delete_rows(i + 1)
-            clear_cache()
-            return True
-    return False
-
-# ============ RaceOrders (大会オーダー) ============
-
-def get_race_orders_by_team_record(team_record_id):
-    """チーム記録IDで大会オーダーを取得"""
-    sh = get_spreadsheet()
-    try:
-        worksheet = sh.worksheet('RaceOrders')
-    except gspread.exceptions.WorksheetNotFound:
-        return []
-
-    all_values = worksheet.get_all_values()
-    if len(all_values) < 3:
-        return []
-
-    headers = all_values[0]
-    records = []
-    for i, row in enumerate(all_values[2:]):
-        record = dict(zip(headers, row))
-        record['row_index'] = i + 3
-        if str(record.get('team_record_id')) == str(team_record_id):
-            records.append(record)
-
-    return sorted(records, key=lambda x: int(x.get('section_no', 0) or 0))
-
-def add_race_order(team_record_id, section_no, section_name, player_id, time='', rank='', distance_m='', memo=''):
-    """大会オーダー（区間記録）を追加"""
-    sh = get_spreadsheet()
-    try:
-        worksheet = sh.worksheet('RaceOrders')
-    except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='RaceOrders', rows=500, cols=9)
-        worksheet.append_row(RACE_ORDERS_EXPECTED_HEADERS)
-        worksheet.append_row(['オーダーID', 'チーム記録ID', '区間番号', '区間名', '選手ID', 'タイム', '区間順位', '距離(m)', 'メモ'])
-
-    all_values = worksheet.get_all_values()
-    new_id = f"ORD{len(all_values):03d}"
-
-    worksheet.append_row([
-        new_id, team_record_id, section_no, section_name, player_id, time, rank, distance_m, memo
-    ])
-    clear_cache()
-    return new_id
-
-def update_race_order(order_id, team_record_id, section_no, section_name, player_id, time='', rank='', distance_m='', memo=''):
-    """大会オーダー（区間記録）を更新"""
-    sh = get_spreadsheet()
-    try:
-        worksheet = sh.worksheet('RaceOrders')
-    except gspread.exceptions.WorksheetNotFound:
-        return False
-
-    all_values = worksheet.get_all_values()
-    for i, row in enumerate(all_values):
-        if i < 2:
-            continue
-        if str(row[0]) == str(order_id):
-            worksheet.update(f'A{i+1}:I{i+1}', [[
-                order_id, team_record_id, section_no, section_name, player_id, time, rank, distance_m, memo
-            ]])
-            clear_cache()
-            return True
-    return False
-
-def delete_race_order(order_id):
-    """大会オーダーを削除"""
-    sh = get_spreadsheet()
-    try:
-        worksheet = sh.worksheet('RaceOrders')
-    except gspread.exceptions.WorksheetNotFound:
-        return False
-
-    all_values = worksheet.get_all_values()
-    for i, row in enumerate(all_values):
-        if i < 2:
-            continue
-        if str(row[0]) == str(order_id):
             worksheet.delete_rows(i + 1)
             clear_cache()
             return True

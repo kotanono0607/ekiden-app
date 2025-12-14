@@ -233,7 +233,7 @@
     </div>
     <div class="stats-item">
         <div class="stats-label">区間数</div>
-        <div class="stats-value">{{ orders|length }}区間</div>
+        <div class="stats-value">{{ section_records|length }}区間</div>
     </div>
 </div>
 
@@ -258,34 +258,34 @@
         </div>
     </div>
     <div class="section-body">
-        {% if orders %}
-        {% for order in orders %}
-        {% set player = player_dict.get(order.player_id|string) %}
+        {% if section_records %}
+        {% for rec in section_records %}
+        {% set player = player_dict.get(rec.player_id|string) %}
         <div class="section-item">
-            <div class="section-badge">{{ order.section_no }}</div>
+            <div class="section-badge">{{ rec.section }}</div>
             <div class="section-info">
                 <div class="section-player">
                     {% if player %}
                     <a href="/player/{{ player.id }}">{{ player.name }}</a>
                     {% else %}
-                    {{ order.player_id }}
+                    {{ rec.player_id }}
                     {% endif %}
                 </div>
                 <div class="section-meta">
-                    {{ order.section_name or (order.section_no ~ '区') }}
-                    {% if order.distance_m %}
-                        {% set dist_km = order.distance_m|parse_distance_km %}
+                    {{ rec.section }}区
+                    {% if rec.distance_m %}
+                        {% set dist_km = rec.distance_m|parse_distance_km %}
                         {% if dist_km %}({{ dist_km }}km){% endif %}
                     {% endif %}
                     {% if player and player.affiliation %} / {{ player.affiliation }}{% endif %}
                 </div>
             </div>
             <div class="section-time-box">
-                {% if order.time %}
-                <div class="section-time">{{ order.time }}</div>
-                {% if order.rank %}<div class="section-rank">区間{{ order.rank }}位</div>{% endif %}
-                {% if order.distance_m and order.time %}
-                    {% set pace = order.time|calc_pace(order.distance_m) %}
+                {% if rec.time %}
+                <div class="section-time">{{ rec.time }}</div>
+                {% if rec.rank_in_section %}<div class="section-rank">区間{{ rec.rank_in_section }}位</div>{% endif %}
+                {% if rec.distance_m and rec.time %}
+                    {% set pace = rec.time|calc_pace(rec.distance_m) %}
                     {% if pace %}<div class="section-pace">{{ pace }}/km</div>{% endif %}
                 {% endif %}
                 {% else %}
@@ -316,16 +316,12 @@
                 <h5 class="modal-title"><i class="bi bi-plus-circle text-danger"></i> 区間記録追加</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="/team_record/{{ record.team_record_id }}/order/add" method="POST">
+            <form action="/team_record/{{ record.team_record_id }}/section/add" method="POST">
                 <div class="modal-body">
                     <div class="row g-3">
-                        <div class="col-6">
-                            <label class="form-label">区間No <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="section_no" min="1" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">区間名</label>
-                            <input type="text" class="form-control" name="section_name" placeholder="例: 1区">
+                        <div class="col-12">
+                            <label class="form-label">区間 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="section" min="1" required placeholder="例: 1">
                         </div>
                         <div class="col-12">
                             <label class="form-label">選手 <span class="text-danger">*</span></label>
@@ -342,11 +338,11 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label">区間順位</label>
-                            <input type="number" class="form-control" name="rank" min="1" placeholder="例: 3">
+                            <input type="number" class="form-control" name="rank_in_section" min="1" placeholder="例: 3">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">距離 (m)</label>
-                            <input type="number" class="form-control" name="distance_m" placeholder="例: 5800">
+                            <label class="form-label">距離 (km)</label>
+                            <input type="number" class="form-control" name="distance_km" step="0.1" placeholder="例: 5.8">
                         </div>
                         <div class="col-12">
                             <label class="form-label">メモ</label>

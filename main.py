@@ -686,14 +686,15 @@ def team_record_detail(team_record_id):
             return redirect(url_for('team_records'))
 
         race = sheet_api.get_race_by_id(record.get('race_id'))
-        orders = sheet_api.get_race_orders_by_team_record(team_record_id)
+        # Recordsテーブルから区間記録を取得（section順でソート済み）
+        section_records = sheet_api.get_records_by_team_record(team_record_id)
         players = sheet_api.get_all_players()
         player_dict = {str(p.get('id')): p for p in players}
 
         return render_template('team_record_detail.html',
                                record=record,
                                race=race,
-                               orders=orders,
+                               section_records=section_records,
                                player_dict=player_dict,
                                players=players)
     except Exception as e:
@@ -710,35 +711,54 @@ def team_record_delete(team_record_id):
         flash(f'削除に失敗しました: {str(e)}', 'danger')
     return redirect(url_for('team_records'))
 
-# ============ 大会オーダー管理 ============
+# ============ チーム記録の区間管理 ============
 
-@app.route("/team_record/<team_record_id>/order/add", methods=['POST'])
-def race_order_add(team_record_id):
-    """区間記録を追加"""
+@app.route("/team_record/<team_record_id>/section/add", methods=['POST'])
+def team_record_section_add(team_record_id):
+    """チーム記録に区間記録を追加（Recordsテーブルに登録）"""
     try:
-        section_no = request.form.get('section_no')
-        section_name = request.form.get('section_name')
+        # TeamRecordから情報を取得
+        team_record = sheet_api.get_team_record_by_id(team_record_id)
+        if not team_record:
+            flash('チーム記録が見つかりません', 'warning')
+            return redirect(url_for('team_records'))
+
+        # フォームデータ取得
+        section = request.form.get('section')
         player_id = request.form.get('player_id')
         time = request.form.get('time', '')
-        rank = request.form.get('rank', '')
-        distance_m = request.form.get('distance_m', '')
+        rank_in_section = request.form.get('rank_in_section', '')
+        distance_km = request.form.get('distance_km', '')
         memo = request.form.get('memo', '')
 
-        sheet_api.add_race_order(team_record_id, section_no, section_name, player_id, time, rank, distance_m, memo)
+        # 選手情報を取得
+        player = sheet_api.get_player_by_id(player_id)
+        player_name = player.get('name', '') if player else ''
+
+        # 大会情報を取得
+        race = sheet_api.get_race_by_id(team_record.get('race_id'))
+        race_name = race.get('race_name', '') if race else ''
+        race_type = race.get('type', '') if race else ''
+
+        # Recordsテーブルに追加
+        sheet_api.add_record(
+            player_id=player_id,
+            event='',
+            time=time,
+            memo=memo,
+            date=team_record.get('date'),
+            race_id=team_record.get('race_id'),
+            distance_km=distance_km,
+            section=section,
+            rank_in_section=rank_in_section,
+            player_name=player_name,
+            race_name=race_name,
+            race_type=race_type,
+            team_record_id=team_record_id
+        )
         flash('区間記録を追加しました', 'success')
     except Exception as e:
         flash(f'追加に失敗しました: {str(e)}', 'danger')
-    return redirect(url_for('team_record_detail', team_record_id=team_record_id))
-
-@app.route("/race_order/<order_id>/delete", methods=['POST'])
-def race_order_delete(order_id):
-    """大会オーダーを削除"""
-    team_record_id = request.form.get('team_record_id')
-    try:
-        sheet_api.delete_race_order(order_id)
-        flash('区間オーダーを削除しました', 'success')
-    except Exception as e:
-        flash(f'削除に失敗しました: {str(e)}', 'danger')
     return redirect(url_for('team_record_detail', team_record_id=team_record_id))
 
 # ============ マスタ管理 ============
