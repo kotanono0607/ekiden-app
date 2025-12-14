@@ -255,6 +255,30 @@
         font-weight: 500;
         color: #667eea;
     }
+    .menu-group-info {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        padding: 6px 10px;
+        background: rgba(245, 158, 11, 0.1);
+        border-radius: 6px;
+        font-size: 12px;
+    }
+    .menu-group-badge {
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 11px;
+        color: white;
+    }
+    .menu-group-badge.group-a { background: #3b82f6; }
+    .menu-group-badge.group-b { background: #10b981; }
+    .menu-group-badge.group-other { background: #8b5cf6; }
+    .menu-group-members {
+        color: var(--text-muted);
+        font-size: 11px;
+    }
 </style>
 {% endblock %}
 
@@ -487,9 +511,30 @@ function renderMenus(menus) {
     container.innerHTML = html;
 }
 
+function renderGroupInfo(menu) {
+    if (!menu.group) return '';
+
+    let groupClass = 'group-other';
+    if (menu.group === 'A') groupClass = 'group-a';
+    else if (menu.group === 'B') groupClass = 'group-b';
+
+    let members = '';
+    if (menu.members && menu.members.length > 0) {
+        members = menu.members.map(m => m.name).join(', ');
+    }
+
+    return `
+        <div class="menu-group-info">
+            <span class="menu-group-badge ${groupClass}">${escapeHtml(menu.group)}グループ</span>
+            ${members ? `<span class="menu-group-members">${escapeHtml(members)}</span>` : ''}
+        </div>
+    `;
+}
+
 function renderPaceRun(menu) {
     let html = `
         <div class="menu-item">
+            ${renderGroupInfo(menu)}
             <span class="menu-type-badge">ペース走</span>
             <div class="menu-name">${escapeHtml(menu.name)}</div>
     `;
@@ -540,6 +585,7 @@ function renderInterval(menu) {
 
     let html = `
         <div class="menu-item">
+            ${renderGroupInfo(menu)}
             <span class="menu-type-badge interval">インターバル</span>
             <div class="menu-name">${escapeHtml(menu.name)}</div>
             ${detail ? `<div class="menu-detail">${detail}</div>` : ''}
@@ -574,6 +620,7 @@ function renderInterval(menu) {
 function renderTT(menu) {
     let html = `
         <div class="menu-item">
+            ${renderGroupInfo(menu)}
             <span class="menu-type-badge tt">TT</span>
             <div class="menu-name">${escapeHtml(menu.name)}</div>
     `;

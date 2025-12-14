@@ -198,6 +198,70 @@
         color: var(--text-muted);
         margin-top: 2px;
     }
+    .added-menu-group {
+        font-size: 10px;
+        color: #f59e0b;
+        margin-top: 2px;
+    }
+    /* グループ選択スタイル */
+    .group-selector {
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+    .group-btns {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .group-btn {
+        padding: 4px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all 0.15s;
+    }
+    .group-btn:hover { border-color: #f59e0b; }
+    .group-btn.active {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: white;
+    }
+    .group-btn.group-a.active { background: #3b82f6; border-color: #3b82f6; }
+    .group-btn.group-b.active { background: #10b981; border-color: #10b981; }
+    .group-btn.group-other.active { background: #8b5cf6; border-color: #8b5cf6; }
+    .member-selector {
+        margin-top: 8px;
+        display: none;
+    }
+    .member-selector.active { display: block; }
+    .member-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .member-check {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        font-size: 11px;
+        cursor: pointer;
+        color: var(--text-color);
+    }
+    .member-check:hover { border-color: #667eea; }
+    .member-check.selected {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+    }
+    .member-check input { display: none; }
 </style>
 {% endblock %}
 
@@ -271,6 +335,28 @@
                 <button type="button" class="menu-type-tab active" onclick="switchMenuType('pace')">ペース走</button>
                 <button type="button" class="menu-type-tab" onclick="switchMenuType('interval')">インターバル</button>
                 <button type="button" class="menu-type-tab" onclick="switchMenuType('tt')">TT/フリー</button>
+            </div>
+
+            <!-- グループ選択 -->
+            <div class="group-selector">
+                <label class="form-label" style="font-size:12px;margin-bottom:6px;">グループ（任意）</label>
+                <div class="group-btns">
+                    <button type="button" class="group-btn active" onclick="selectGroup('')">なし</button>
+                    <button type="button" class="group-btn group-a" onclick="selectGroup('A')">Aグループ</button>
+                    <button type="button" class="group-btn group-b" onclick="selectGroup('B')">Bグループ</button>
+                    <button type="button" class="group-btn group-other" onclick="selectGroup('その他')">その他</button>
+                </div>
+                <div class="member-selector" id="memberSelector">
+                    <label class="form-label" style="font-size:11px;margin-bottom:4px;margin-top:8px;">参加メンバー</label>
+                    <div class="member-checkboxes" id="memberCheckboxes">
+                        {% for player in players %}
+                        <label class="member-check" onclick="toggleMember(this)">
+                            <input type="checkbox" value="{{ player.id }}" data-name="{{ player.name }}">
+                            {{ player.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
 
             <!-- ペース走フォーム -->
@@ -433,6 +519,58 @@
 let menus = [];
 let guestIndex = 0;
 let ttResultIndex = 0;
+let currentGroup = '';
+
+// グループ選択
+function selectGroup(group) {
+    currentGroup = group;
+    document.querySelectorAll('.group-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    const memberSelector = document.getElementById('memberSelector');
+    if (group) {
+        memberSelector.classList.add('active');
+    } else {
+        memberSelector.classList.remove('active');
+        // グループなしの場合、メンバー選択をクリア
+        document.querySelectorAll('.member-check').forEach(label => {
+            label.classList.remove('selected');
+            label.querySelector('input').checked = false;
+        });
+    }
+}
+
+function toggleMember(label) {
+    const checkbox = label.querySelector('input');
+    checkbox.checked = !checkbox.checked;
+    if (checkbox.checked) {
+        label.classList.add('selected');
+    } else {
+        label.classList.remove('selected');
+    }
+}
+
+function getSelectedMembers() {
+    const members = [];
+    document.querySelectorAll('.member-check input:checked').forEach(input => {
+        members.push({
+            id: input.value,
+            name: input.dataset.name
+        });
+    });
+    return members;
+}
+
+function resetGroupSelection() {
+    currentGroup = '';
+    document.querySelectorAll('.group-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('.group-btn').classList.add('active'); // 「なし」を選択
+    document.getElementById('memberSelector').classList.remove('active');
+    document.querySelectorAll('.member-check').forEach(label => {
+        label.classList.remove('selected');
+        label.querySelector('input').checked = false;
+    });
+}
 
 // メニュータイプ切り替え
 function switchMenuType(type) {
@@ -505,7 +643,9 @@ function addPaceMenu() {
         distance: distance + 'm',
         lap_distance: lapDistance ? lapDistance + 'm' : '',
         laps: laps,
-        total: totalTime
+        total: totalTime,
+        group: currentGroup,
+        members: getSelectedMembers()
     };
     menus.push(menu);
     renderAddedMenus();
@@ -515,6 +655,7 @@ function addPaceMenu() {
     document.getElementById('paceLapDistance').value = '';
     document.getElementById('paceLapsContainer').innerHTML = '';
     document.getElementById('paceTotalTime').value = '';
+    resetGroupSelection();
 }
 
 // インターバルタイム入力欄生成
@@ -565,7 +706,9 @@ function addIntervalMenu() {
         reps: parseInt(reps),
         pace: pace,
         rest: rest,
-        times: times
+        times: times,
+        group: currentGroup,
+        members: getSelectedMembers()
     };
     menus.push(menu);
     renderAddedMenus();
@@ -576,6 +719,7 @@ function addIntervalMenu() {
     document.getElementById('intervalPace').value = '';
     document.getElementById('intervalRest').value = '';
     document.getElementById('intervalTimesContainer').innerHTML = '';
+    resetGroupSelection();
 }
 
 // TT結果行追加
@@ -619,7 +763,9 @@ function addTTMenu() {
         type: 'tt',
         name: name,
         distance: distance ? distance + 'm' : '',
-        results: results
+        results: results,
+        group: currentGroup,
+        members: getSelectedMembers()
     };
     menus.push(menu);
     renderAddedMenus();
@@ -629,6 +775,7 @@ function addTTMenu() {
     document.getElementById('ttDistance').value = '';
     document.getElementById('ttResultsContainer').innerHTML = '<label class="form-label" style="font-size:12px;">個人タイム</label>';
     ttResultIndex = 0;
+    resetGroupSelection();
 }
 
 // 追加済みメニュー表示
@@ -660,12 +807,20 @@ function renderAddedMenus() {
         }
 
         const typeLabel = menu.type === 'pace_run' ? 'ペース走' : menu.type === 'interval' ? 'インターバル' : 'TT';
+        let groupInfo = '';
+        if (menu.group) {
+            groupInfo = `${menu.group}グループ`;
+            if (menu.members && menu.members.length > 0) {
+                groupInfo += ': ' + menu.members.map(m => m.name).join(', ');
+            }
+        }
         html += `
             <div class="added-menu-item">
                 <div class="added-menu-content">
                     <div class="added-menu-type">${typeLabel}</div>
                     <div class="added-menu-name">${menu.name}</div>
                     <div class="added-menu-detail">${detail}</div>
+                    ${groupInfo ? `<div class="added-menu-group"><i class="bi bi-people-fill"></i> ${groupInfo}</div>` : ''}
                 </div>
                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMenu(${idx})">
                     <i class="bi bi-trash"></i>
@@ -776,6 +931,15 @@ function prepareSubmit() {
     // contentフィールドにテキスト形式も生成
     let content = '';
     menus.forEach(menu => {
+        // グループ情報
+        if (menu.group) {
+            content += `【${menu.group}グループ】`;
+            if (menu.members && menu.members.length > 0) {
+                content += ' ' + menu.members.map(m => m.name).join(', ');
+            }
+            content += '\n';
+        }
+
         if (menu.type === 'pace_run') {
             content += menu.name;
             if (menu.lap_distance) content += ` (${menu.lap_distance}周回)`;
