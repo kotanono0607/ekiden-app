@@ -8,23 +8,24 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 16px;
-        margin-bottom: 16px;
+        gap: 12px;
+        margin-bottom: 12px;
     }
     .date-nav .btn {
-        padding: 8px 12px;
+        padding: 6px 10px;
     }
     .date-display {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
         color: var(--text-color);
     }
     .player-row {
         display: flex;
         align-items: center;
-        padding: 12px 16px;
+        padding: 6px 12px;
         border-bottom: 1px solid var(--border-color);
-        gap: 12px;
+        gap: 8px;
+        min-height: 36px;
     }
     .player-row:last-child {
         border-bottom: none;
@@ -32,15 +33,19 @@
     .player-name {
         flex: 1;
         font-weight: 500;
+        font-size: 14px;
         color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .status-btns {
         display: flex;
         gap: 4px;
     }
     .status-btn {
-        padding: 4px 10px;
-        border-radius: 16px;
+        padding: 3px 12px;
+        border-radius: 14px;
         border: 1px solid var(--border-color);
         background: transparent;
         font-size: 12px;
@@ -58,72 +63,104 @@
     }
     .status-btn.present.active { background: #10b981; border-color: #10b981; }
     .status-btn.absent.active { background: #ef4444; border-color: #ef4444; }
-    .status-btn.late.active { background: #f59e0b; border-color: #f59e0b; }
-    .status-btn.early.active { background: #6366f1; border-color: #6366f1; }
-    .memo-input {
-        width: 100px;
-        font-size: 12px;
-        padding: 4px 8px;
-    }
     .quick-actions {
         display: flex;
         gap: 8px;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         flex-wrap: wrap;
     }
     .summary {
         display: flex;
         gap: 16px;
         justify-content: center;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         flex-wrap: wrap;
     }
     .summary-item {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 14px;
+        gap: 4px;
+        font-size: 13px;
     }
     .summary-count {
         font-weight: 600;
-        font-size: 18px;
+        font-size: 16px;
     }
     .summary-item.present .summary-count { color: #10b981; }
     .summary-item.absent .summary-count { color: #ef4444; }
-    .summary-item.late .summary-count { color: #f59e0b; }
+
+    /* Guest section */
+    .guest-section {
+        border-top: 2px dashed var(--border-color);
+        margin-top: 8px;
+        padding-top: 8px;
+    }
+    .guest-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 12px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .guest-row {
+        display: flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--border-color);
+        gap: 8px;
+    }
+    .guest-name-input {
+        flex: 1;
+        font-size: 13px;
+        padding: 4px 8px;
+        max-width: 150px;
+    }
+    .btn-add-guest {
+        font-size: 12px;
+        padding: 2px 8px;
+    }
+    .btn-remove-guest {
+        padding: 2px 6px;
+        font-size: 11px;
+    }
 
     @media (max-width: 576px) {
-        .player-row {
+        .player-row, .guest-row {
             flex-wrap: wrap;
+            padding: 8px 12px;
+        }
+        .player-name {
+            width: 100%;
+            margin-bottom: 4px;
         }
         .status-btns {
             width: 100%;
-            justify-content: space-between;
-            margin-top: 8px;
+            justify-content: flex-start;
         }
-        .memo-input {
+        .guest-name-input {
+            max-width: none;
             width: 100%;
-            margin-top: 8px;
+            margin-bottom: 4px;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h5><i class="bi bi-person-check text-primary"></i> 出欠入力</h5>
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0"><i class="bi bi-person-check text-primary"></i> 出欠入力</h5>
     <a href="{{ url_for('calendar_view') }}" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-calendar3"></i>
     </a>
 </div>
 
 <div class="date-nav">
-    {% set prev_date = (date|string)[:10] %}
-    <a href="{{ url_for('attendance', date=prev_date) }}" class="btn btn-outline-secondary btn-sm" id="prevDateBtn">
+    <a href="#" class="btn btn-outline-secondary btn-sm" id="prevDateBtn">
         <i class="bi bi-chevron-left"></i>
     </a>
-    <input type="date" class="form-control" id="dateInput" value="{{ date }}" style="width: auto;">
-    <a href="{{ url_for('attendance', date=prev_date) }}" class="btn btn-outline-secondary btn-sm" id="nextDateBtn">
+    <input type="date" class="form-control form-control-sm" id="dateInput" value="{{ date }}" style="width: auto;">
+    <a href="#" class="btn btn-outline-secondary btn-sm" id="nextDateBtn">
         <i class="bi bi-chevron-right"></i>
     </a>
 </div>
@@ -136,10 +173,6 @@
     <div class="summary-item absent">
         <span>欠席</span>
         <span class="summary-count" id="absentCount">0</span>
-    </div>
-    <div class="summary-item late">
-        <span>遅刻/早退</span>
-        <span class="summary-count" id="lateCount">0</span>
     </div>
 </div>
 
@@ -161,21 +194,47 @@
         <div class="player-row">
             <div class="player-name">{{ player.name }}</div>
             <div class="status-btns">
-                {% for code, name in status_list %}
-                <button type="button" class="status-btn {% if code == '出席' %}present{% elif code == '欠席' %}absent{% else %}late{% endif %} {% if att.status == code %}active{% endif %}"
-                        onclick="selectStatus(this, '{{ player.id }}', '{{ code }}')">
-                    {{ name }}
-                </button>
-                {% endfor %}
+                <button type="button" class="status-btn present {% if att.status == '出席' %}active{% endif %}"
+                        onclick="selectStatus(this, '{{ player.id }}', '出席')">出席</button>
+                <button type="button" class="status-btn absent {% if att.status == '欠席' %}active{% endif %}"
+                        onclick="selectStatus(this, '{{ player.id }}', '欠席')">欠席</button>
             </div>
             <input type="hidden" name="status_{{ player.id }}" id="status_{{ player.id }}" value="{{ att.status or '' }}">
-            <input type="text" class="form-control memo-input" name="memo_{{ player.id }}" value="{{ att.memo or '' }}" placeholder="備考">
         </div>
         {% else %}
-        <div class="text-center py-4 text-muted">
+        <div class="text-center py-3 text-muted">
             選手が登録されていません
         </div>
         {% endfor %}
+
+        <!-- ゲストセクション -->
+        <div class="guest-section" id="guestSection">
+            <div class="guest-header">
+                <span><i class="bi bi-person-plus"></i> ゲスト</span>
+                <button type="button" class="btn btn-outline-primary btn-add-guest" onclick="addGuest()">
+                    <i class="bi bi-plus"></i> 追加
+                </button>
+            </div>
+            <div id="guestList">
+                {% for guest in guests %}
+                <div class="guest-row" data-guest-index="{{ loop.index0 }}">
+                    <input type="text" class="form-control form-control-sm guest-name-input"
+                           name="guest_name_{{ loop.index0 }}" value="{{ guest.name }}" placeholder="名前">
+                    <div class="status-btns">
+                        <button type="button" class="status-btn present {% if guest.status == '出席' %}active{% endif %}"
+                                onclick="selectGuestStatus(this, {{ loop.index0 }}, '出席')">出席</button>
+                        <button type="button" class="status-btn absent {% if guest.status == '欠席' %}active{% endif %}"
+                                onclick="selectGuestStatus(this, {{ loop.index0 }}, '欠席')">欠席</button>
+                    </div>
+                    <input type="hidden" name="guest_status_{{ loop.index0 }}" id="guest_status_{{ loop.index0 }}" value="{{ guest.status or '出席' }}">
+                    <button type="button" class="btn btn-outline-danger btn-remove-guest" onclick="removeGuest(this)">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <input type="hidden" name="guest_count" id="guestCount" value="{{ guests|length }}">
     </div>
 
     <div class="d-grid">
@@ -188,19 +247,24 @@
 
 {% block extra_js %}
 <script>
+let guestIndex = {{ guests|length }};
+
 function selectStatus(btn, playerId, status) {
-    // Remove active from siblings
     btn.parentElement.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-    // Add active to clicked
     btn.classList.add('active');
-    // Update hidden input
     document.getElementById('status_' + playerId).value = status;
-    // Update summary
+    updateSummary();
+}
+
+function selectGuestStatus(btn, index, status) {
+    btn.parentElement.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('guest_status_' + index).value = status;
     updateSummary();
 }
 
 function setAllStatus(status) {
-    document.querySelectorAll('.status-btns').forEach(btns => {
+    document.querySelectorAll('.player-row .status-btns').forEach(btns => {
         btns.querySelectorAll('.status-btn').forEach(btn => {
             btn.classList.remove('active');
             if (btn.textContent.trim() === status) {
@@ -208,28 +272,66 @@ function setAllStatus(status) {
             }
         });
     });
-    document.querySelectorAll('input[id^="status_"]').forEach(input => {
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
         input.value = status;
     });
     updateSummary();
 }
 
 function clearAllStatus() {
-    document.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('input[id^="status_"]').forEach(input => input.value = '');
+    document.querySelectorAll('.player-row .status-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => input.value = '');
     updateSummary();
 }
 
 function updateSummary() {
-    let present = 0, absent = 0, late = 0;
-    document.querySelectorAll('input[id^="status_"]').forEach(input => {
+    let present = 0, absent = 0;
+    // Player status
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
         if (input.value === '出席') present++;
         else if (input.value === '欠席') absent++;
-        else if (input.value) late++;
+    });
+    // Guest status
+    document.querySelectorAll('.guest-row').forEach(row => {
+        const nameInput = row.querySelector('.guest-name-input');
+        const statusInput = row.querySelector('input[id^="guest_status_"]');
+        if (nameInput && nameInput.value.trim() && statusInput) {
+            if (statusInput.value === '出席') present++;
+            else if (statusInput.value === '欠席') absent++;
+        }
     });
     document.getElementById('presentCount').textContent = present;
     document.getElementById('absentCount').textContent = absent;
-    document.getElementById('lateCount').textContent = late;
+}
+
+function addGuest() {
+    const guestList = document.getElementById('guestList');
+    const html = `
+        <div class="guest-row" data-guest-index="${guestIndex}">
+            <input type="text" class="form-control form-control-sm guest-name-input"
+                   name="guest_name_${guestIndex}" placeholder="名前">
+            <div class="status-btns">
+                <button type="button" class="status-btn present active"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '出席')">出席</button>
+                <button type="button" class="status-btn absent"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '欠席')">欠席</button>
+            </div>
+            <input type="hidden" name="guest_status_${guestIndex}" id="guest_status_${guestIndex}" value="出席">
+            <button type="button" class="btn btn-outline-danger btn-remove-guest" onclick="removeGuest(this)">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    guestList.insertAdjacentHTML('beforeend', html);
+    guestIndex++;
+    document.getElementById('guestCount').value = document.querySelectorAll('.guest-row').length;
+    updateSummary();
+}
+
+function removeGuest(btn) {
+    btn.closest('.guest-row').remove();
+    document.getElementById('guestCount').value = document.querySelectorAll('.guest-row').length;
+    updateSummary();
 }
 
 // Date navigation

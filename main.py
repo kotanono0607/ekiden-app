@@ -1091,49 +1091,84 @@ def attendance():
     """出欠管理画面"""
     try:
         date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-        players = sheet_api.get_all_players()
+        all_players = sheet_api.get_all_players()
+        # statusがFALSE（非アクティブ）の選手は非表示
+        players = [p for p in all_players if str(p.get('status', 'TRUE')).upper() != 'FALSE']
         attendance_data = sheet_api.get_attendance_by_date(date)
 
         # 選手ごとの出欠をマップ
         attendance_by_player = {str(a.get('player_id')): a for a in attendance_data}
 
-        # 出欠ステータス選択肢
-        status_list = sheet_api.get_master_choices('attendance_status_list')
-        if not status_list:
-            status_list = [('出席', '出席'), ('欠席', '欠席'), ('遅刻', '遅刻'), ('早退', '早退')]
+        # ゲストデータを抽出（player_idが'GUEST_'で始まるもの）
+        guests = []
+        for att in attendance_data:
+            player_id = str(att.get('player_id', ''))
+            if player_id.startswith('GUEST_'):
+                guests.append({
+                    'name': att.get('memo', ''),  # ゲスト名はmemoに保存
+                    'status': att.get('status', '出席')
+                })
 
         return render_template('attendance.html',
                                date=date,
                                players=players,
                                attendance_by_player=attendance_by_player,
-                               status_list=status_list)
+                               guests=guests)
     except Exception as e:
         flash(f'エラーが発生しました: {str(e)}', 'danger')
         return render_template('attendance.html',
                                date=datetime.now().strftime('%Y-%m-%d'),
                                players=[],
                                attendance_by_player={},
-                               status_list=[])
+                               guests=[])
 
 @app.route("/attendance/save", methods=['POST'])
 def attendance_save():
     """出欠を保存"""
     try:
         date = request.form.get('date')
-        players = sheet_api.get_all_players()
+        all_players = sheet_api.get_all_players()
+        # statusがFALSE（非アクティブ）の選手は除外
+        players = [p for p in all_players if str(p.get('status', 'TRUE')).upper() != 'FALSE']
 
         attendance_list = []
         for player in players:
             player_id = str(player.get('id'))
             status = request.form.get(f'status_{player_id}', '')
-            memo = request.form.get(f'memo_{player_id}', '')
 
             if status:  # ステータスが設定されている場合のみ追加
                 attendance_list.append({
                     'player_id': player_id,
                     'status': status,
-                    'memo': memo
+                    'memo': ''
                 })
+
+        # ゲストデータを処理
+        guest_index = 0
+        while True:
+            guest_name = request.form.get(f'guest_name_{guest_index}', '').strip()
+            guest_status = request.form.get(f'guest_status_{guest_index}', '')
+            if guest_name and guest_status:
+                attendance_list.append({
+                    'player_id': f'GUEST_{guest_index}',
+                    'status': guest_status,
+                    'memo': guest_name  # ゲスト名はmemoに保存
+                })
+            guest_index += 1
+            # 100件以上のゲストは想定しない
+            if guest_index > 100:
+                break
+            # フォームにデータがなくなったら終了
+            if f'guest_name_{guest_index}' not in request.form and f'guest_status_{guest_index}' not in request.form:
+                # 次のインデックスも確認（スパースなインデックスに対応）
+                has_more = False
+                for i in range(guest_index, guest_index + 10):
+                    if f'guest_name_{i}' in request.form or f'guest_status_{i}' in request.form:
+                        guest_index = i
+                        has_more = True
+                        break
+                if not has_more:
+                    break
 
         sheet_api.update_attendance_by_date(date, attendance_list)
         flash('出欠を保存しました', 'success')
