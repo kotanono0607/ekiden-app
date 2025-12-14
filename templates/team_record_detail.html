@@ -232,10 +232,18 @@
         <div class="stats-value">{{ record.category or '-' }}</div>
     </div>
     <div class="stats-item">
+        <div class="stats-label">{% if record.team_name %}チーム{% else %}区間数{% endif %}</div>
+        <div class="stats-value">{% if record.team_name %}{{ record.team_name }}{% else %}{{ section_records|length }}区間{% endif %}</div>
+    </div>
+</div>
+{% if record.team_name %}
+<div class="stats-grid" style="margin-top: 0;">
+    <div class="stats-item" style="grid-column: span 3;">
         <div class="stats-label">区間数</div>
         <div class="stats-value">{{ section_records|length }}区間</div>
     </div>
 </div>
+{% endif %}
 
 {% if record.memo %}
 <div class="section-card">

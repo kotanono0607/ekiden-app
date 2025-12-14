@@ -71,7 +71,7 @@ RACES_EXPECTED_HEADERS = [
 
 TEAM_RECORDS_EXPECTED_HEADERS = [
     'team_record_id', 'race_id', 'edition', 'date', 'total_time', 'total_time_sec',
-    'rank', 'total_teams', 'category', 'memo', 'created_at', 'updated_at'
+    'rank', 'total_teams', 'category', 'team_name', 'memo', 'created_at', 'updated_at'
 ]
 
 MASTERS_EXPECTED_HEADERS = [
@@ -874,15 +874,15 @@ def get_team_record_by_id(team_record_id):
             return record
     return None
 
-def add_team_record(race_id, edition='', date='', total_time='', total_time_sec='', rank='', total_teams='', category='', memo=''):
+def add_team_record(race_id, edition='', date='', total_time='', total_time_sec='', rank='', total_teams='', category='', team_name='', memo=''):
     """チーム記録を追加"""
     sh = get_spreadsheet()
     try:
         worksheet = sh.worksheet('TeamRecords')
     except gspread.exceptions.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title='TeamRecords', rows=500, cols=12)
+        worksheet = sh.add_worksheet(title='TeamRecords', rows=500, cols=13)
         worksheet.append_row(TEAM_RECORDS_EXPECTED_HEADERS)
-        worksheet.append_row(['チーム記録ID', '大会ID', '回数', '開催日', '総合タイム', '総合タイム(秒)', '総合順位', '出場チーム数', '出場カテゴリ', 'メモ', '作成日時', '更新日時'])
+        worksheet.append_row(['チーム記録ID', '大会ID', '回数', '開催日', '総合タイム', '総合タイム(秒)', '総合順位', '出場チーム数', '出場カテゴリ', 'チーム名', 'メモ', '作成日時', '更新日時'])
 
     all_values = worksheet.get_all_values()
     new_id = f"TR{len(all_values):03d}"
@@ -890,12 +890,12 @@ def add_team_record(race_id, edition='', date='', total_time='', total_time_sec=
 
     worksheet.append_row([
         new_id, race_id, edition, date, total_time, total_time_sec,
-        rank, total_teams, category, memo, now, now
+        rank, total_teams, category, team_name, memo, now, now
     ])
     clear_cache()
     return new_id
 
-def update_team_record(team_record_id, race_id, edition='', date='', total_time='', total_time_sec='', rank='', total_teams='', category='', memo=''):
+def update_team_record(team_record_id, race_id, edition='', date='', total_time='', total_time_sec='', rank='', total_teams='', category='', team_name='', memo=''):
     """チーム記録を更新"""
     sh = get_spreadsheet()
     try:
@@ -908,11 +908,11 @@ def update_team_record(team_record_id, race_id, edition='', date='', total_time=
         if i < 2:
             continue
         if str(row[0]) == str(team_record_id):
-            created_at = row[10] if len(row) > 10 else ''
+            created_at = row[11] if len(row) > 11 else ''
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            worksheet.update(f'A{i+1}:L{i+1}', [[
+            worksheet.update(f'A{i+1}:M{i+1}', [[
                 team_record_id, race_id, edition, date, total_time, total_time_sec,
-                rank, total_teams, category, memo, created_at, now
+                rank, total_teams, category, team_name, memo, created_at, now
             ]])
             clear_cache()
             return True

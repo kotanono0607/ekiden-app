@@ -215,6 +215,7 @@
                 <div class="record-date">{{ record.date }}</div>
                 <div class="record-time">{{ record.total_time }}</div>
                 <div class="record-meta">
+                    {% if record.team_name %}<strong>{{ record.team_name }}</strong> - {% endif %}
                     {% if record.rank %}{{ record.rank }}位{% endif %}
                     {% if record.total_teams %} / {{ record.total_teams }}チーム{% endif %}
                     {% if record.category %} ({{ record.category }}){% endif %}

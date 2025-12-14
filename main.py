@@ -714,9 +714,10 @@ def team_record_add():
             rank = request.form.get('rank', '')
             total_teams = request.form.get('total_teams', '')
             category = request.form.get('category', '')
+            team_name = request.form.get('team_name', '')
             memo = request.form.get('memo', '')
 
-            team_record_id = sheet_api.add_team_record(race_id, edition, date, total_time, total_time_sec, rank, total_teams, category, memo)
+            team_record_id = sheet_api.add_team_record(race_id, edition, date, total_time, total_time_sec, rank, total_teams, category, team_name, memo)
             flash('チーム記録を登録しました', 'success')
             return redirect(url_for('team_record_detail', team_record_id=team_record_id))
         except Exception as e:
