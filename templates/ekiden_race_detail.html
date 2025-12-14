@@ -73,15 +73,13 @@
 
     .record-card-inner {
         display: flex;
-        align-items: center;
-        padding: 16px;
+        align-items: stretch;
+        padding: 0;
     }
 
     .record-edition {
-        width: 56px;
-        height: 56px;
+        width: 64px;
         background: linear-gradient(135deg, #e53e3e, #c53030);
-        border-radius: 10px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -90,7 +88,7 @@
         flex-shrink: 0;
     }
     .record-edition-num {
-        font-size: 20px;
+        font-size: 24px;
         font-weight: 700;
         line-height: 1;
     }
@@ -99,40 +97,85 @@
         opacity: 0.9;
     }
 
-    .record-info {
+    .record-main {
         flex: 1;
-        margin-left: 14px;
+        padding: 14px 16px;
         min-width: 0;
     }
+    .record-top-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
     .record-date {
-        font-size: 14px;
+        font-size: 13px;
         color: #718096;
-        margin-bottom: 4px;
     }
     [data-theme="dark"] .record-date {
         color: var(--text-muted);
     }
+    .record-team-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: #e53e3e;
+        background: #fff5f5;
+        padding: 2px 8px;
+        border-radius: 10px;
+    }
+    [data-theme="dark"] .record-team-name {
+        background: rgba(229, 62, 62, 0.15);
+    }
     .record-time {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 700;
         font-family: 'SF Mono', 'Consolas', monospace;
         color: #2d3748;
+        margin-bottom: 6px;
     }
     [data-theme="dark"] .record-time {
         color: var(--text-color);
     }
-    .record-meta {
+    .record-stats {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .record-stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
         font-size: 12px;
         color: #718096;
-        margin-top: 2px;
     }
-    [data-theme="dark"] .record-meta {
+    [data-theme="dark"] .record-stat {
         color: var(--text-muted);
+    }
+    .record-stat i {
+        font-size: 11px;
+    }
+    .record-stat-value {
+        font-weight: 600;
+        color: #4a5568;
+    }
+    [data-theme="dark"] .record-stat-value {
+        color: var(--text-color);
+    }
+    .record-memo {
+        font-size: 11px;
+        color: #a0aec0;
+        margin-top: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .record-arrow {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
         color: #a0aec0;
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .empty-state {
@@ -211,17 +254,38 @@
                 <i class="bi bi-flag-fill" style="font-size: 24px;"></i>
                 {% endif %}
             </div>
-            <div class="record-info">
-                <div class="record-date">{{ record.date }}</div>
-                <div class="record-time">{{ record.total_time }}</div>
-                <div class="record-meta">
-                    {% if record.team_name %}<strong>{{ record.team_name }}</strong> - {% endif %}
-                    {% if record.rank %}{{ record.rank }}位{% endif %}
-                    {% if record.total_teams %} / {{ record.total_teams }}チーム{% endif %}
-                    {% if record.category %} ({{ record.category }}){% endif %}
+            <div class="record-main">
+                <div class="record-top-row">
+                    <div class="record-date">{{ record.date }}</div>
+                    {% if record.team_name %}
+                    <span class="record-team-name">{{ record.team_name }}</span>
+                    {% endif %}
                 </div>
+                <div class="record-time">{{ record.total_time or '-' }}</div>
+                <div class="record-stats">
+                    {% if record.rank %}
+                    <div class="record-stat">
+                        <i class="bi bi-trophy"></i>
+                        <span class="record-stat-value">{{ record.rank }}位</span>
+                        {% if record.total_teams %}/ {{ record.total_teams }}チーム{% endif %}
+                    </div>
+                    {% endif %}
+                    {% if record.category %}
+                    <div class="record-stat">
+                        <i class="bi bi-tag"></i>
+                        <span class="record-stat-value">{{ record.category }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if record.memo %}
+                <div class="record-memo">
+                    <i class="bi bi-chat-text"></i> {{ record.memo }}
+                </div>
+                {% endif %}
             </div>
-            <i class="bi bi-chevron-right record-arrow"></i>
+            <div class="record-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
         </div>
     </a>
     {% endfor %}
