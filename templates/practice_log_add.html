@@ -2,6 +2,107 @@
 
 {% block title %}練習日誌追加 - 南陽東置賜{% endblock %}
 
+{% block extra_css %}
+<style>
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #667eea;
+    }
+    .player-row {
+        display: flex;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border-color);
+        gap: 8px;
+    }
+    .player-row:last-child {
+        border-bottom: none;
+    }
+    .player-name {
+        flex: 1;
+        font-size: 14px;
+        color: var(--text-color);
+    }
+    .status-btns {
+        display: flex;
+        gap: 4px;
+    }
+    .status-btn {
+        padding: 2px 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.15s;
+        color: var(--text-muted);
+    }
+    .status-btn:hover {
+        border-color: #667eea;
+    }
+    .status-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    .status-btn.present.active { background: #10b981; border-color: #10b981; }
+    .status-btn.absent.active { background: #ef4444; border-color: #ef4444; }
+    .status-btn.clear { color: var(--text-muted); }
+    .summary-inline {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 8px;
+        font-size: 13px;
+    }
+    .summary-inline span { color: var(--text-muted); }
+    .summary-inline .count { font-weight: 600; }
+    .summary-inline .present { color: #10b981; }
+    .summary-inline .absent { color: #ef4444; }
+    .quick-actions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .guest-section {
+        border-top: 1px dashed var(--border-color);
+        margin-top: 8px;
+        padding-top: 8px;
+    }
+    .guest-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .guest-row {
+        display: flex;
+        align-items: center;
+        padding: 6px 0;
+        gap: 8px;
+    }
+    .guest-name-input {
+        flex: 1;
+        font-size: 12px;
+        padding: 3px 8px;
+        max-width: 120px;
+    }
+    .btn-add-guest {
+        font-size: 11px;
+        padding: 2px 6px;
+    }
+    .btn-remove-guest {
+        padding: 2px 5px;
+        font-size: 10px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5><i class="bi bi-journal-plus text-primary"></i> 練習日誌追加</h5>
@@ -10,9 +111,12 @@
     </a>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <form method="POST">
+<form method="POST">
+    <!-- 練習日誌情報 -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="section-title"><i class="bi bi-journal-text"></i> 練習情報</div>
+
             <div class="mb-3">
                 <label class="form-label">日付 <span class="text-danger">*</span></label>
                 <input type="date" class="form-control" name="date" value="{{ date }}" required>
@@ -25,7 +129,7 @@
 
             <div class="mb-3">
                 <label class="form-label">練習内容</label>
-                <textarea class="form-control" name="content" rows="5" placeholder="詳細な練習メニューや設定タイムなど"></textarea>
+                <textarea class="form-control" name="content" rows="3" placeholder="詳細な練習メニューや設定タイムなど"></textarea>
             </div>
 
             <div class="row">
@@ -55,21 +159,174 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">参加人数</label>
-                <input type="number" class="form-control" name="participants" placeholder="15">
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label">メモ</label>
                 <textarea class="form-control" name="memo" rows="2" placeholder="チーム全体の雰囲気、特記事項など"></textarea>
             </div>
 
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> 登録
+            <input type="hidden" name="participants" id="participantsInput" value="">
+        </div>
+    </div>
+
+    <!-- 出欠入力 -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="section-title"><i class="bi bi-person-check"></i> 出欠入力</div>
+
+            <div class="summary-inline">
+                <span>出席 <span class="count present" id="presentCount">0</span></span>
+                <span>欠席 <span class="count absent" id="absentCount">0</span></span>
+            </div>
+
+            <div class="quick-actions">
+                <button type="button" class="btn btn-success btn-sm" onclick="setAllStatus('出席')">
+                    <i class="bi bi-check-all"></i> 全員出席
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllStatus()">
+                    <i class="bi bi-x-lg"></i> クリア
                 </button>
             </div>
-        </form>
+
+            {% for player in players %}
+            <div class="player-row">
+                <div class="player-name">{{ player.name }}</div>
+                <div class="status-btns">
+                    <button type="button" class="status-btn present"
+                            onclick="selectStatus(this, '{{ player.id }}', '出席')">出席</button>
+                    <button type="button" class="status-btn absent"
+                            onclick="selectStatus(this, '{{ player.id }}', '欠席')">欠席</button>
+                    <button type="button" class="status-btn clear active"
+                            onclick="selectStatus(this, '{{ player.id }}', '')">クリア</button>
+                </div>
+                <input type="hidden" name="status_{{ player.id }}" id="status_{{ player.id }}" value="">
+            </div>
+            {% else %}
+            <div class="text-center py-3 text-muted">
+                選手が登録されていません
+            </div>
+            {% endfor %}
+
+            <!-- ゲストセクション -->
+            <div class="guest-section">
+                <div class="guest-header">
+                    <span><i class="bi bi-person-plus"></i> ゲスト</span>
+                    <button type="button" class="btn btn-outline-primary btn-add-guest" onclick="addGuest()">
+                        <i class="bi bi-plus"></i> 追加
+                    </button>
+                </div>
+                <div id="guestList"></div>
+            </div>
+            <input type="hidden" name="guest_count" id="guestCount" value="0">
+        </div>
     </div>
-</div>
+
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> 登録
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let guestIndex = 0;
+
+function selectStatus(btn, playerId, status) {
+    btn.parentElement.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('status_' + playerId).value = status;
+    updateSummary();
+}
+
+function selectGuestStatus(btn, index, status) {
+    btn.parentElement.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('guest_status_' + index).value = status;
+    updateSummary();
+}
+
+function setAllStatus(status) {
+    document.querySelectorAll('.player-row .status-btns').forEach(btns => {
+        btns.querySelectorAll('.status-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.trim() === status) {
+                btn.classList.add('active');
+            }
+        });
+    });
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
+        input.value = status;
+    });
+    updateSummary();
+}
+
+function clearAllStatus() {
+    document.querySelectorAll('.player-row .status-btns').forEach(btns => {
+        btns.querySelectorAll('.status-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.trim() === 'クリア') {
+                btn.classList.add('active');
+            }
+        });
+    });
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
+        input.value = '';
+    });
+    updateSummary();
+}
+
+function updateSummary() {
+    let present = 0, absent = 0;
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
+        if (input.value === '出席') present++;
+        else if (input.value === '欠席') absent++;
+    });
+    document.querySelectorAll('.guest-row').forEach(row => {
+        const nameInput = row.querySelector('.guest-name-input');
+        const statusInput = row.querySelector('input[id^="guest_status_"]');
+        if (nameInput && nameInput.value.trim() && statusInput) {
+            if (statusInput.value === '出席') present++;
+            else if (statusInput.value === '欠席') absent++;
+        }
+    });
+    document.getElementById('presentCount').textContent = present;
+    document.getElementById('absentCount').textContent = absent;
+    document.getElementById('participantsInput').value = present > 0 ? present : '';
+}
+
+function addGuest() {
+    const guestList = document.getElementById('guestList');
+    const html = `
+        <div class="guest-row" data-guest-index="${guestIndex}">
+            <input type="text" class="form-control form-control-sm guest-name-input"
+                   name="guest_name_${guestIndex}" placeholder="名前" oninput="updateSummary()">
+            <div class="status-btns">
+                <button type="button" class="status-btn present active"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '出席')">出席</button>
+                <button type="button" class="status-btn absent"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '欠席')">欠席</button>
+                <button type="button" class="status-btn clear"
+                        onclick="selectGuestStatus(this, ${guestIndex}, '')">クリア</button>
+            </div>
+            <input type="hidden" name="guest_status_${guestIndex}" id="guest_status_${guestIndex}" value="出席">
+            <button type="button" class="btn btn-outline-danger btn-remove-guest" onclick="removeGuest(this)">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    guestList.insertAdjacentHTML('beforeend', html);
+    guestIndex++;
+    document.getElementById('guestCount').value = document.querySelectorAll('.guest-row').length;
+    updateSummary();
+}
+
+function removeGuest(btn) {
+    btn.closest('.guest-row').remove();
+    document.getElementById('guestCount').value = document.querySelectorAll('.guest-row').length;
+    updateSummary();
+}
+
+// Initial summary
+updateSummary();
+</script>
 {% endblock %}

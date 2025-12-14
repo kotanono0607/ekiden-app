@@ -1016,6 +1016,47 @@ def practice_log_add():
             memo = request.form.get('memo', '')
 
             log_id = sheet_api.add_practice_log(date, title, content, weather, temperature, participants, memo)
+
+            # 出欠データも保存
+            all_players = sheet_api.get_all_players()
+            players = [p for p in all_players if str(p.get('status', 'TRUE')).upper() != 'FALSE']
+
+            attendance_list = []
+            for player in players:
+                player_id = str(player.get('id'))
+                status = request.form.get(f'status_{player_id}', '')
+                if status:
+                    attendance_list.append({
+                        'player_id': player_id,
+                        'status': status,
+                        'memo': ''
+                    })
+
+            # ゲストデータを処理
+            guest_index = 0
+            while guest_index <= 100:
+                guest_name = request.form.get(f'guest_name_{guest_index}', '').strip()
+                guest_status = request.form.get(f'guest_status_{guest_index}', '')
+                if guest_name and guest_status:
+                    attendance_list.append({
+                        'player_id': f'GUEST_{guest_index}',
+                        'status': guest_status,
+                        'memo': guest_name
+                    })
+                guest_index += 1
+                if f'guest_name_{guest_index}' not in request.form and f'guest_status_{guest_index}' not in request.form:
+                    has_more = False
+                    for i in range(guest_index, guest_index + 10):
+                        if f'guest_name_{i}' in request.form or f'guest_status_{i}' in request.form:
+                            guest_index = i
+                            has_more = True
+                            break
+                    if not has_more:
+                        break
+
+            if attendance_list:
+                sheet_api.update_attendance_by_date(date, attendance_list)
+
             flash('練習日誌を追加しました', 'success')
             return redirect(url_for('practice_log_detail', log_id=log_id))
         except Exception as e:
@@ -1023,7 +1064,12 @@ def practice_log_add():
 
     weather_list = sheet_api.get_master_choices('weather_list')
     date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    return render_template('practice_log_add.html', weather_list=weather_list, date=date)
+
+    # 出欠入力用のデータ
+    all_players = sheet_api.get_all_players()
+    players = [p for p in all_players if str(p.get('status', 'TRUE')).upper() != 'FALSE']
+
+    return render_template('practice_log_add.html', weather_list=weather_list, date=date, players=players)
 
 @app.route("/practice_log/<log_id>")
 def practice_log_detail(log_id):
