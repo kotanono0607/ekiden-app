@@ -538,13 +538,37 @@ function renderInterval(menu) {
     if (menu.pace) detail += `設定: ${escapeHtml(menu.pace)}`;
     if (menu.rest) detail += (detail ? ' / ' : '') + `レスト: ${escapeHtml(menu.rest)}`;
 
-    return `
+    let html = `
         <div class="menu-item">
             <span class="menu-type-badge interval">インターバル</span>
             <div class="menu-name">${escapeHtml(menu.name)}</div>
             ${detail ? `<div class="menu-detail">${detail}</div>` : ''}
-        </div>
     `;
+
+    if (menu.times && menu.times.length > 0) {
+        html += `
+            <table class="lap-table">
+                <thead>
+                    <tr>
+                        <th>本数</th>
+                        <th>タイム</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        menu.times.forEach(t => {
+            html += `
+                <tr>
+                    <td>${t.rep}本目</td>
+                    <td>${escapeHtml(t.time)}</td>
+                </tr>
+            `;
+        });
+        html += '</tbody></table>';
+    }
+
+    html += '</div>';
+    return html;
 }
 
 function renderTT(menu) {

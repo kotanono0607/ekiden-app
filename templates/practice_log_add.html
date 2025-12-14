@@ -321,7 +321,10 @@
                     </div>
                     <div class="col-4">
                         <label class="form-label" style="font-size:12px;">本数</label>
-                        <input type="number" class="form-control form-control-sm" id="intervalReps" placeholder="10">
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" id="intervalReps" placeholder="10">
+                            <button type="button" class="btn btn-outline-primary" onclick="generateIntervalTimes()">生成</button>
+                        </div>
                     </div>
                     <div class="col-4">
                         <label class="form-label" style="font-size:12px;">設定</label>
@@ -332,6 +335,7 @@
                     <label class="form-label" style="font-size:12px;">レスト</label>
                     <input type="text" class="form-control form-control-sm" id="intervalRest" placeholder="200mジョグ">
                 </div>
+                <div id="intervalTimesContainer" class="mb-2"></div>
                 <button type="button" class="btn btn-primary btn-sm" onclick="addIntervalMenu()">
                     <i class="bi bi-plus"></i> インターバルを追加
                 </button>
@@ -513,6 +517,29 @@ function addPaceMenu() {
     document.getElementById('paceTotalTime').value = '';
 }
 
+// インターバルタイム入力欄生成
+function generateIntervalTimes() {
+    const reps = parseInt(document.getElementById('intervalReps').value) || 0;
+    const container = document.getElementById('intervalTimesContainer');
+    container.innerHTML = '';
+
+    if (reps <= 0 || reps > 30) return;
+
+    let html = '<label class="form-label" style="font-size:12px;">各本タイム</label><div class="row g-1">';
+    for (let i = 1; i <= reps; i++) {
+        html += `
+            <div class="col-3 mb-1">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text" style="font-size:10px;padding:2px 4px;">${i}</span>
+                    <input type="text" class="form-control" id="intervalTime_${i}" placeholder="70" style="font-size:12px;">
+                </div>
+            </div>
+        `;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
 // インターバル追加
 function addIntervalMenu() {
     const distance = document.getElementById('intervalDistance').value;
@@ -522,13 +549,23 @@ function addIntervalMenu() {
 
     if (!distance || !reps) { alert('距離と本数を入力してください'); return; }
 
+    // 各本のタイムを収集
+    const times = [];
+    for (let i = 1; i <= parseInt(reps); i++) {
+        const timeInput = document.getElementById('intervalTime_' + i);
+        if (timeInput && timeInput.value.trim()) {
+            times.push({ rep: i, time: timeInput.value.trim() });
+        }
+    }
+
     const menu = {
         type: 'interval',
         name: `${distance}m×${reps}`,
         distance: distance + 'm',
         reps: parseInt(reps),
         pace: pace,
-        rest: rest
+        rest: rest,
+        times: times
     };
     menus.push(menu);
     renderAddedMenus();
@@ -538,6 +575,7 @@ function addIntervalMenu() {
     document.getElementById('intervalReps').value = '';
     document.getElementById('intervalPace').value = '';
     document.getElementById('intervalRest').value = '';
+    document.getElementById('intervalTimesContainer').innerHTML = '';
 }
 
 // TT結果行追加
@@ -608,7 +646,11 @@ function renderAddedMenus() {
             detail = menu.laps.length + '本ラップ';
             if (menu.total) detail += ' / total ' + menu.total;
         } else if (menu.type === 'interval') {
-            detail = menu.pace || '';
+            if (menu.times && menu.times.length > 0) {
+                detail = menu.times.length + '本記録';
+            } else {
+                detail = menu.pace || '';
+            }
             if (menu.rest) detail += (detail ? ' / ' : '') + 'レスト ' + menu.rest;
         } else if (menu.type === 'tt') {
             detail = menu.results.length + '名参加';
@@ -745,9 +787,15 @@ function prepareSubmit() {
             content += '\n';
         } else if (menu.type === 'interval') {
             content += `${menu.name}`;
-            if (menu.pace) content += ` ${menu.pace}`;
+            if (menu.pace) content += ` 設定${menu.pace}`;
             if (menu.rest) content += ` レスト${menu.rest}`;
-            content += '\n\n';
+            content += '\n';
+            if (menu.times && menu.times.length > 0) {
+                menu.times.forEach(t => {
+                    content += `${t.rep}本目 ${t.time}\n`;
+                });
+            }
+            content += '\n';
         } else if (menu.type === 'tt') {
             content += menu.name + '\n';
             menu.results.forEach(r => {
