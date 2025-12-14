@@ -184,6 +184,94 @@
         color: var(--text-muted);
         margin-top: 4px;
     }
+    /* 数字キーパッドUI */
+    .numpad-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+    }
+    .numpad-overlay.active { display: flex; }
+    .numpad-container {
+        background: var(--card-bg);
+        border-radius: 16px 16px 0 0;
+        padding: 16px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+    }
+    .numpad-display {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        background: var(--bg-color);
+        border-radius: 8px;
+    }
+    .numpad-label {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .numpad-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-color);
+        letter-spacing: 2px;
+    }
+    .numpad-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .numpad-btn {
+        padding: 16px;
+        font-size: 24px;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        background: var(--bg-color);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.1s;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .numpad-btn:active {
+        background: #667eea;
+        color: white;
+        transform: scale(0.95);
+    }
+    .numpad-btn.action {
+        background: #667eea;
+        color: white;
+    }
+    .numpad-btn.action:active {
+        background: #5a6fd6;
+    }
+    .numpad-btn.delete {
+        background: #ef4444;
+        color: white;
+    }
+    .numpad-btn.next {
+        background: #10b981;
+        color: white;
+    }
+    .numpad-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .numpad-actions .numpad-btn {
+        padding: 14px;
+        font-size: 16px;
+    }
     .result-row {
         display: flex;
         align-items: center;
@@ -444,21 +532,23 @@
 
             <!-- ペース走フォーム -->
             <div id="menuFormPace" class="menu-form active">
-                <div class="row mb-2">
-                    <div class="col-6">
-                        <label class="form-label" style="font-size:12px;">総距離</label>
-                        <div class="input-group input-group-sm">
-                            <input type="number" class="form-control" id="paceDistance" placeholder="12000">
-                            <span class="input-group-text">m</span>
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">総距離</label>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" id="paceDistance" placeholder="12000">
+                                <span class="input-group-text">m</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label" style="font-size:12px;">ラップ間隔</label>
-                        <div class="input-group input-group-sm">
-                            <input type="number" class="form-control" id="paceLapInterval" value="1000" placeholder="1000">
-                            <span class="input-group-text">mごと</span>
-                            <button type="button" class="btn btn-outline-primary" onclick="generatePaceLaps()">生成</button>
-                        </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">ラップ間隔</label>
+                    <div class="input-group input-group-sm" style="max-width: 280px;">
+                        <input type="number" class="form-control" id="paceLapInterval" value="1000" placeholder="1000">
+                        <span class="input-group-text">mごと</span>
+                        <button type="button" class="btn btn-outline-primary" onclick="generatePaceLaps()">生成</button>
                     </div>
                 </div>
                 <div id="paceLapsContainer" class="mb-2"></div>
@@ -541,6 +631,34 @@
         </button>
     </div>
 </form>
+
+<!-- 数字キーパッド -->
+<div class="numpad-overlay" id="numpadOverlay" onclick="if(event.target===this)closeNumpad()">
+    <div class="numpad-container">
+        <div class="numpad-display">
+            <span class="numpad-label" id="numpadLabel">1本目</span>
+            <span class="numpad-value" id="numpadValue">--:--</span>
+        </div>
+        <div class="numpad-grid">
+            <button type="button" class="numpad-btn" onclick="numpadInput('1')">1</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('2')">2</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('3')">3</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('4')">4</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('5')">5</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('6')">6</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('7')">7</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('8')">8</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('9')">9</button>
+            <button type="button" class="numpad-btn delete" onclick="numpadDelete()">⌫</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('0')">0</button>
+            <button type="button" class="numpad-btn action" onclick="numpadClear()">C</button>
+        </div>
+        <div class="numpad-actions">
+            <button type="button" class="numpad-btn next" onclick="numpadNext()">次へ →</button>
+            <button type="button" class="numpad-btn action" onclick="numpadConfirm()">確定</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -683,6 +801,98 @@ function moveToNextInput(currentInput, e) {
     }
 }
 
+// ============ 数字キーパッド ============
+let numpadTarget = null;
+let numpadInputs = [];
+let numpadCurrentIndex = 0;
+let numpadRawValue = '';
+
+function openNumpad(input, label) {
+    numpadTarget = input;
+    numpadInputs = Array.from(document.querySelectorAll('.time-input, .lap-input'));
+    numpadCurrentIndex = numpadInputs.indexOf(input);
+    numpadRawValue = input.value.replace(/[^0-9]/g, '');
+
+    document.getElementById('numpadLabel').textContent = label || '';
+    updateNumpadDisplay();
+    document.getElementById('numpadOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeNumpad() {
+    document.getElementById('numpadOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    if (numpadTarget) {
+        formatTimeInput(numpadTarget);
+        calculatePaceTotal();
+    }
+    numpadTarget = null;
+}
+
+function updateNumpadDisplay() {
+    let display = '--:--';
+    if (numpadRawValue.length > 0) {
+        if (numpadRawValue.length <= 2) {
+            display = numpadRawValue;
+        } else {
+            const sec = numpadRawValue.slice(-2);
+            const min = numpadRawValue.slice(0, -2);
+            display = min + ':' + sec;
+        }
+    }
+    document.getElementById('numpadValue').textContent = display;
+
+    if (numpadTarget) {
+        numpadTarget.value = display === '--:--' ? '' : display;
+    }
+}
+
+function numpadInput(digit) {
+    if (numpadRawValue.length < 5) {
+        numpadRawValue += digit;
+        updateNumpadDisplay();
+    }
+}
+
+function numpadDelete() {
+    if (numpadRawValue.length > 0) {
+        numpadRawValue = numpadRawValue.slice(0, -1);
+        updateNumpadDisplay();
+    }
+}
+
+function numpadClear() {
+    numpadRawValue = '';
+    updateNumpadDisplay();
+}
+
+function numpadNext() {
+    if (numpadTarget) {
+        formatTimeInput(numpadTarget);
+        numpadTarget.classList.add('filled');
+    }
+
+    if (numpadCurrentIndex < numpadInputs.length - 1) {
+        numpadCurrentIndex++;
+        numpadTarget = numpadInputs[numpadCurrentIndex];
+        numpadRawValue = numpadTarget.value.replace(/[^0-9]/g, '');
+
+        // ラベルを更新
+        const labelEl = numpadTarget.closest('.lap-row')?.querySelector('.lap-label') ||
+                        numpadTarget.closest('.time-cell')?.querySelector('.time-cell-label');
+        document.getElementById('numpadLabel').textContent = labelEl?.textContent || '';
+        updateNumpadDisplay();
+        numpadTarget.focus();
+    } else {
+        closeNumpad();
+    }
+    calculatePaceTotal();
+}
+
+function numpadConfirm() {
+    closeNumpad();
+}
+
 // ペース走ラップ生成
 function generatePaceLaps() {
     const total = parseInt(document.getElementById('paceDistance').value) || 0;
@@ -692,24 +902,27 @@ function generatePaceLaps() {
 
     if (total <= 0) return;
 
-    let html = '<div class="time-hint">💡 数字だけ入力 → 自動で「:」挿入（335→3:35）、Enterで次へ</div>';
+    let html = '<div class="time-hint">💡 タップでキーパッド表示 / 直接入力も可</div>';
     for (let d = interval; d <= total; d += interval) {
         html += `
             <div class="lap-row">
                 <span class="lap-label">${d}m</span>
                 <input type="text" class="lap-input time-input" id="paceLap_${d}"
-                       inputmode="numeric" placeholder="3:35"
-                       onblur="formatTimeInput(this); calculatePaceTotal()"
+                       inputmode="numeric" placeholder="3:35" readonly
+                       onclick="openNumpad(this, '${d}m')"
                        onkeydown="moveToNextInput(this, event)">
             </div>
         `;
     }
     container.innerHTML = html;
 
-    // 最初の入力欄にフォーカス
+    // 最初の入力欄でキーパッド起動
     setTimeout(() => {
         const firstInput = container.querySelector('.lap-input');
-        if (firstInput) firstInput.focus();
+        if (firstInput) {
+            const d = firstInput.id.replace('paceLap_', '');
+            openNumpad(firstInput, d + 'm');
+        }
     }, 100);
 }
 
@@ -782,15 +995,15 @@ function generateIntervalTimes() {
     else if (distance >= 300) placeholder = '50';
 
     let html = '<label class="form-label" style="font-size:12px;">各本タイム</label>';
-    html += '<div class="time-hint">💡 数字だけ入力 → 自動で「:」挿入（335→3:35）、Enterで次へ</div>';
+    html += '<div class="time-hint">💡 タップでキーパッド表示 / 直接入力も可</div>';
     html += '<div class="time-grid">';
     for (let i = 1; i <= reps; i++) {
         html += `
             <div class="time-cell">
                 <span class="time-cell-label">${i}本目</span>
                 <input type="text" class="time-input" id="intervalTime_${i}"
-                       inputmode="numeric" placeholder="${placeholder}"
-                       onblur="formatTimeInput(this)"
+                       inputmode="numeric" placeholder="${placeholder}" readonly
+                       onclick="openNumpad(this, '${i}本目')"
                        onkeydown="moveToNextInput(this, event)">
             </div>
         `;
@@ -798,10 +1011,10 @@ function generateIntervalTimes() {
     html += '</div>';
     container.innerHTML = html;
 
-    // 最初の入力欄にフォーカス
+    // 最初の入力欄でキーパッド起動
     setTimeout(() => {
         const firstInput = container.querySelector('.time-input');
-        if (firstInput) firstInput.focus();
+        if (firstInput) openNumpad(firstInput, '1本目');
     }, 100);
 }
 
