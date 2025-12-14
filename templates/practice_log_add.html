@@ -233,7 +233,7 @@
     }
     .group-btn.group-a.active { background: #3b82f6; border-color: #3b82f6; }
     .group-btn.group-b.active { background: #10b981; border-color: #10b981; }
-    .group-btn.group-other.active { background: #8b5cf6; border-color: #8b5cf6; }
+    .group-btn.group-c.active { background: #f59e0b; border-color: #f59e0b; }
     .member-selector {
         margin-top: 8px;
         display: none;
@@ -331,32 +331,31 @@
         <div class="card-body">
             <div class="section-title"><i class="bi bi-list-check"></i> 練習メニュー</div>
 
+            <!-- グループ選択（先に表示） -->
+            <div class="group-selector">
+                <label class="form-label" style="font-size:12px;margin-bottom:6px;">グループ選択</label>
+                <div class="group-btns">
+                    <button type="button" class="group-btn active" onclick="selectGroup('')">なし</button>
+                    <button type="button" class="group-btn group-a" onclick="selectGroup('A')">A</button>
+                    <button type="button" class="group-btn group-b" onclick="selectGroup('B')">B</button>
+                    <button type="button" class="group-btn group-c" onclick="selectGroup('C')">C</button>
+                </div>
+                <div class="member-selector" id="memberSelector">
+                    <label class="form-label" style="font-size:11px;margin-bottom:4px;margin-top:8px;">参加メンバー（出席者から選択）</label>
+                    <div class="member-checkboxes" id="memberCheckboxes">
+                        <!-- 出席者のみ動的に表示 -->
+                    </div>
+                    <div class="text-muted" style="font-size:11px;margin-top:4px;" id="noAttendeeMsg">
+                        ※先に出欠で出席者を選択してください
+                    </div>
+                </div>
+            </div>
+
+            <!-- メニュータイプ選択 -->
             <div class="menu-type-tabs">
                 <button type="button" class="menu-type-tab active" onclick="switchMenuType('pace')">ペース走</button>
                 <button type="button" class="menu-type-tab" onclick="switchMenuType('interval')">インターバル</button>
                 <button type="button" class="menu-type-tab" onclick="switchMenuType('tt')">TT/フリー</button>
-            </div>
-
-            <!-- グループ選択 -->
-            <div class="group-selector">
-                <label class="form-label" style="font-size:12px;margin-bottom:6px;">グループ（任意）</label>
-                <div class="group-btns">
-                    <button type="button" class="group-btn active" onclick="selectGroup('')">なし</button>
-                    <button type="button" class="group-btn group-a" onclick="selectGroup('A')">Aグループ</button>
-                    <button type="button" class="group-btn group-b" onclick="selectGroup('B')">Bグループ</button>
-                    <button type="button" class="group-btn group-other" onclick="selectGroup('その他')">その他</button>
-                </div>
-                <div class="member-selector" id="memberSelector">
-                    <label class="form-label" style="font-size:11px;margin-bottom:4px;margin-top:8px;">参加メンバー</label>
-                    <div class="member-checkboxes" id="memberCheckboxes">
-                        {% for player in players %}
-                        <label class="member-check" onclick="toggleMember(this)">
-                            <input type="checkbox" value="{{ player.id }}" data-name="{{ player.name }}">
-                            {{ player.name }}
-                        </label>
-                        {% endfor %}
-                    </div>
-                </div>
             </div>
 
             <!-- ペース走フォーム -->
@@ -530,14 +529,59 @@ function selectGroup(group) {
     const memberSelector = document.getElementById('memberSelector');
     if (group) {
         memberSelector.classList.add('active');
+        updateMemberCheckboxes();
     } else {
         memberSelector.classList.remove('active');
-        // グループなしの場合、メンバー選択をクリア
-        document.querySelectorAll('.member-check').forEach(label => {
-            label.classList.remove('selected');
-            label.querySelector('input').checked = false;
-        });
     }
+}
+
+// 出席者からメンバー選択肢を更新
+function updateMemberCheckboxes() {
+    const container = document.getElementById('memberCheckboxes');
+    const noAttendeeMsg = document.getElementById('noAttendeeMsg');
+    const attendees = getAttendees();
+
+    if (attendees.length === 0) {
+        container.innerHTML = '';
+        noAttendeeMsg.style.display = 'block';
+        return;
+    }
+
+    noAttendeeMsg.style.display = 'none';
+    let html = '';
+    attendees.forEach(attendee => {
+        html += `
+            <label class="member-check" onclick="toggleMember(this)">
+                <input type="checkbox" value="${attendee.id}" data-name="${attendee.name}">
+                ${attendee.name}
+            </label>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+// 出席者を取得
+function getAttendees() {
+    const attendees = [];
+    // 選手の出席者
+    document.querySelectorAll('.player-row').forEach(row => {
+        const nameEl = row.querySelector('.player-name');
+        const statusInput = row.querySelector('input[id^="status_"]');
+        if (nameEl && statusInput && statusInput.value === '出席') {
+            const id = statusInput.id.replace('status_', '');
+            attendees.push({ id: id, name: nameEl.textContent.trim() });
+        }
+    });
+    // ゲストの出席者
+    document.querySelectorAll('.guest-row').forEach(row => {
+        const nameInput = row.querySelector('.guest-name-input');
+        const statusInput = row.querySelector('input[id^="guest_status_"]');
+        if (nameInput && nameInput.value.trim() && statusInput && statusInput.value === '出席') {
+            const guestId = 'GUEST_' + row.dataset.guestIndex;
+            attendees.push({ id: guestId, name: nameInput.value.trim() });
+        }
+    });
+    return attendees;
 }
 
 function toggleMember(label) {
@@ -566,10 +610,6 @@ function resetGroupSelection() {
     document.querySelectorAll('.group-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector('.group-btn').classList.add('active'); // 「なし」を選択
     document.getElementById('memberSelector').classList.remove('active');
-    document.querySelectorAll('.member-check').forEach(label => {
-        label.classList.remove('selected');
-        label.querySelector('input').checked = false;
-    });
 }
 
 // メニュータイプ切り替え
