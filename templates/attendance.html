@@ -30,6 +30,20 @@
     .player-row:last-child {
         border-bottom: none;
     }
+    .player-category {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #e2e8f0;
+        color: #475569;
+        white-space: nowrap;
+        min-width: 32px;
+        text-align: center;
+    }
+    [data-theme="dark"] .player-category {
+        background: rgba(255,255,255,0.1);
+        color: #94a3b8;
+    }
     .player-name {
         flex: 1;
         font-weight: 500;
@@ -194,6 +208,7 @@
         {% for player in players %}
         {% set att = attendance_by_player.get(player.id|string, {}) %}
         <div class="player-row">
+            {% if player.category %}<span class="player-category">{{ player.category }}</span>{% endif %}
             <div class="player-name">{{ player.name }}</div>
             <div class="status-btns">
                 <button type="button" class="status-btn present {% if att.status == '出席' %}active{% endif %}"
