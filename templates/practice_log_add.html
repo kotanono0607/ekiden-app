@@ -517,7 +517,7 @@
 
             <div class="mb-3">
                 <label class="form-label">タイトル <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="title" value="南陽・東置賜練習会" required>
+                <input type="text" class="form-control" name="title" value="練習会" required>
             </div>
 
             <div class="row">
@@ -1465,7 +1465,7 @@ function saveDraft() {
     try {
         const data = collectDraftData();
         // 何も入力されていない場合は保存しない
-        const hasData = data.title !== '南陽・東置賜練習会' ||
+        const hasData = data.title !== '練習会' ||
                        Object.keys(data.attendance).length > 0 ||
                        data.guests.length > 0 ||
                        data.menus.length > 0 ||
