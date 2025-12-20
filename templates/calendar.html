@@ -308,6 +308,65 @@
         color: white;
     }
 
+    /* メニュープレビュー */
+    .menu-preview {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 8px;
+    }
+    [data-theme="dark"] .menu-preview {
+        background: rgba(255,255,255,0.05);
+    }
+    .menu-preview-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .menu-preview-item {
+        background: white;
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        border-left: 3px solid #667eea;
+    }
+    [data-theme="dark"] .menu-preview-item {
+        background: rgba(255,255,255,0.08);
+    }
+    .menu-preview-item:last-child {
+        margin-bottom: 0;
+    }
+    .menu-preview-type {
+        font-size: 10px;
+        color: #667eea;
+        font-weight: 600;
+    }
+    .menu-preview-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+    .menu-preview-detail {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+    .menu-preview-group {
+        font-size: 10px;
+        color: #f59e0b;
+        margin-top: 2px;
+    }
+    .menu-preview-empty {
+        font-size: 12px;
+        color: #94a3b8;
+        text-align: center;
+        padding: 8px;
+    }
+
     @media (max-width: 768px) {
         .calendar-day {
             min-height: 56px;
@@ -471,6 +530,61 @@ const typeColors = {
     'other': '#8b5cf6'
 };
 
+// メニュープレビューを生成
+function renderMenuPreview(log) {
+    if (!log.menu_data) return '';
+
+    let menuData;
+    try {
+        menuData = typeof log.menu_data === 'string' ? JSON.parse(log.menu_data) : log.menu_data;
+    } catch (e) {
+        return '';
+    }
+
+    if (!menuData.menus || menuData.menus.length === 0) {
+        return '';
+    }
+
+    let html = '<div class="menu-preview">';
+    html += '<div class="menu-preview-title"><i class="bi bi-list-check"></i> 練習メニュー</div>';
+
+    menuData.menus.forEach(menu => {
+        const typeLabel = menu.type === 'pace_run' ? 'ペース走' :
+                         menu.type === 'interval' ? 'インターバル' : 'TT';
+
+        let detail = '';
+        if (menu.type === 'pace_run') {
+            if (menu.total) detail = `total ${menu.total}`;
+        } else if (menu.type === 'interval') {
+            if (menu.pace) detail = `設定 ${menu.pace}`;
+            if (menu.rest) detail += detail ? ` / ${menu.rest}` : menu.rest;
+        } else if (menu.type === 'tt') {
+            if (menu.results && menu.results.length > 0) {
+                detail = `${menu.results.length}名参加`;
+            }
+        }
+
+        let groupInfo = '';
+        if (menu.group) {
+            groupInfo = `${menu.group}グループ`;
+            if (menu.members && menu.members.length > 0) {
+                groupInfo += ': ' + menu.members.map(m => m.name).slice(0, 3).join(', ');
+                if (menu.members.length > 3) groupInfo += '...';
+            }
+        }
+
+        html += `<div class="menu-preview-item">
+            <div class="menu-preview-type">${typeLabel}</div>
+            <div class="menu-preview-name">${menu.name}</div>
+            ${detail ? `<div class="menu-preview-detail">${detail}</div>` : ''}
+            ${groupInfo ? `<div class="menu-preview-group"><i class="bi bi-people-fill"></i> ${groupInfo}</div>` : ''}
+        </div>`;
+    });
+
+    html += '</div>';
+    return html;
+}
+
 function openDayMenu(dateStr) {
     const modal = new bootstrap.Modal(document.getElementById('dayMenuModal'));
     const date = new Date(dateStr);
@@ -507,6 +621,9 @@ function openDayMenu(dateStr) {
             </div>
             <a href="/practice_log/${log.log_id}" class="btn btn-sm btn-outline-primary">詳細</a>
         </div>`;
+
+        // メニュープレビューを追加
+        html += renderMenuPreview(log);
     }
     if (!events.length && !log) {
         html = '<p class="text-muted text-center mb-0">この日の予定はありません</p>';
