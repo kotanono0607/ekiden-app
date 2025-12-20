@@ -384,10 +384,105 @@
         border-color: #667eea;
     }
     .member-check input { display: none; }
+
+    /* 一時保存インジケーター */
+    .autosave-indicator {
+        position: fixed;
+        top: 60px;
+        right: 16px;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 11px;
+        z-index: 100;
+        transition: all 0.3s;
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    .autosave-indicator.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .autosave-indicator.saving {
+        background: rgba(102, 126, 234, 0.2);
+        color: #667eea;
+    }
+    .autosave-indicator.saved {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+    }
+
+    /* 復元確認モーダル */
+    .restore-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .restore-modal-overlay.active { display: flex; }
+    .restore-modal {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 360px;
+        width: 100%;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .restore-modal-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--text-color);
+    }
+    .restore-modal-info {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    .restore-modal-info strong {
+        color: var(--text-color);
+    }
+    .restore-modal-actions {
+        display: flex;
+        gap: 12px;
+    }
+    .restore-modal-actions .btn {
+        flex: 1;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- 自動保存インジケーター -->
+<div class="autosave-indicator" id="autosaveIndicator">
+    <i class="bi bi-check-circle"></i> <span id="autosaveText">保存しました</span>
+</div>
+
+<!-- 復元確認モーダル -->
+<div class="restore-modal-overlay" id="restoreModal">
+    <div class="restore-modal">
+        <div class="restore-modal-title"><i class="bi bi-clock-history"></i> 入力途中のデータがあります</div>
+        <div class="restore-modal-info" id="restoreInfo">
+            前回の入力を復元しますか？
+        </div>
+        <div class="restore-modal-actions">
+            <button type="button" class="btn btn-outline-secondary" onclick="discardDraft()">
+                <i class="bi bi-trash"></i> 破棄
+            </button>
+            <button type="button" class="btn btn-primary" onclick="restoreDraft()">
+                <i class="bi bi-arrow-counterclockwise"></i> 復元
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5><i class="bi bi-journal-plus text-primary"></i> 練習日誌追加</h5>
     <a href="{{ url_for('practice_logs') }}" class="btn btn-outline-secondary btn-sm">
@@ -1297,5 +1392,321 @@ function prepareSubmit() {
 
 // 初期化
 updateSummary();
+
+// ============ 一時保存（ローカルストレージ） ============
+const DRAFT_STORAGE_KEY = 'practice_log_draft';
+let autoSaveTimer = null;
+let isRestoring = false;
+
+// ドラフトデータを収集
+function collectDraftData() {
+    const form = document.getElementById('mainForm');
+    const data = {
+        // 基本情報
+        date: form.querySelector('[name="date"]').value,
+        title: form.querySelector('[name="title"]').value,
+        weather: form.querySelector('[name="weather"]').value,
+        temperature: form.querySelector('[name="temperature"]').value,
+        memo: form.querySelector('[name="memo"]').value,
+        // 出欠状態
+        attendance: {},
+        // ゲスト
+        guests: [],
+        // メニューデータ
+        menus: menus,
+        // グループ選択
+        currentGroup: currentGroup,
+        // 保存日時
+        savedAt: new Date().toISOString()
+    };
+
+    // 選手の出欠状態を収集
+    document.querySelectorAll('input[id^="status_"]:not([id^="guest_status_"])').forEach(input => {
+        const playerId = input.id.replace('status_', '');
+        if (input.value) {
+            data.attendance[playerId] = input.value;
+        }
+    });
+
+    // ゲスト情報を収集
+    document.querySelectorAll('.guest-row').forEach(row => {
+        const nameInput = row.querySelector('.guest-name-input');
+        const statusInput = row.querySelector('input[id^="guest_status_"]');
+        if (nameInput && statusInput) {
+            data.guests.push({
+                name: nameInput.value,
+                status: statusInput.value
+            });
+        }
+    });
+
+    return data;
+}
+
+// ドラフトをローカルストレージに保存
+function saveDraft() {
+    if (isRestoring) return;
+
+    try {
+        const data = collectDraftData();
+        // 何も入力されていない場合は保存しない
+        const hasData = data.title !== '南陽・東置賜練習会' ||
+                       Object.keys(data.attendance).length > 0 ||
+                       data.guests.length > 0 ||
+                       data.menus.length > 0 ||
+                       data.memo ||
+                       data.temperature;
+
+        if (!hasData) {
+            return;
+        }
+
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(data));
+        showAutoSaveIndicator('saved');
+    } catch (e) {
+        console.error('ドラフト保存エラー:', e);
+    }
+}
+
+// 自動保存インジケーター表示
+function showAutoSaveIndicator(type) {
+    const indicator = document.getElementById('autosaveIndicator');
+    const textEl = document.getElementById('autosaveText');
+
+    indicator.classList.remove('saving', 'saved');
+    indicator.classList.add(type, 'show');
+
+    if (type === 'saving') {
+        textEl.textContent = '保存中...';
+    } else {
+        textEl.textContent = '一時保存しました';
+    }
+
+    // 2秒後に非表示
+    setTimeout(() => {
+        indicator.classList.remove('show');
+    }, 2000);
+}
+
+// ドラフトをクリア
+function clearDraft() {
+    try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch (e) {
+        console.error('ドラフトクリアエラー:', e);
+    }
+}
+
+// ドラフトを読み込み
+function loadDraft() {
+    try {
+        const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error('ドラフト読み込みエラー:', e);
+    }
+    return null;
+}
+
+// 復元確認モーダルを表示
+function showRestoreModal(draft) {
+    const savedDate = new Date(draft.savedAt);
+    const dateStr = savedDate.toLocaleDateString('ja-JP', {
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    let infoHtml = `<strong>${dateStr}</strong> に保存されたデータがあります。<br>`;
+    if (draft.date) {
+        infoHtml += `日付: ${draft.date}<br>`;
+    }
+    if (draft.menus && draft.menus.length > 0) {
+        infoHtml += `メニュー: ${draft.menus.length}件<br>`;
+    }
+    const attendeeCount = Object.values(draft.attendance || {}).filter(s => s === '出席').length;
+    if (attendeeCount > 0) {
+        infoHtml += `出席者: ${attendeeCount}名`;
+    }
+
+    document.getElementById('restoreInfo').innerHTML = infoHtml;
+    document.getElementById('restoreModal').classList.add('active');
+}
+
+// ドラフトを破棄
+function discardDraft() {
+    clearDraft();
+    document.getElementById('restoreModal').classList.remove('active');
+}
+
+// ドラフトを復元
+function restoreDraft() {
+    const draft = loadDraft();
+    if (!draft) {
+        document.getElementById('restoreModal').classList.remove('active');
+        return;
+    }
+
+    isRestoring = true;
+
+    try {
+        const form = document.getElementById('mainForm');
+
+        // 基本情報を復元
+        if (draft.date) form.querySelector('[name="date"]').value = draft.date;
+        if (draft.title) form.querySelector('[name="title"]').value = draft.title;
+        if (draft.weather) form.querySelector('[name="weather"]').value = draft.weather;
+        if (draft.temperature) form.querySelector('[name="temperature"]').value = draft.temperature;
+        if (draft.memo) form.querySelector('[name="memo"]').value = draft.memo;
+
+        // 出欠状態を復元
+        if (draft.attendance) {
+            Object.entries(draft.attendance).forEach(([playerId, status]) => {
+                const statusInput = document.getElementById('status_' + playerId);
+                if (statusInput) {
+                    statusInput.value = status;
+                    // ボタンのactive状態を更新
+                    const row = statusInput.closest('.player-row');
+                    if (row) {
+                        row.querySelectorAll('.status-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                            if ((status === '出席' && btn.classList.contains('present')) ||
+                                (status === '欠席' && btn.classList.contains('absent')) ||
+                                (status === '' && btn.classList.contains('clear'))) {
+                                btn.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        // ゲストを復元
+        if (draft.guests && draft.guests.length > 0) {
+            draft.guests.forEach(guest => {
+                addGuest();
+                const rows = document.querySelectorAll('.guest-row');
+                const lastRow = rows[rows.length - 1];
+                if (lastRow) {
+                    const nameInput = lastRow.querySelector('.guest-name-input');
+                    const statusInput = lastRow.querySelector('input[id^="guest_status_"]');
+                    if (nameInput) nameInput.value = guest.name;
+                    if (statusInput) {
+                        statusInput.value = guest.status;
+                        // ボタンのactive状態を更新
+                        lastRow.querySelectorAll('.status-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                            if ((guest.status === '出席' && btn.classList.contains('present')) ||
+                                (guest.status === '欠席' && btn.classList.contains('absent')) ||
+                                (guest.status === '' && btn.classList.contains('clear'))) {
+                                btn.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        // メニューデータを復元
+        if (draft.menus && draft.menus.length > 0) {
+            menus = draft.menus;
+            renderAddedMenus();
+        }
+
+        // グループ選択を復元
+        if (draft.currentGroup) {
+            selectGroup(draft.currentGroup);
+        }
+
+        updateSummary();
+
+    } catch (e) {
+        console.error('ドラフト復元エラー:', e);
+    }
+
+    isRestoring = false;
+    document.getElementById('restoreModal').classList.remove('active');
+}
+
+// 入力変更時の自動保存をセットアップ
+function setupAutoSave() {
+    const form = document.getElementById('mainForm');
+
+    // 入力変更イベントをリッスン
+    form.addEventListener('input', () => {
+        if (autoSaveTimer) clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(saveDraft, 1000); // 1秒後に保存
+    });
+
+    form.addEventListener('change', () => {
+        if (autoSaveTimer) clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(saveDraft, 500);
+    });
+
+    // 定期的な自動保存（30秒ごと）
+    setInterval(() => {
+        saveDraft();
+    }, 30000);
+}
+
+// メニュー追加時も保存
+const originalAddPaceMenu = addPaceMenu;
+addPaceMenu = function() {
+    originalAddPaceMenu();
+    saveDraft();
+};
+
+const originalAddIntervalMenu = addIntervalMenu;
+addIntervalMenu = function() {
+    originalAddIntervalMenu();
+    saveDraft();
+};
+
+const originalAddTTMenu = addTTMenu;
+addTTMenu = function() {
+    originalAddTTMenu();
+    saveDraft();
+};
+
+const originalRemoveMenu = removeMenu;
+removeMenu = function(idx) {
+    originalRemoveMenu(idx);
+    saveDraft();
+};
+
+// 出欠変更時も保存
+const originalSelectStatus = selectStatus;
+selectStatus = function(btn, playerId, status) {
+    originalSelectStatus(btn, playerId, status);
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(saveDraft, 500);
+    updateMemberCheckboxes();
+};
+
+const originalSelectGuestStatus = selectGuestStatus;
+selectGuestStatus = function(btn, index, status) {
+    originalSelectGuestStatus(btn, index, status);
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(saveDraft, 500);
+};
+
+// 送信前にドラフトをクリア
+const originalPrepareSubmit = prepareSubmit;
+prepareSubmit = function() {
+    clearDraft();
+    return originalPrepareSubmit();
+};
+
+// ページ読み込み時の初期化
+document.addEventListener('DOMContentLoaded', () => {
+    const draft = loadDraft();
+    if (draft) {
+        showRestoreModal(draft);
+    }
+    setupAutoSave();
+});
 </script>
 {% endblock %}
