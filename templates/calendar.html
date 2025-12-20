@@ -619,11 +619,14 @@ function openDayMenu(dateStr) {
                 <span class="event-list-title">${log.title}</span>
                 <span class="event-type-badge" style="background: #3b82f6">練習日誌</span>
             </div>
-            <a href="/practice_log/${log.log_id}" class="btn btn-sm btn-outline-primary">詳細</a>
         </div>`;
 
-        // メニュープレビューを追加
-        html += renderMenuPreview(log);
+        // 練習日誌を直接開くボタン
+        html += `<div class="d-grid gap-2 mt-2 mb-2">
+            <a href="/practice_log/${log.log_id}" class="btn btn-primary">
+                <i class="bi bi-journal-text"></i> 練習日誌を開く
+            </a>
+        </div>`;
     }
     if (!events.length && !log) {
         html = '<p class="text-muted text-center mb-0">この日の予定はありません</p>';
