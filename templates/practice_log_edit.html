@@ -2,6 +2,294 @@
 
 {% block title %}練習日誌編集 - 南陽東置賜{% endblock %}
 
+{% block extra_css %}
+<style>
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #667eea;
+    }
+    /* メニュー入力スタイル */
+    .menu-type-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+    .menu-type-tab {
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all 0.15s;
+    }
+    .menu-type-tab:hover { border-color: #667eea; }
+    .menu-type-tab.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    .menu-form { display: none; }
+    .menu-form.active { display: block; }
+    .lap-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+    .lap-input, .time-input {
+        width: 80px;
+        font-size: 18px;
+        font-weight: 600;
+        padding: 10px 12px;
+        text-align: center;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-color);
+        transition: all 0.15s;
+    }
+    .lap-input:focus, .time-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        outline: none;
+    }
+    .lap-input.filled, .time-input.filled {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: #10b981;
+    }
+    .lap-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+        min-width: 60px;
+    }
+    .time-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+    }
+    .time-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .time-cell-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+    }
+    .time-hint {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+    /* 数字キーパッドUI */
+    .numpad-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+    }
+    .numpad-overlay.active { display: flex; }
+    .numpad-container {
+        background: var(--card-bg);
+        border-radius: 16px 16px 0 0;
+        padding: 16px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+    }
+    .numpad-display {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        background: var(--bg-color);
+        border-radius: 8px;
+    }
+    .numpad-label {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .numpad-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-color);
+        letter-spacing: 2px;
+    }
+    .numpad-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .numpad-btn {
+        padding: 16px;
+        font-size: 24px;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        background: var(--bg-color);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.1s;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .numpad-btn:active {
+        background: #667eea;
+        color: white;
+        transform: scale(0.95);
+    }
+    .numpad-btn.action {
+        background: #667eea;
+        color: white;
+    }
+    .numpad-btn.next {
+        background: #10b981;
+        color: white;
+    }
+    .numpad-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .numpad-actions .numpad-btn {
+        padding: 14px;
+        font-size: 16px;
+    }
+    .result-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .result-rank {
+        width: 40px;
+        font-size: 12px;
+        padding: 4px 6px;
+    }
+    .result-player {
+        flex: 1;
+        font-size: 12px;
+        padding: 4px 8px;
+        max-width: 100px;
+    }
+    .result-time {
+        width: 80px;
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    .added-menus {
+        margin-top: 12px;
+    }
+    .added-menu-item {
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .added-menu-content {
+        flex: 1;
+    }
+    .added-menu-type {
+        font-size: 11px;
+        color: #667eea;
+        margin-bottom: 2px;
+    }
+    .added-menu-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+    .added-menu-detail {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+    .added-menu-group {
+        font-size: 10px;
+        color: #f59e0b;
+        margin-top: 2px;
+    }
+    /* グループ選択スタイル */
+    .group-selector {
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+    .group-btns {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .group-btn {
+        padding: 4px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all 0.15s;
+    }
+    .group-btn:hover { border-color: #f59e0b; }
+    .group-btn.active {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: white;
+    }
+    .group-btn.group-a.active { background: #3b82f6; border-color: #3b82f6; }
+    .group-btn.group-b.active { background: #10b981; border-color: #10b981; }
+    .group-btn.group-c.active { background: #f59e0b; border-color: #f59e0b; }
+    .member-selector {
+        margin-top: 8px;
+        display: none;
+    }
+    .member-selector.active { display: block; }
+    .member-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .member-check {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        font-size: 11px;
+        cursor: pointer;
+        color: var(--text-color);
+    }
+    .member-check:hover { border-color: #667eea; }
+    .member-check.selected {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+    }
+    .member-check input { display: none; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5><i class="bi bi-journal-text text-primary"></i> 練習日誌編集</h5>
@@ -10,9 +298,12 @@
     </a>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <form method="POST">
+<form method="POST" id="mainForm" onsubmit="return prepareSubmit()">
+    <!-- 基本情報 -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="section-title"><i class="bi bi-journal-text"></i> 基本情報</div>
+
             <div class="mb-3">
                 <label class="form-label">日付 <span class="text-danger">*</span></label>
                 <input type="date" class="form-control" name="date" value="{{ log.date }}" required>
@@ -21,11 +312,6 @@
             <div class="mb-3">
                 <label class="form-label">タイトル <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" name="title" value="{{ log.title }}" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">練習内容</label>
-                <textarea class="form-control" name="content" rows="5">{{ log.content }}</textarea>
             </div>
 
             <div class="row">
@@ -64,21 +350,672 @@
                 <textarea class="form-control" name="memo" rows="2">{{ log.memo }}</textarea>
             </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> 更新
-                </button>
-            </div>
-        </form>
+            <input type="hidden" name="content" id="contentInput" value="">
+            <input type="hidden" name="menu_data" id="menuDataInput" value="">
+        </div>
+    </div>
 
-        <hr>
-        <form method="POST" action="{{ url_for('practice_log_delete', log_id=log.log_id) }}" onsubmit="return confirm('この練習日誌を削除しますか？')">
-            <div class="d-grid">
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-trash"></i> 削除
+    <!-- 練習メニュー編集 -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="section-title"><i class="bi bi-list-check"></i> 練習メニュー</div>
+
+            <!-- グループ選択 -->
+            <div class="group-selector">
+                <label class="form-label" style="font-size:12px;margin-bottom:6px;">グループ選択</label>
+                <div class="group-btns">
+                    <button type="button" class="group-btn group-a" onclick="selectGroup('A')">A</button>
+                    <button type="button" class="group-btn group-b" onclick="selectGroup('B')">B</button>
+                    <button type="button" class="group-btn group-c" onclick="selectGroup('C')">C</button>
+                    <button type="button" class="group-btn active" onclick="selectGroup('')">なし</button>
+                </div>
+                <div class="member-selector" id="memberSelector">
+                    <label class="form-label" style="font-size:11px;margin-bottom:4px;margin-top:8px;">参加メンバー（選手から選択）</label>
+                    <div class="member-checkboxes" id="memberCheckboxes">
+                        {% for player in players %}
+                        <label class="member-check" onclick="toggleMember(this)">
+                            <input type="checkbox" value="{{ player.id }}" data-name="{{ player.name }}">
+                            {{ player.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- メニュータイプ選択 -->
+            <div class="menu-type-tabs">
+                <button type="button" class="menu-type-tab active" onclick="switchMenuType('pace')">ペース走</button>
+                <button type="button" class="menu-type-tab" onclick="switchMenuType('interval')">インターバル</button>
+                <button type="button" class="menu-type-tab" onclick="switchMenuType('tt')">TT/フリー</button>
+            </div>
+
+            <!-- ペース走フォーム -->
+            <div id="menuFormPace" class="menu-form active">
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">総距離</label>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" id="paceDistance" placeholder="12000">
+                                <span class="input-group-text">m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">ラップ間隔</label>
+                    <div class="input-group input-group-sm" style="max-width: 280px;">
+                        <input type="number" class="form-control" id="paceLapInterval" value="1000" placeholder="1000">
+                        <span class="input-group-text">mごと</span>
+                        <button type="button" class="btn btn-outline-primary" onclick="generatePaceLaps()">生成</button>
+                    </div>
+                </div>
+                <div id="paceLapsContainer" class="mb-2"></div>
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">トータルタイム</label>
+                    <input type="text" class="form-control form-control-sm" id="paceTotalTime" placeholder="42:44" readonly>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addPaceMenu()">
+                    <i class="bi bi-plus"></i> ペース走を追加
                 </button>
             </div>
-        </form>
+
+            <!-- インターバルフォーム -->
+            <div id="menuFormInterval" class="menu-form">
+                <div class="row mb-2">
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;">距離</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" id="intervalDistance" placeholder="400">
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;">本数</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" id="intervalReps" placeholder="10">
+                            <button type="button" class="btn btn-outline-primary" onclick="generateIntervalTimes()">生成</button>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;">設定</label>
+                        <input type="text" class="form-control form-control-sm" id="intervalPace" placeholder="70秒">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" style="font-size:12px;">レスト</label>
+                    <input type="text" class="form-control form-control-sm" id="intervalRest" placeholder="200mジョグ">
+                </div>
+                <div id="intervalTimesContainer" class="mb-2"></div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addIntervalMenu()">
+                    <i class="bi bi-plus"></i> インターバルを追加
+                </button>
+            </div>
+
+            <!-- TT/フリーフォーム -->
+            <div id="menuFormTT" class="menu-form">
+                <div class="row mb-2">
+                    <div class="col-6">
+                        <label class="form-label" style="font-size:12px;">種目名</label>
+                        <input type="text" class="form-control form-control-sm" id="ttName" placeholder="1000m TT">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" style="font-size:12px;">距離</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" id="ttDistance" placeholder="1000">
+                            <span class="input-group-text">m</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="ttResultsContainer" class="mb-2">
+                    <label class="form-label" style="font-size:12px;">個人タイム</label>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="addTTResult()">
+                    <i class="bi bi-plus"></i> 選手追加
+                </button>
+                <br>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addTTMenu()">
+                    <i class="bi bi-plus"></i> TTを追加
+                </button>
+            </div>
+
+            <!-- 追加済みメニュー -->
+            <div class="added-menus" id="addedMenus"></div>
+        </div>
+    </div>
+
+    <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> 更新
+        </button>
+    </div>
+</form>
+
+<hr>
+<form method="POST" action="{{ url_for('practice_log_delete', log_id=log.log_id) }}" onsubmit="return confirm('この練習日誌を削除しますか？')">
+    <div class="d-grid">
+        <button type="submit" class="btn btn-outline-danger">
+            <i class="bi bi-trash"></i> 削除
+        </button>
+    </div>
+</form>
+
+<!-- 数字キーパッド -->
+<div class="numpad-overlay" id="numpadOverlay" onclick="if(event.target===this)closeNumpad()">
+    <div class="numpad-container">
+        <div class="numpad-display">
+            <span class="numpad-label" id="numpadLabel">1本目</span>
+            <span class="numpad-value" id="numpadValue">--:--</span>
+        </div>
+        <div class="numpad-grid">
+            <button type="button" class="numpad-btn" onclick="numpadInput('1')">1</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('2')">2</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('3')">3</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('4')">4</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('5')">5</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('6')">6</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('7')">7</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('8')">8</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('9')">9</button>
+            <button type="button" class="numpad-btn action" onclick="numpadClear()">C</button>
+            <button type="button" class="numpad-btn" onclick="numpadInput('0')">0</button>
+            <button type="button" class="numpad-btn action" onclick="numpadConfirm()">確定</button>
+        </div>
+        <div class="numpad-actions">
+            <button type="button" class="numpad-btn next" onclick="numpadNext()">次へ →</button>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 既存のメニューデータを読み込み
+const existingMenuData = {{ log.menu_data | safe if log.menu_data else '{}' }};
+let menus = [];
+let ttResultIndex = 0;
+let currentGroup = '';
+
+// 初期化時に既存メニューを読み込み
+document.addEventListener('DOMContentLoaded', () => {
+    loadExistingMenus();
+});
+
+function loadExistingMenus() {
+    if (existingMenuData && existingMenuData.menus && Array.isArray(existingMenuData.menus)) {
+        menus = existingMenuData.menus;
+        renderAddedMenus();
+    }
+}
+
+// グループ選択
+function selectGroup(group) {
+    currentGroup = group;
+    document.querySelectorAll('.group-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    const memberSelector = document.getElementById('memberSelector');
+    if (group) {
+        memberSelector.classList.add('active');
+    } else {
+        memberSelector.classList.remove('active');
+    }
+}
+
+function toggleMember(label) {
+    const checkbox = label.querySelector('input');
+    checkbox.checked = !checkbox.checked;
+    if (checkbox.checked) {
+        label.classList.add('selected');
+    } else {
+        label.classList.remove('selected');
+    }
+}
+
+function getSelectedMembers() {
+    const members = [];
+    document.querySelectorAll('.member-check input:checked').forEach(input => {
+        members.push({
+            id: input.value,
+            name: input.dataset.name
+        });
+    });
+    return members;
+}
+
+function resetGroupSelection() {
+    currentGroup = '';
+    document.querySelectorAll('.group-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.group-btn')[3].classList.add('active');
+    document.getElementById('memberSelector').classList.remove('active');
+    document.querySelectorAll('.member-check').forEach(label => {
+        label.classList.remove('selected');
+        label.querySelector('input').checked = false;
+    });
+}
+
+// メニュータイプ切り替え
+function switchMenuType(type) {
+    document.querySelectorAll('.menu-type-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.menu-form').forEach(f => f.classList.remove('active'));
+    event.target.classList.add('active');
+    if (type === 'pace') document.getElementById('menuFormPace').classList.add('active');
+    else if (type === 'interval') document.getElementById('menuFormInterval').classList.add('active');
+    else if (type === 'tt') document.getElementById('menuFormTT').classList.add('active');
+}
+
+// タイム自動フォーマット
+function formatTimeInput(input) {
+    let val = input.value.replace(/[^0-9]/g, '');
+    if (val.length >= 3) {
+        const sec = val.slice(-2);
+        const min = val.slice(0, -2);
+        input.value = min + ':' + sec;
+    }
+    if (input.value.trim()) {
+        input.classList.add('filled');
+    } else {
+        input.classList.remove('filled');
+    }
+}
+
+// ============ 数字キーパッド ============
+let numpadTarget = null;
+let numpadInputs = [];
+let numpadCurrentIndex = 0;
+let numpadRawValue = '';
+
+function openNumpad(input, label) {
+    numpadTarget = input;
+    numpadInputs = Array.from(document.querySelectorAll('.time-input, .lap-input'));
+    numpadCurrentIndex = numpadInputs.indexOf(input);
+    numpadRawValue = input.value.replace(/[^0-9]/g, '');
+
+    document.getElementById('numpadLabel').textContent = label || '';
+    updateNumpadDisplay();
+    document.getElementById('numpadOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeNumpad() {
+    document.getElementById('numpadOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    if (numpadTarget) {
+        formatTimeInput(numpadTarget);
+        calculatePaceTotal();
+    }
+    numpadTarget = null;
+}
+
+function updateNumpadDisplay() {
+    let display = '--:--';
+    if (numpadRawValue.length > 0) {
+        if (numpadRawValue.length <= 2) {
+            display = numpadRawValue;
+        } else {
+            const sec = numpadRawValue.slice(-2);
+            const min = numpadRawValue.slice(0, -2);
+            display = min + ':' + sec;
+        }
+    }
+    document.getElementById('numpadValue').textContent = display;
+    if (numpadTarget) {
+        numpadTarget.value = display === '--:--' ? '' : display;
+    }
+}
+
+function numpadInput(digit) {
+    if (numpadRawValue.length < 5) {
+        numpadRawValue += digit;
+        updateNumpadDisplay();
+    }
+}
+
+function numpadClear() {
+    numpadRawValue = '';
+    updateNumpadDisplay();
+}
+
+function numpadNext() {
+    if (numpadTarget) {
+        formatTimeInput(numpadTarget);
+        numpadTarget.classList.add('filled');
+    }
+
+    if (numpadCurrentIndex < numpadInputs.length - 1) {
+        numpadCurrentIndex++;
+        numpadTarget = numpadInputs[numpadCurrentIndex];
+        numpadRawValue = numpadTarget.value.replace(/[^0-9]/g, '');
+
+        const labelEl = numpadTarget.closest('.lap-row')?.querySelector('.lap-label') ||
+                        numpadTarget.closest('.time-cell')?.querySelector('.time-cell-label');
+        document.getElementById('numpadLabel').textContent = labelEl?.textContent || '';
+        updateNumpadDisplay();
+        numpadTarget.focus();
+    } else {
+        closeNumpad();
+    }
+    calculatePaceTotal();
+}
+
+function numpadConfirm() {
+    closeNumpad();
+}
+
+// ペース走ラップ生成
+function generatePaceLaps() {
+    const total = parseInt(document.getElementById('paceDistance').value) || 0;
+    const interval = parseInt(document.getElementById('paceLapInterval').value) || 1000;
+    const container = document.getElementById('paceLapsContainer');
+    container.innerHTML = '';
+
+    if (total <= 0) return;
+
+    let html = '<div class="time-hint">タップでキーパッド表示</div>';
+    for (let d = interval; d <= total; d += interval) {
+        html += `
+            <div class="lap-row">
+                <span class="lap-label">${d}m</span>
+                <input type="text" class="lap-input time-input" id="paceLap_${d}"
+                       inputmode="numeric" placeholder="3:35" readonly
+                       onclick="openNumpad(this, '${d}m')">
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+
+    setTimeout(() => {
+        const firstInput = container.querySelector('.lap-input');
+        if (firstInput) {
+            const d = firstInput.id.replace('paceLap_', '');
+            openNumpad(firstInput, d + 'm');
+        }
+    }, 100);
+}
+
+function calculatePaceTotal() {
+    let totalSeconds = 0;
+    document.querySelectorAll('#paceLapsContainer input').forEach(input => {
+        const time = input.value.trim();
+        if (time) {
+            const parts = time.split(':');
+            if (parts.length === 2) {
+                totalSeconds += parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+        }
+    });
+    if (totalSeconds > 0) {
+        const min = Math.floor(totalSeconds / 60);
+        const sec = totalSeconds % 60;
+        document.getElementById('paceTotalTime').value = `${min}:${sec.toString().padStart(2, '0')}`;
+    }
+}
+
+// ペース走追加
+function addPaceMenu() {
+    const distance = document.getElementById('paceDistance').value;
+    const totalTime = document.getElementById('paceTotalTime').value;
+
+    if (!distance) { alert('距離を入力してください'); return; }
+
+    const laps = [];
+    document.querySelectorAll('#paceLapsContainer .lap-input').forEach(input => {
+        const d = input.id.replace('paceLap_', '');
+        if (input.value.trim()) {
+            laps.push({ distance: d + 'm', time: input.value.trim() });
+        }
+    });
+
+    const menu = {
+        type: 'pace_run',
+        name: `${distance}mペース走`,
+        distance: distance + 'm',
+        laps: laps,
+        total: totalTime,
+        group: currentGroup,
+        members: getSelectedMembers()
+    };
+    menus.push(menu);
+    renderAddedMenus();
+
+    document.getElementById('paceDistance').value = '';
+    document.getElementById('paceLapsContainer').innerHTML = '';
+    document.getElementById('paceTotalTime').value = '';
+    resetGroupSelection();
+}
+
+// インターバルタイム入力欄生成
+function generateIntervalTimes() {
+    const reps = parseInt(document.getElementById('intervalReps').value) || 0;
+    const distance = parseInt(document.getElementById('intervalDistance').value) || 0;
+    const container = document.getElementById('intervalTimesContainer');
+    container.innerHTML = '';
+
+    if (reps <= 0 || reps > 30) return;
+
+    let placeholder = '70';
+    if (distance >= 1000) placeholder = '3:20';
+    else if (distance >= 600) placeholder = '1:50';
+    else if (distance >= 300) placeholder = '50';
+
+    let html = '<label class="form-label" style="font-size:12px;">各本タイム</label>';
+    html += '<div class="time-hint">タップでキーパッド表示</div>';
+    html += '<div class="time-grid">';
+    for (let i = 1; i <= reps; i++) {
+        html += `
+            <div class="time-cell">
+                <span class="time-cell-label">${i}本目</span>
+                <input type="text" class="time-input" id="intervalTime_${i}"
+                       inputmode="numeric" placeholder="${placeholder}" readonly
+                       onclick="openNumpad(this, '${i}本目')">
+            </div>
+        `;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+
+    setTimeout(() => {
+        const firstInput = container.querySelector('.time-input');
+        if (firstInput) openNumpad(firstInput, '1本目');
+    }, 100);
+}
+
+// インターバル追加
+function addIntervalMenu() {
+    const distance = document.getElementById('intervalDistance').value;
+    const reps = document.getElementById('intervalReps').value;
+    const pace = document.getElementById('intervalPace').value;
+    const rest = document.getElementById('intervalRest').value;
+
+    if (!distance || !reps) { alert('距離と本数を入力してください'); return; }
+
+    const times = [];
+    for (let i = 1; i <= parseInt(reps); i++) {
+        const timeInput = document.getElementById('intervalTime_' + i);
+        if (timeInput && timeInput.value.trim()) {
+            times.push({ rep: i, time: timeInput.value.trim() });
+        }
+    }
+
+    const menu = {
+        type: 'interval',
+        name: `${distance}m×${reps}`,
+        distance: distance + 'm',
+        reps: parseInt(reps),
+        pace: pace,
+        rest: rest,
+        times: times,
+        group: currentGroup,
+        members: getSelectedMembers()
+    };
+    menus.push(menu);
+    renderAddedMenus();
+
+    document.getElementById('intervalDistance').value = '';
+    document.getElementById('intervalReps').value = '';
+    document.getElementById('intervalPace').value = '';
+    document.getElementById('intervalRest').value = '';
+    document.getElementById('intervalTimesContainer').innerHTML = '';
+    resetGroupSelection();
+}
+
+// TT結果行追加
+function addTTResult() {
+    const container = document.getElementById('ttResultsContainer');
+    const html = `
+        <div class="result-row" id="ttResult_${ttResultIndex}">
+            <input type="number" class="form-control result-rank" placeholder="#" id="ttRank_${ttResultIndex}">
+            <input type="text" class="form-control result-player" placeholder="選手名" id="ttPlayer_${ttResultIndex}">
+            <input type="text" class="form-control result-time" placeholder="2:52.7" id="ttTime_${ttResultIndex}">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeTTResult(${ttResultIndex})">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+    ttResultIndex++;
+}
+
+function removeTTResult(idx) {
+    document.getElementById('ttResult_' + idx)?.remove();
+}
+
+// TT追加
+function addTTMenu() {
+    const name = document.getElementById('ttName').value || 'TT';
+    const distance = document.getElementById('ttDistance').value;
+
+    const results = [];
+    document.querySelectorAll('#ttResultsContainer .result-row').forEach(row => {
+        const idx = row.id.replace('ttResult_', '');
+        const rank = document.getElementById('ttRank_' + idx)?.value;
+        const player = document.getElementById('ttPlayer_' + idx)?.value;
+        const time = document.getElementById('ttTime_' + idx)?.value;
+        if (player && time) {
+            results.push({ rank: parseInt(rank) || 0, player: player, time: time });
+        }
+    });
+
+    const menu = {
+        type: 'tt',
+        name: name,
+        distance: distance ? distance + 'm' : '',
+        results: results,
+        group: currentGroup,
+        members: getSelectedMembers()
+    };
+    menus.push(menu);
+    renderAddedMenus();
+
+    document.getElementById('ttName').value = '';
+    document.getElementById('ttDistance').value = '';
+    document.getElementById('ttResultsContainer').innerHTML = '<label class="form-label" style="font-size:12px;">個人タイム</label>';
+    ttResultIndex = 0;
+    resetGroupSelection();
+}
+
+// 追加済みメニュー表示
+function renderAddedMenus() {
+    const container = document.getElementById('addedMenus');
+    if (menus.length === 0) {
+        container.innerHTML = '<div class="text-muted text-center py-2" style="font-size:12px;">メニューがありません</div>';
+        return;
+    }
+
+    let html = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">登録済みメニュー:</div>';
+    menus.forEach((menu, idx) => {
+        let detail = '';
+        if (menu.type === 'pace_run') {
+            detail = menu.laps.length + '本ラップ';
+            if (menu.total) detail += ' / total ' + menu.total;
+        } else if (menu.type === 'interval') {
+            if (menu.times && menu.times.length > 0) {
+                detail = menu.times.length + '本記録';
+            } else {
+                detail = menu.pace || '';
+            }
+            if (menu.rest) detail += (detail ? ' / ' : '') + 'レスト ' + menu.rest;
+        } else if (menu.type === 'tt') {
+            detail = menu.results.length + '名参加';
+            if (menu.results.length > 0 && menu.results[0].player) {
+                detail += ' / 1位 ' + menu.results[0].player + ' ' + menu.results[0].time;
+            }
+        }
+
+        const typeLabel = menu.type === 'pace_run' ? 'ペース走' : menu.type === 'interval' ? 'インターバル' : 'TT';
+        let groupInfo = '';
+        if (menu.group) {
+            groupInfo = `${menu.group}グループ`;
+            if (menu.members && menu.members.length > 0) {
+                groupInfo += ': ' + menu.members.map(m => m.name).join(', ');
+            }
+        }
+        html += `
+            <div class="added-menu-item">
+                <div class="added-menu-content">
+                    <div class="added-menu-type">${typeLabel}</div>
+                    <div class="added-menu-name">${menu.name}</div>
+                    <div class="added-menu-detail">${detail}</div>
+                    ${groupInfo ? `<div class="added-menu-group"><i class="bi bi-people-fill"></i> ${groupInfo}</div>` : ''}
+                </div>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMenu(${idx})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function removeMenu(idx) {
+    menus.splice(idx, 1);
+    renderAddedMenus();
+}
+
+// 送信前処理
+function prepareSubmit() {
+    // メニューデータをJSONに
+    document.getElementById('menuDataInput').value = JSON.stringify({ menus: menus });
+
+    // contentフィールドにテキスト形式も生成
+    let content = '';
+    menus.forEach(menu => {
+        if (menu.group) {
+            content += `【${menu.group}グループ】`;
+            if (menu.members && menu.members.length > 0) {
+                content += ' ' + menu.members.map(m => m.name).join(', ');
+            }
+            content += '\n';
+        }
+
+        if (menu.type === 'pace_run') {
+            content += menu.name + '\n';
+            menu.laps.forEach(lap => {
+                content += `${lap.distance} ${lap.time}\n`;
+            });
+            if (menu.total) content += `total ${menu.total}\n`;
+            content += '\n';
+        } else if (menu.type === 'interval') {
+            content += `${menu.name}`;
+            if (menu.pace) content += ` 設定${menu.pace}`;
+            if (menu.rest) content += ` レスト${menu.rest}`;
+            content += '\n';
+            if (menu.times && menu.times.length > 0) {
+                menu.times.forEach(t => {
+                    content += `${t.rep}本目 ${t.time}\n`;
+                });
+            }
+            content += '\n';
+        } else if (menu.type === 'tt') {
+            content += menu.name + '\n';
+            menu.results.forEach(r => {
+                content += `${r.rank ? r.rank + '位 ' : ''}${r.player} ${r.time}\n`;
+            });
+            content += '\n';
+        }
+    });
+    document.getElementById('contentInput').value = content.trim();
+    return true;
+}
+</script>
 {% endblock %}

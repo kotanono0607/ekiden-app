@@ -1129,15 +1129,20 @@ def practice_log_edit(log_id):
             temperature = request.form.get('temperature', '')
             participants = request.form.get('participants', '')
             memo = request.form.get('memo', '')
+            menu_data = request.form.get('menu_data', None)
 
-            sheet_api.update_practice_log(log_id, date, title, content, weather, temperature, participants, memo)
+            sheet_api.update_practice_log(log_id, date, title, content, weather, temperature, participants, memo, menu_data)
             flash('練習日誌を更新しました', 'success')
             return redirect(url_for('practice_log_detail', log_id=log_id))
         except Exception as e:
             flash(f'更新に失敗しました: {str(e)}', 'danger')
 
     weather_list = sheet_api.get_master_choices('weather_list')
-    return render_template('practice_log_edit.html', log=log, weather_list=weather_list)
+    # メニュー編集用に選手リストと出欠データを取得
+    all_players = sheet_api.get_all_players()
+    players = [p for p in all_players if str(p.get('status', 'TRUE')).upper() != 'FALSE']
+    attendance_data = sheet_api.get_attendance_by_date(log.get('date', ''))
+    return render_template('practice_log_edit.html', log=log, weather_list=weather_list, players=players, attendance_data=attendance_data)
 
 @app.route("/practice_log/<log_id>/delete", methods=['POST'])
 def practice_log_delete(log_id):
