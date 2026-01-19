@@ -48,13 +48,18 @@
         border-radius: 8px;
         background-color: var(--input-bg);
         color: var(--text-color);
-        border-color: var(--border-color);
+        border: 1px solid var(--border-color);
     }
     .form-control:focus, .form-select:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
         background-color: var(--input-bg);
         color: var(--text-color);
+    }
+    .form-control::placeholder,
+    .form-select::placeholder {
+        color: var(--text-muted);
+        opacity: 0.6;
     }
     .back-link {
         display: inline-flex;
