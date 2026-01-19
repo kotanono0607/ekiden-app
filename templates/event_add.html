@@ -6,12 +6,12 @@
 <style>
     [data-theme="dark"] .card {
         background: var(--card-bg);
-        border-color: var(--border-color);
+        border: 1px solid var(--border-color);
     }
     [data-theme="dark"] .form-control,
     [data-theme="dark"] .form-select {
         background-color: var(--input-bg, #2d3748);
-        border-color: var(--border-color);
+        border: 1px solid var(--border-color);
         color: var(--text-color);
     }
     [data-theme="dark"] .form-control::placeholder {
@@ -25,10 +25,10 @@
         box-shadow: 0 0 0 0.2rem rgba(229, 62, 62, 0.25);
     }
     [data-theme="dark"] .form-label {
-        color: var(--text-color);
+        color: var(--text-muted);
     }
     [data-theme="dark"] h5 {
-        color: var(--text-color);
+        color: var(--text-muted);
     }
 </style>
 {% endblock %}

@@ -17,7 +17,7 @@
         font-weight: 600;
     }
     .form-section {
-        background: white;
+        background: var(--card-bg);
         border-radius: 12px;
         margin: 16px 0;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -27,8 +27,8 @@
         padding: 12px 16px;
         font-size: 14px;
         font-weight: 600;
-        color: #4a5568;
-        border-bottom: 1px solid #e2e8f0;
+        color: var(--text-color);
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -39,17 +39,22 @@
     .form-label {
         font-size: 13px;
         font-weight: 500;
-        color: #4a5568;
+        color: var(--text-muted);
         margin-bottom: 6px;
     }
     .form-control, .form-select {
         font-size: 16px;
         padding: 10px 12px;
         border-radius: 8px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        border-color: var(--border-color);
     }
     .form-control:focus, .form-select:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        background-color: var(--input-bg);
+        color: var(--text-color);
     }
     .back-link {
         display: inline-flex;
@@ -63,10 +68,10 @@
     .submit-area {
         position: sticky;
         bottom: 0;
-        background: white;
+        background: var(--card-bg);
         padding: 16px;
         margin: 16px -12px -1rem -12px;
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid var(--border-color);
     }
     .submit-btn {
         width: 100%;
